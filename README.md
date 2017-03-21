@@ -50,9 +50,9 @@ dates
     # and that's it
 
 strings
-    are bare words unless they match
-    bools or ints
-    "in which case just use quotes"
+    are bare words unless
+    they match bools or ints, or have a colon
+    "in which case: just use quotes"
     """"""" this is still valid"
     this too"""
 
@@ -65,8 +65,10 @@ lists
     f
 
 schema
-    looks normal
+    must be a top-level key
+    looks like normal
         default value
+        in fact is normal!
     more things
         other default
     no default value
