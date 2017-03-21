@@ -16,7 +16,8 @@ bools
     t
     f
 
-ints # by default are 64-bit signed ints
+ints
+    # by default are 64-bit signed ints
     5280
     299_792_458
     14.3
@@ -24,7 +25,8 @@ ints # by default are 64-bit signed ints
     23u
     # and are always 64-bit
 
-dates # subset of ISO 8601
+dates
+    # subset of ISO 8601
     # date
     2017-03-21
     # short date + time + timezone
