@@ -36,7 +36,7 @@ ints
     5280
     299_792_458
     14.3
-    23u
+    23
     # and are always 64-bit
 
 dates
