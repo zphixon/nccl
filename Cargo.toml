@@ -1,0 +1,6 @@
+[package]
+name = "nccl"
+version = "0.1.0"
+authors = ["cheezgi <zackh@firemail.cc>"]
+
+[dependencies]
