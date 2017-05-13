@@ -42,12 +42,56 @@ fn get() {
 }
 
 #[test]
-fn index() {
+fn multi() {
     let mut p = Pair::new("key");
     p.add("value");
     p.add("dj khaled");
     p.get_mut("value".into()).unwrap().add("yes!");
     p.get_mut("dj khaled".into()).unwrap().add("you smart");
     p.get_mut("dj khaled".into()).unwrap().add("you loyal");
+    assert_eq!(p, Pair {
+        key: "key".into(),
+        value: vec![Pair {
+            key: "value".into(),
+            value: vec![Pair {
+                key: "yes!".into(),
+                value: vec![]
+            }]
+        }, Pair {
+            key: "dj khaled".into(),
+            value: vec![Pair {
+                key: "you smart".into(),
+                value: vec![]
+            }, Pair{
+                key: "you loyal".into(),
+                value: vec![]
+            }]
+        }]
+    });
+}
+
+#[test]
+fn index() {
+    let mut p = Pair::new("key");
+    p.add("hello");
+    p["hello".into()].add("world");
+    p["hello".into()]["world".into()].add("what's");
+    p["hello".into()]["world".into()]["what's".into()].add("up?");
+    assert_eq!(p, Pair {
+        key: "key".into(),
+        value: vec![Pair {
+            key: "hello".into(),
+            value: vec![Pair {
+                key: "world".into(),
+                value: vec![Pair {
+                    key: "what's".into(),
+                    value: vec![Pair {
+                        key: "up?".into(),
+                        value: vec![]
+                    }]
+                }]
+            }]
+        }]
+    });
 }
 
