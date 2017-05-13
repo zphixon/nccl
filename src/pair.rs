@@ -55,17 +55,16 @@ impl Pair {
     }
 }
 
-impl Index<Value> for Pair {
+impl<T> Index<T> for Pair where Value: From<T> {
     type Output = Pair;
-
-    fn index(&self, value: Value) -> &Pair {
-        self.get(value).expect("Did not find value in pair")
+    fn index(&self, value: T) -> &Pair {
+        self.get(value.into()).expect("Did not find value in pair")
     }
 }
 
-impl IndexMut<Value> for Pair {
-    fn index_mut(&mut self, value: Value) -> &mut Pair {
-        self.get_mut(value).expect("Did not find value in pair")
+impl<T> IndexMut<T> for Pair where Value: From<T> {
+    fn index_mut(&mut self, value: T) -> &mut Pair {
+        self.get_mut(value.into()).expect("Did not find value in pair")
     }
 }
 
