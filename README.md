@@ -11,12 +11,6 @@ It's easy. I mean real easy. Also not crap, which is kind of the point.
 * strings
 * inherit stuff from other bindings
 
-Keys match the following regex:
-
-`[^:]*`
-
-(colons are used for inheritance)
-
 ```
 # one major syntactical feature
 
@@ -26,6 +20,7 @@ key
 # supports comments
 # must be on a line their own
 # has some data types
+# keys must be strings
 
 bools
     t
