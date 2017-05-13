@@ -74,9 +74,9 @@ fn multi() {
 fn index() {
     let mut p = Pair::new("key");
     p.add("hello");
-    p["hello".into()].add("world");
-    p["hello".into()]["world".into()].add("what's");
-    p["hello".into()]["world".into()]["what's".into()].add("up?");
+    p["hello"].add("world");
+    p["hello"]["world"].add("what's");
+    p["hello"]["world"]["what's"].add("up?");
     assert_eq!(p, Pair {
         key: "key".into(),
         value: vec![Pair {
