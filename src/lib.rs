@@ -1,56 +1,97 @@
 
-//  key
-//      value
-//  Key {
-//      value: Value::String,
-//      sub: Value::String
-//  }
-//
-//  key
-//      value1
-//      value2
-//  Key {
-//      value: Value::String,
-//      sub: Value::List(vec![Value::String, value::String])
-//  }
-//
-//  key
-//      value
-//          sub
-//      value
-//  Key {
-//      value: Value::String,
-//      sub: Value::List(vec![Value::Key(Key {
-//                                           value: Value::String
-//                                           sub: Value::String
-//                                       }),
-//                            Value::String])
-//  }
-//
+use std::ops::{Index, IndexMut};
 
-#[derive(Debug, PartialEq)]
-pub struct Key {
-    value: Value,
-    sub: Value,
+#[derive(Debug)]
+pub enum Error {
+    KeyNotFound,
 }
 
-impl Key {
-    fn add(&mut self, v: Value) {
-        if self.sub.is_list() {
-            self.sub.push(v);
-            } else if self.sub.user {
+// top level key that contains everything is __top_level__
+#[derive(Clone, Debug, PartialEq)]
+pub struct Pair {
+    pub key: Value,
+    pub value: Vec<Pair>
+}
+
+impl Pair {
+    pub fn new<T>(key: T) -> Pair where Value: From<T> {
+        Pair {
+            key: Value::from(key),
+            value: vec![]
+        }
+    }
+
+    pub fn add<T>(&mut self, val: T) where Value: From<T> {
+        self.value.push(Pair::new(val));
+    }
+
+    pub fn add_pair(&mut self, p: Pair) {
+        self.value.push(p);
+    }
+
+    pub fn get(&self, value: Value) -> Result<&Pair, Error> {
+        let mut p = None;
+        for (k, v) in self.value.iter().enumerate() {
+            if v.key == value {
+                p = Some(k);
+            }
+        }
+        if p.is_some() {
+            Ok(&self.value[p.unwrap()])
+        } else {
+            Err(Error::KeyNotFound)
+        }
+    }
+
+    pub fn get_mut(&mut self, value: Value) -> Result<&mut Pair, Error> {
+        let mut p = None;
+        for (k, v) in self.value.iter().enumerate() {
+            if v.key == value {
+                p = Some(k);
+            }
+        }
+        if p.is_some() {
+            Ok(&mut self.value[p.unwrap()])
+        } else {
+            Err(Error::KeyNotFound)
         }
     }
 }
 
-#[derive(Debug, PartialEq)]
+impl Index<Value> for Pair {
+    type Output = Pair;
+
+    fn index(&self, value: Value) -> &Pair {
+        self.get(value).expect("Did not find value in pair")
+    }
+}
+
+impl IndexMut<Value> for Pair {
+    fn index_mut(&mut self, value: Value) -> &mut Pair {
+        self.get_mut(value).expect("Did not find value in pair")
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
+    String(String),
     List(Vec<Value>),
     Bool(bool),
     Integer(i64),
     Float(f64),
     Date(String), // TODO
-    Key(Box<Key>),
+}
+
+impl From<String> for Value {
+    fn from(s: String) -> Value {
+        Value::String(s)
+    }
+}
+
+impl<'a> From<&'a str> for Value {
+    fn from(s: &'a str) -> Value {
+        Value::String(s.to_owned())
+    }
 }
 
 impl From<bool> for Value {
@@ -73,23 +114,7 @@ impl From<f64> for Value {
 
 impl<T> From<Vec<T>> for Value where Value: From<T> {
     fn from(v: Vec<T>) -> Value {
-        Value::List(v.into_iter().map(|x| Value::from(x)).collect())
-    }
-}
-
-impl Value {
-    fn is_list(&v: Value) -> bool {
-        match v {
-            Value::List(_) => true,
-            _ => false
-        }
-    }
-
-    fn push(&mut self, v: Value) {
-        match *self {
-            Value::List(l) => l.push(v),
-            _ => panic!("Called push on non-List")
-        }
+        Value::List(v.into_iter().map(Value::from).collect())
     }
 }
 
