@@ -1,7 +1,8 @@
 
 extern crate nccl;
 
-use nccl::{Value, Pair};
+use nccl::value::Value;
+use nccl::pair::Pair;
 
 #[test]
 fn from_vec() {
