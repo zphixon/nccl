@@ -6,5 +6,6 @@ pub struct Parser {
     line: u32,
     column: u32,
     pairs: Pair,
+    data: String,
 }
 
