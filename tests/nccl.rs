@@ -1,7 +1,7 @@
 
 extern crate nccl;
 
-use nccl::{Pair, Value};
+use nccl::Pair;
 
 #[test]
 fn add() {
@@ -75,14 +75,6 @@ fn index() {
 }
 
 #[test]
-fn index_value() {
-    let mut p = Pair::new("charles");
-    p.add("fjfj");
-    p["fjfj"].add(true);
-    assert_eq!(p["fjfj"], p[Value::String("fjfj".into())]);
-}
-
-#[test]
 fn overwrite_add() {
     let mut p = Pair::new("top");
     p.add("hello");
@@ -99,9 +91,9 @@ fn index_get_value() {
     let mut p = Pair::new("hello");
     p.add("one");
     p.add("two");
-    p["one"].add(true);
-    p["two"].add(false);
-    assert_eq!(*p["one"].get(), true.into());
-    assert_eq!(*p["two"].get(), false.into());
+    p["one"].add("true");
+    p["two"].add("false");
+    assert_eq!(p["one"].get(), "true");
+    assert_eq!(p["two"].get(), "false");
 }
 

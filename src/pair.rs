@@ -123,7 +123,7 @@ impl Pair {
         if !self.value.contains(&pair) {
             self.value.push(pair);
         } else {
-            self[pair.key].value = pair.value;
+            self[&pair.key].value = pair.value;
         }
     }
 
@@ -180,10 +180,10 @@ impl Pair {
     /// let mut p = Pair::new("numbers");
     /// p.add("one");
     /// p.add("two");
-    /// p["one"].add(true);
-    /// p["two"].add(false);
-    /// assert_eq!(*p["one"].get(), true.into());
-    /// assert_eq!(*p["two"].get(), false.into());
+    /// p["one"].add("true");
+    /// p["two"].add("false");
+    /// assert_eq!(p["one"].get(), "true");
+    /// assert_eq!(p["two"].get(), "false");
     /// ```
     pub fn get(&self) -> &String {
         if self.value.len() == 0 {
@@ -193,16 +193,16 @@ impl Pair {
     }
 }
 
-impl Index<String> for Pair {
+impl<'a> Index<&'a str> for Pair {
     type Output = Pair;
-    fn index(&self, value: String) -> &Pair {
-        self.get_pair(value).expect("Did not find value in pair")
+    fn index(&self, value: &'a str) -> &Pair {
+        self.get_pair(value.to_owned()).expect("Did not find value in pair")
     }
 }
 
-impl IndexMut<String> for Pair {
-    fn index_mut(&mut self, value: String) -> &mut Pair {
-        self.get_pair_mut(value).expect("Did not find value in pair")
+impl<'a> IndexMut<&'a str> for Pair {
+    fn index_mut(&mut self, value: &'a str) -> &mut Pair {
+        self.get_pair_mut(value.to_owned()).expect("Did not find value in pair")
     }
 }
 
