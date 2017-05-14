@@ -1,16 +1,7 @@
 
 extern crate nccl;
 
-use nccl::value::Value;
-use nccl::pair::Pair;
-
-#[test]
-fn from_vec() {
-    assert_eq!(Value::from(vec![1, 2, 3]),
-               Value::List(vec![Value::Integer(1),
-                                Value::Integer(2),
-                                Value::Integer(3)]));
-}
+use nccl::{Pair, Value};
 
 #[test]
 fn add() {

@@ -19,7 +19,7 @@ impl Pair {
     /// Any type where [`Value`] implements `From` can be supplied:
     ///
     /// ```
-    /// # use nccl::pair::Pair;
+    /// # use nccl::Pair;
     /// let p1 = Pair::new("Hello!");
     /// let p2 = Pair::new(true);
     /// // etc
@@ -40,7 +40,7 @@ impl Pair {
     /// Any type where [`Value`] implements `From` can be supplied:
     ///
     /// ```
-    /// # use nccl::pair::Pair;
+    /// # use nccl::Pair;
     /// let mut p = Pair::new("top");
     /// p.add("hello");
     /// p.add(6.28);
@@ -49,7 +49,7 @@ impl Pair {
     /// `add` overwrites values if they exist:
     ///
     /// ```
-    /// # use nccl::pair::Pair;
+    /// # use nccl::Pair;
     /// let mut p = Pair::new("top");
     /// p.add("hello");
     /// p["hello"].add("everyone");
@@ -71,7 +71,7 @@ impl Pair {
     /// # Examples
     ///
     /// ```
-    /// # use nccl::pair::Pair;
+    /// # use nccl::Pair;
     /// // create a new Pair
     /// let mut p1 = Pair::new("hi");
     ///
@@ -93,7 +93,7 @@ impl Pair {
     /// `add_pair` overwrites values if they exist:
     ///
     /// ```
-    /// # use nccl::pair::Pair;
+    /// # use nccl::Pair;
     /// // create a new pair
     /// let mut p1 = Pair::new("happy birthday");
     ///
@@ -136,7 +136,7 @@ impl Pair {
     /// # Examples
     ///
     /// ```
-    /// # use nccl::pair::Pair;
+    /// # use nccl::Pair;
     /// let mut p = Pair::new("heyo");
     /// p.add("waddup");
     /// p["waddup"].add("my pal");
