@@ -71,7 +71,7 @@ inherit from: schema
         you lie!
 
 indentation?
-    yes. four spaces.
+    four spaces
     no tabs
 
 server
