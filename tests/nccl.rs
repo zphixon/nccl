@@ -17,12 +17,12 @@ fn add() {
 }
 
 #[test]
-fn get() {
+fn get_pair() {
     let mut p = Pair::new("key");
     p.add("value");
     p.add("testaroni");
-    p.get_mut("value".into()).unwrap().add("Hello!");
-    let v = p.get("value".into()).unwrap();
+    p.get_pair_mut("value".into()).unwrap().add("Hello!");
+    let v = p.get_pair("value".into()).unwrap();
     assert_eq!(v, &Pair {
         key: "value".into(),
         value: vec![Pair {
@@ -37,9 +37,9 @@ fn multi() {
     let mut p = Pair::new("key");
     p.add("value");
     p.add("dj khaled");
-    p.get_mut("value".into()).unwrap().add("yes!");
-    p.get_mut("dj khaled".into()).unwrap().add("you smart");
-    p.get_mut("dj khaled".into()).unwrap().add("you loyal");
+    p.get_pair_mut("value".into()).unwrap().add("yes!");
+    p.get_pair_mut("dj khaled".into()).unwrap().add("you smart");
+    p.get_pair_mut("dj khaled".into()).unwrap().add("you loyal");
     assert_eq!(p, Pair {
         key: "key".into(),
         value: vec![Pair {
@@ -68,31 +68,10 @@ fn index() {
     p["hello"].add("world");
     p["hello"]["world"].add("what's");
     p["hello"]["world"]["what's"].add("up?");
-    assert_eq!(p, Pair {
-        key: "key".into(),
-        value: vec![Pair {
-            key: "hello".into(),
-            value: vec![Pair {
-                key: "world".into(),
-                value: vec![Pair {
-                    key: "what's".into(),
-                    value: vec![Pair {
-                        key: "up?".into(),
-                        value: vec![]
-                    }]
-                }]
-            }]
-        }]
+    assert_eq!(p["hello"]["world"]["what's"]["up?"], Pair {
+        key: "up?".into(),
+        value: vec![]
     });
-}
-
-#[test]
-fn index_pair() {
-    let mut p1 = Pair::new("aaa");
-    p1.add("hello");
-    p1["hello"].add("everyone");
-    let p2 = Pair::new("hello");
-    assert_eq!(p1["hello"], p1[p2]);
 }
 
 #[test]
@@ -113,5 +92,16 @@ fn overwrite_add() {
         key: "hello".into(),
         value: vec![]
     });
+}
+
+#[test]
+fn index_get_value() {
+    let mut p = Pair::new("hello");
+    p.add("one");
+    p.add("two");
+    p["one"].add(true);
+    p["two"].add(false);
+    assert_eq!(*p["one"].get(), true.into());
+    assert_eq!(*p["two"].get(), false.into());
 }
 
