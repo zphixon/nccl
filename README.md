@@ -5,10 +5,7 @@
 It's as easy as five cents. Also not crap, which is kind of the point.
 
 * key/value bindings
-* lists
-* numbers
-* dates
-* strings
+* only strings
 * inherit stuff from other bindings
 
 ## demo
@@ -21,33 +18,29 @@ key
 
 # supports comments
 # must be on a line their own
-# has some data types
+# has no data types
 
 bools
     t
     f
+    yes
+    no
+    maybe?
 
 ints
-    # by default are signed ints
     5280
     299_792_458
     14.3
     23
-    # and are always 64-bit
 
 dates
-    # subset of ISO 8601
-    # date
     2017-03-21
-    # short date + time + timezone
     20170321T234442+0400
-    # long date + time + timezone
     2017-03-21T23:44:42+04
-    # and that's it
 
 strings
     are bare words unless
-    they match bools or ints, or have a colon
+    they have a colon
     "in which case: just use quotes"
     """"""" this is still valid"
     this too"""
@@ -58,7 +51,7 @@ lists
     key
         value
     3
-    f
+    false
 
 schema
     must be a top-level key
