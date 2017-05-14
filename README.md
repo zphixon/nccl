@@ -22,7 +22,6 @@ key
 # supports comments
 # must be on a line their own
 # has some data types
-# keys must be strings
 
 bools
     t
