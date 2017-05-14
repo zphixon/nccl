@@ -2,7 +2,7 @@
 
 **non-crap config language**
 
-It's easy. I mean real easy. Also not crap, which is kind of the point.
+It's as easy as five cents. Also not crap, which is kind of the point.
 
 * key/value bindings
 * lists
@@ -10,6 +10,8 @@ It's easy. I mean real easy. Also not crap, which is kind of the point.
 * dates
 * strings
 * inherit stuff from other bindings
+
+## demo
 
 ```
 # one major syntactical feature
@@ -75,18 +77,9 @@ inherit from: schema
     no default value
         you lie!
 
-tabs too
-	I suppose...
-	can't mix them though
+indentation?
+    yes. four spaces.
+    no tabs
 
-really any
- number of spaces
-  so long as it
- is consistent
-
-invalid
-   this is terrible!
-   	 what is even going on here
-  wat
 ```
 
