@@ -1,49 +1,56 @@
 
 use std::ops::{Index, IndexMut};
-use value::Value;
 use error::Error;
 
 // top level key that contains everything is __top_level__
 #[derive(Clone, Debug, PartialEq)]
 /// Structure that represents a key-value pair.
 pub struct Pair {
-    pub key: Value,
+    pub key: String,
     pub value: Vec<Pair>
 }
 
 impl Pair {
-    /// Creates a new Pair.
+    /// Creates a new Pair using a `&str`.
     ///
     /// # Examples
-    ///
-    /// Any type where [`Value`] implements `From` can be supplied:
     ///
     /// ```
     /// # use nccl::Pair;
     /// let p1 = Pair::new("Hello!");
-    /// let p2 = Pair::new(true);
-    /// // etc
     /// ```
     ///
-    /// [`Value`]: ../value/enum.Value.html
-    pub fn new<T>(key: T) -> Pair where Value: From<T> {
+    pub fn new(key: &str) -> Pair {
         Pair {
-            key: Value::from(key),
+            key: key.to_owned(),
             value: vec![]
         }
     }
 
-    /// Adds a [`Value`] to a Pair. Overwrites values if they exist.
+    /// Creates a new Pair using a `String`
     ///
     /// # Examples
     ///
-    /// Any type where [`Value`] implements `From` can be supplied:
+    /// ```
+    /// # use nccl::Pair;
+    /// let p = Pair::new_string("Hello!".into());
+    /// ```
+    pub fn new_string(key: String) -> Pair {
+        Pair {
+            key: key,
+            value: vec![]
+        }
+    }
+
+    /// Adds a value to a Pair. Overwrites values if they exist.
+    ///
+    /// # Examples
     ///
     /// ```
     /// # use nccl::Pair;
     /// let mut p = Pair::new("top");
     /// p.add("hello");
-    /// p.add(6.28);
+    /// p.add("6.28");
     /// ```
     ///
     /// `add` overwrites values if they exist:
@@ -61,9 +68,13 @@ impl Pair {
     /// });
     /// ```
     ///
-    /// [`Value`]: ../value/enum.Value.html
-    pub fn add<T>(&mut self, val: T) where Value: From<T> {
+    pub fn add(&mut self, val: &str) {
         self.add_pair(Pair::new(val));
+    }
+
+    /// Adds a value to a Pair. Overwrites values if they exist.
+    pub fn add_string(&mut self, val: String) {
+        self.add_pair(Pair::new_string(val));
     }
 
     /// Adds a Pair to a Pair. Overwrites values if they exist.
@@ -117,7 +128,7 @@ impl Pair {
     }
 
     /// Gets an immutable reference to a Pair in a Pair.
-    pub fn get_pair(&self, value: Value) -> Result<&Pair, Error> {
+    pub fn get_pair(&self, value: String) -> Result<&Pair, Error> {
         let mut p = None;
         for (k, v) in self.value.iter().enumerate() {
             if v.key == value {
@@ -146,7 +157,7 @@ impl Pair {
     /// // equivalent to
     /// p["waddup"].add("friend");
     /// ```
-    pub fn get_pair_mut(&mut self, value: Value) -> Result<&mut Pair, Error> {
+    pub fn get_pair_mut(&mut self, value: String) -> Result<&mut Pair, Error> {
         let mut p = None;
         for (k, v) in self.value.iter().enumerate() {
             if v.key == value {
@@ -174,7 +185,7 @@ impl Pair {
     /// assert_eq!(*p["one"].get(), true.into());
     /// assert_eq!(*p["two"].get(), false.into());
     /// ```
-    pub fn get(&self) -> &Value {
+    pub fn get(&self) -> &String {
         if self.value.len() == 0 {
             panic!("No value associated with key");
         }
@@ -182,16 +193,16 @@ impl Pair {
     }
 }
 
-impl<T> Index<T> for Pair where Value: From<T> {
+impl Index<String> for Pair {
     type Output = Pair;
-    fn index(&self, value: T) -> &Pair {
-        self.get_pair(value.into()).expect("Did not find value in pair")
+    fn index(&self, value: String) -> &Pair {
+        self.get_pair(value).expect("Did not find value in pair")
     }
 }
 
-impl<T> IndexMut<T> for Pair where Value: From<T> {
-    fn index_mut(&mut self, value: T) -> &mut Pair {
-        self.get_pair_mut(value.into()).expect("Did not find value in pair")
+impl IndexMut<String> for Pair {
+    fn index_mut(&mut self, value: String) -> &mut Pair {
+        self.get_pair_mut(value).expect("Did not find value in pair")
     }
 }
 
