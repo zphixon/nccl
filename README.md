@@ -74,5 +74,14 @@ indentation?
     yes. four spaces.
     no tabs
 
+server
+    domain
+        example.com
+    port
+        80
+    root
+        /var/www/html
+
+
 ```
 
