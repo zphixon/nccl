@@ -37,6 +37,7 @@ dates
     2017-03-21
     20170321T234442+0400
     2017-03-21T23:44:42+04
+    tomorrow
 
 strings
     are bare words unless
