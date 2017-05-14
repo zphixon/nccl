@@ -1,5 +1,8 @@
 
 #[derive(Debug, PartialEq, Clone)]
+/// Custom wrapper type for Rust types.
+///
+/// Allows for dynamic type handling.
 pub enum Value {
     String(String),
     Bool(bool),
