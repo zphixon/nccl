@@ -2,7 +2,6 @@
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     String(String),
-    List(Vec<Value>),
     Bool(bool),
     Integer(i64),
     Float(f64),
@@ -36,12 +35,6 @@ impl From<i64> for Value {
 impl From<f64> for Value {
     fn from(f: f64) -> Value {
         Value::Float(f)
-    }
-}
-
-impl<T> From<Vec<T>> for Value where Value: From<T> {
-    fn from(v: Vec<T>) -> Value {
-        Value::List(v.into_iter().map(Value::from).collect())
     }
 }
 
