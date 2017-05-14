@@ -95,3 +95,32 @@ fn index() {
     });
 }
 
+#[test]
+fn index_pair() {
+    let mut p1 = Pair::new("aaa");
+    p1.add("hello");
+    p1["hello"].add("everyone");
+    let p2 = Pair::new("hello");
+    assert_eq!(p1["hello"], p1[p2]);
+}
+
+#[test]
+fn index_value() {
+    let mut p = Pair::new("charles");
+    p.add("fjfj");
+    p["fjfj"].add(true);
+    assert_eq!(p["fjfj"], p[Value::String("fjfj".into())]);
+}
+
+#[test]
+fn overwrite_add() {
+    let mut p = Pair::new("top");
+    p.add("hello");
+    p["hello"].add("everyone");
+    p.add("hello");
+    assert_eq!(p["hello"], Pair {
+        key: "hello".into(),
+        value: vec![]
+    });
+}
+
