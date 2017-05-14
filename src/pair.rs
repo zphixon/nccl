@@ -117,7 +117,7 @@ impl Pair {
     }
 
     /// Gets an immutable reference to a Pair in a Pair.
-    pub fn get(&self, value: Value) -> Result<&Pair, Error> {
+    pub fn get_pair(&self, value: Value) -> Result<&Pair, Error> {
         let mut p = None;
         for (k, v) in self.value.iter().enumerate() {
             if v.key == value {
@@ -142,11 +142,11 @@ impl Pair {
     /// p["waddup"].add("my pal");
     ///
     /// // indexing calls get/get_mut under the hood
-    /// p.get_mut("waddup".into()).unwrap().add("friend");
+    /// p.get_pair_mut("waddup".into()).unwrap().add("friend");
     /// // equivalent to
     /// p["waddup"].add("friend");
     /// ```
-    pub fn get_mut(&mut self, value: Value) -> Result<&mut Pair, Error> {
+    pub fn get_pair_mut(&mut self, value: Value) -> Result<&mut Pair, Error> {
         let mut p = None;
         for (k, v) in self.value.iter().enumerate() {
             if v.key == value {
@@ -159,31 +159,39 @@ impl Pair {
             Err(Error::KeyNotFound)
         }
     }
+
+    /// Gets the value associated with a pair.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nccl::Pair;
+    /// let mut p = Pair::new("numbers");
+    /// p.add("one");
+    /// p.add("two");
+    /// p["one"].add(true);
+    /// p["two"].add(false);
+    /// assert_eq!(*p["one"].get(), true.into());
+    /// assert_eq!(*p["two"].get(), false.into());
+    /// ```
+    pub fn get(&self) -> &Value {
+        if self.value.len() == 0 {
+            panic!("No value associated with key");
+        }
+        &self.value[0].key
+    }
 }
 
 impl<T> Index<T> for Pair where Value: From<T> {
     type Output = Pair;
     fn index(&self, value: T) -> &Pair {
-        self.get(value.into()).expect("Did not find value in pair")
+        self.get_pair(value.into()).expect("Did not find value in pair")
     }
 }
 
 impl<T> IndexMut<T> for Pair where Value: From<T> {
     fn index_mut(&mut self, value: T) -> &mut Pair {
-        self.get_mut(value.into()).expect("Did not find value in pair")
-    }
-}
-
-impl Index<Pair> for Pair {
-    type Output = Pair;
-    fn index(&self, value: Pair) -> &Pair {
-        self.get(value.key).expect("Did not find value in pair")
-    }
-}
-
-impl IndexMut<Pair> for Pair {
-    fn index_mut(&mut self, value: Pair) -> &mut Pair {
-        self.get_mut(value.key).expect("Did not find value in pair")
+        self.get_pair_mut(value.into()).expect("Did not find value in pair")
     }
 }
 
