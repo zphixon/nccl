@@ -1,5 +1,5 @@
 
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, Deref};
 use error::Error;
 
 // top level key that contains everything is __top_level__
