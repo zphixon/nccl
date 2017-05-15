@@ -97,3 +97,20 @@ fn index_get_value() {
     assert_eq!(p["two"].get(), "false");
 }
 
+#[test]
+fn deref() {
+    let mut p = Pair::new("hello");
+    p.add("ayy");
+    p["ayy"].add("lmao");
+    p["ayy"]["lmao"].add("aliens");
+    assert_eq!(*p["ayy"]["lmao"], "aliens");
+}
+
+#[test]
+fn parse_ref() {
+    let mut p = Pair::new("testaroni");
+    p.add("number");
+    p["number"].add("32");
+    &p["number"].parse::<u32>().unwrap();
+}
+
