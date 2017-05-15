@@ -5,8 +5,9 @@
 It's as easy as five cents. Also not crap, which is kind of the point.
 
 * key/value bindings
-* only strings
+* no data types
 * inherit stuff from other bindings
+* every key must have a value
 
 ## demo
 
@@ -16,63 +17,69 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 key
     value
 
-# supports comments
-# must be on a line their own
-# has no data types
-
-bools
+bool one
     t
-    f
-    yes
-    no
-    maybe?
+
+bool too
+    false
 
 ints
     5280
-    299_792_458
-    14.3
-    23
+        thirteen
+    1738
+        fetty wap
 
 dates
     2017-03-21
+        all sorts
     20170321T234442+0400
+        gotta parse 'em yourself
     2017-03-21T23:44:42+04
+        in the name of
     tomorrow
+        simplicity
 
 strings
-    are bare words unless
-    they have a colon
-    "in which case: just use quotes"
-    """"""" this is still valid"
-    this too"""
+    are bare words
+        unless
+    they have
+        a colon
+    "in which case:"
+        just use quotes
+    "this is"
+        "still valid"
+    this
+        """too"""
 
 lists
     juan
-    deaux
+        deaux
     key
         value
     3
-    false
+        false
 
 schema
     must be a top-level key
-    looks like normal
-        default value
+        looks like normal
+    default value
         in fact is normal!
     more things
         other default
-    no default value
 
 inherit from: schema
     uses colon
+        to inherit
     more things
         override default
-    no default value
-        you lie!
+    default value
+        override again
 
 indentation?
     four spaces
+        sorry haters
     no tabs
+        this is the real indent style
 
 server
     domain
