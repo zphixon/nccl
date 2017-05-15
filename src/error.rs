@@ -13,14 +13,12 @@ impl ::std::fmt::Display for Error {
     }
 }
 
-#[allow(unreachable_patterns)]
 impl ::std::error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::KeyNotFound => "Key not found.",
             Error::IndentationError => "Incorrect indentation: Not 4 spaces.",
             Error::NameError => "Schema not found.",
-            _ => "Unknown error."
         }
     }
 }
