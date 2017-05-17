@@ -1,5 +1,7 @@
 
 use std::ops::{Index, IndexMut};
+use std::str::FromStr;
+
 use value::Value;
 
 // top level key that contains everything is __top_level__
@@ -62,9 +64,17 @@ impl Pair {
         if self.value.len() == 1 {
             return Value::String(self.value[0].key.clone());
         } else if self.value.len() > 1 {
-            return Value::Vec(self.value.clone());
+            return Value::Vec(self.keys());
         }
         panic!("pair is terminal");
+    }
+
+    pub fn keys(&self) -> Vec<String> {
+        self.value.clone().into_iter().map(|x| x.key).collect()
+    }
+
+    pub fn keys_as<T>(&self) -> Vec<T> where T: FromStr {
+        self.keys().iter().filter_map(|s| s.parse::<T>().ok()).collect::<Vec<T>>()
     }
 }
 
