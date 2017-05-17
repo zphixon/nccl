@@ -1,6 +1,6 @@
 
-use std::ops::{Index, IndexMut, Deref};
-use error::Error;
+use std::ops::{Index, IndexMut};
+use value::Value;
 
 // top level key that contains everything is __top_level__
 #[derive(Clone, Debug, PartialEq)]
@@ -10,89 +10,78 @@ pub struct Pair {
 }
 
 impl Pair {
-    pub fn new(key: &str) -> Pair {
+    pub fn new(key: &str) -> Self {
         Pair {
             key: key.to_owned(),
             value: vec![]
         }
     }
 
-    pub fn new_string(key: String) -> Pair {
-        Pair {
-            key: key,
-            value: vec![]
-        }
+    pub fn add(&mut self, value: &str) {
+        self.value.push(Pair::new(value));
     }
 
-    pub fn add(&mut self, val: &str) {
-        self.add_pair(Pair::new(val));
-    }
-
-    pub fn add_string(&mut self, val: String) {
-        self.add_pair(Pair::new_string(val));
-    }
-
-    pub fn add_pair(&mut self, pair: Pair) {
-        if !self.value.contains(&pair) {
-            self.value.push(pair);
-        } else {
-            self[&pair.key].value = pair.value;
-        }
-    }
-
-    pub fn get_pair(&self, value: String) -> Result<&Pair, Error> {
-        let mut p = None;
-        for (k, v) in self.value.iter().enumerate() {
-            if v.key == value {
-                p = Some(k);
+    pub fn has_key(&self, key: &str) -> bool {
+        for item in self.value.iter() {
+            if &item.key == key {
+                return true;
             }
         }
-        if p.is_some() {
-            Ok(&self.value[p.unwrap()])
-        } else {
-            Err(Error::KeyNotFound)
-        }
+        return false;
     }
 
-    pub fn get_pair_mut(&mut self, value: String) -> Result<&mut Pair, Error> {
-        let mut p = None;
-        for (k, v) in self.value.iter().enumerate() {
-            if v.key == value {
-                p = Some(k);
+    pub fn get(&mut self, value: &str) -> &mut Pair {
+        let value_owned = value.to_owned();
+        if self.value.is_empty() {
+            // p.get_mut("a").add("b")
+            // p.get("a").value() == String::from("b")
+            return self;
+        } else {
+            for item in self.value.iter_mut() {
+                if item.key == value_owned {
+                    return item;
+                }
             }
         }
-        if p.is_some() {
-            Ok(&mut self.value[p.unwrap()])
-        } else {
-            Err(Error::KeyNotFound)
-        }
+        panic!("\"{}\" not found in pair", value_owned);
     }
 
-    pub fn get(&self) -> &String {
-        if self.value.len() == 0 {
-            panic!("No value associated with key");
+    fn get_ref(&self, value: &str) -> &Pair {
+        let value_owned = value.to_owned();
+        if self.value.is_empty() {
+            // p.get_mut("a").add("b")
+            // p.get("a").value() == String::from("b")
+            return self;
+        } else {
+            for item in self.value.iter() {
+                if item.key == value_owned {
+                    return item;
+                }
+            }
         }
-        &self.value[0].key
+        panic!("\"{}\" not found in pair", value_owned);
+    }
+
+    pub fn value(&self) -> Value {
+        if self.value.len() == 1 {
+            return Value::String(self.value[0].key.clone());
+        } else if self.value.len() > 1 {
+            return Value::Vec(self.value.clone());
+        }
+        panic!("pair is terminal");
     }
 }
 
 impl<'a> Index<&'a str> for Pair {
     type Output = Pair;
-    fn index(&self, value: &'a str) -> &Pair {
-        self.get_pair(value.to_owned()).expect("Did not find value in pair")
+    fn index(&self, i: &str) -> &Pair {
+        self.get_ref(i)
     }
 }
 
 impl<'a> IndexMut<&'a str> for Pair {
-    fn index_mut(&mut self, value: &'a str) -> &mut Pair {
-        self.get_pair_mut(value.to_owned()).expect("Did not find value in pair")
-    }
-}
-
-impl Deref for Pair {
-    type Target = String;
-    fn deref(&self) -> &String {
-        &self.get()
+    fn index_mut(&mut self, i: &str) -> &mut Pair {
+        self.get(i)
     }
 }
 
