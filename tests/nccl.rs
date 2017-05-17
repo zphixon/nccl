@@ -1,116 +1,86 @@
 
 extern crate nccl;
 
-use nccl::Pair;
+use nccl::{Pair, Value};
 
 #[test]
-fn add() {
-    let mut p = Pair::new("key");
-    p.add("value");
-    assert_eq!(p, Pair {
-        key: "key".into(),
-        value: vec![Pair {
-            key: "value".into(),
-            value: vec![]
-        }]
-    });
-}
-
-#[test]
-fn get_pair() {
-    let mut p = Pair::new("key");
-    p.add("value");
-    p.add("testaroni");
-    p.get_pair_mut("value".into()).unwrap().add("Hello!");
-    let v = p.get_pair("value".into()).unwrap();
-    assert_eq!(v, &Pair {
-        key: "value".into(),
-        value: vec![Pair {
-            key: "Hello!".into(),
-            value: vec![]
-        }]
-    });
-}
-
-#[test]
-fn multi() {
-    let mut p = Pair::new("key");
-    p.add("value");
-    p.add("dj khaled");
-    p.get_pair_mut("value".into()).unwrap().add("yes!");
-    p.get_pair_mut("dj khaled".into()).unwrap().add("you smart");
-    p.get_pair_mut("dj khaled".into()).unwrap().add("you loyal");
-    assert_eq!(p, Pair {
-        key: "key".into(),
-        value: vec![Pair {
-            key: "value".into(),
-            value: vec![Pair {
-                key: "yes!".into(),
-                value: vec![]
-            }]
-        }, Pair {
-            key: "dj khaled".into(),
-            value: vec![Pair {
-                key: "you smart".into(),
-                value: vec![]
-            }, Pair{
-                key: "you loyal".into(),
-                value: vec![]
-            }]
-        }]
-    });
-}
-
-#[test]
-fn index() {
-    let mut p = Pair::new("key");
-    p.add("hello");
-    p["hello"].add("world");
-    p["hello"]["world"].add("what's");
-    p["hello"]["world"]["what's"].add("up?");
-    assert_eq!(p["hello"]["world"]["what's"]["up?"], Pair {
-        key: "up?".into(),
-        value: vec![]
-    });
-}
-
-#[test]
-fn overwrite_add() {
-    let mut p = Pair::new("top");
-    p.add("hello");
-    p["hello"].add("everyone");
-    p.add("hello");
-    assert_eq!(p["hello"], Pair {
+fn pair_new() {
+    assert_eq!(Pair::new("hello"), Pair {
         key: "hello".into(),
         value: vec![]
     });
 }
 
 #[test]
-fn index_get_value() {
-    let mut p = Pair::new("hello");
-    p.add("one");
-    p.add("two");
-    p["one"].add("true");
-    p["two"].add("false");
-    assert_eq!(p["one"].get(), "true");
-    assert_eq!(p["two"].get(), "false");
+fn pair_add() {
+    let mut p = Pair::new("top_level");
+    p.add("key");
+    assert_eq!(p, Pair {
+        key: "top_level".into(),
+        value: vec![Pair {
+            key: "key".into(),
+            value: vec![]
+        }]
+    });
 }
 
 #[test]
-fn deref() {
-    let mut p = Pair::new("hello");
-    p.add("ayy");
-    p["ayy"].add("lmao");
-    p["ayy"]["lmao"].add("aliens");
-    assert_eq!(*p["ayy"]["lmao"], "aliens");
+fn pair_get() {
+    let mut p = Pair::new("top_level");
+    p.add("key");
+    assert_eq!(p.get("key"), &mut Pair {
+        key: "key".into(),
+        value: vec![]
+    });
 }
 
 #[test]
-fn parse_ref() {
-    let mut p = Pair::new("testaroni");
-    p.add("number");
-    p["number"].add("32");
-    &p["number"].parse::<u32>().unwrap();
+fn pair_index() {
+    let mut p = Pair::new("top_level");
+    p.add("key");
+    assert_eq!(p["key"], Pair {
+        key: "key".into(),
+        value: vec![]
+    });
+}
+
+#[test]
+fn pair_keys() {
+    let mut p = Pair::new("top");
+    p.add("numbers");
+    p["numbers"].add("1");
+    p["numbers"].add("2");
+    p["numbers"].add("3");
+    p["numbers"].add("4");
+    p["numbers"].add("5");
+    assert_eq!(p["numbers"].keys(), vec!["1", "2", "3", "4", "5"]);
+}
+
+#[test]
+fn readme() {
+    let mut config = Pair::new("top_level");
+
+    // server
+    //     domain
+    //         example.com
+    //         www.example.com
+    //     port
+    //         80
+    //         443
+    //     root
+    //         /var/www/html
+
+    config.add("server");
+    config["server"].add("domain");
+    config["server"].add("port");
+    config["server"].add("root");
+    config["server"]["domain"].add("example.com");
+    config["server"]["domain"].add("www.example.com");
+    config["server"]["port"].add("80");
+    config["server"]["port"].add("443");
+    config["server"]["root"].add("/var/www/html");
+
+    let ports = config["server"]["port"].keys_as::<i32>();
+    assert_eq!(ports, vec![80, 443]);
 }
 
