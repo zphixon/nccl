@@ -10,11 +10,29 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 ## demo
 
+In rust:
+
 ```rust
 // TODO
 let config = nccl::parse_file("config.nccl");
-let port = *config["server"]["port"];
+let ports = config["server"]["port"].keys_as::<i32>();
+assert_eq!(ports, vec!["80", "443"]);
 ```
+
+config.nccl:
+
+```
+server
+    domain
+        example.com
+        www.example.com
+    port
+        80
+        443
+    root
+        /var/www/html
+```
+
 
 ```
 # one major syntactical feature:
@@ -80,15 +98,5 @@ indentation?
     no tabs
     sorry haters
         the one true indent style
-
-server
-    domain
-        example.com
-        www.example.com
-    port
-        80
-        443
-    root
-        /var/www/html
 ```
 
