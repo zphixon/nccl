@@ -7,15 +7,22 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 * key/value bindings
 * no data types
 * inherit stuff from other bindings
-* every key must have a value
 
 ## demo
 
+```rust
+// TODO
+let config = nccl::parse_file("config.nccl");
+let port = *config["server"]["port"];
 ```
-# one major syntactical feature
+
+```
+# one major syntactical feature:
 
 key
     value
+
+# comments too
 
 bool one
     t
@@ -25,39 +32,30 @@ bool too
 
 ints
     5280
-        thirteen
+    thirteen
     1738
-        fetty wap
 
 dates
     2017-03-21
-        all sorts
     20170321T234442+0400
-        gotta parse 'em yourself
     2017-03-21T23:44:42+04
-        in the name of
     tomorrow
-        simplicity
 
 strings
-    are bare words
-        unless
-    they have
-        a colon
+    are bare words unless
+    they have a colon
     "in which case:"
         just use quotes
-    "this is"
-        "still valid"
-    this
-        """too"""
+    "this is still valid"
+    this """too"""
 
 lists
     juan
-        deaux
+    deaux
     key
         value
     3
-        false
+    false
 
 schema
     must be a top-level key
@@ -66,29 +64,31 @@ schema
         in fact is normal!
     more things
         other default
+    no default
 
 inherit from: schema
-    uses colon
-        to inherit
-    more things
-        override default
+    uses colon to inherit
     default value
+        override default
+    more things
         override again
+    no default
+        liar
 
 indentation?
     four spaces
-        sorry haters
     no tabs
-        this is the real indent style
+    sorry haters
+        the one true indent style
 
 server
     domain
         example.com
+        www.example.com
     port
         80
+        443
     root
         /var/www/html
-
-
 ```
 
