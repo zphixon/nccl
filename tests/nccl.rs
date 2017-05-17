@@ -1,6 +1,7 @@
 
 extern crate nccl;
 
+
 use nccl::{Pair, Value};
 
 #[test]
@@ -54,6 +55,16 @@ fn pair_keys() {
     p["numbers"].add("4");
     p["numbers"].add("5");
     assert_eq!(p["numbers"].keys(), vec!["1", "2", "3", "4", "5"]);
+}
+
+#[test]
+fn pair_value_parse() {
+    let mut p = Pair::new("top");
+    p.add("bools");
+    p["bools"].add("true");
+    p["bools"].add("false");
+    assert!(p["bools"].keys_as::<bool>()[0]);
+    assert!(!p["bools"].keys_as::<bool>()[1]);
 }
 
 #[test]
