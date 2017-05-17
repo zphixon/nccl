@@ -33,8 +33,6 @@ impl Pair {
     pub fn get(&mut self, value: &str) -> &mut Pair {
         let value_owned = value.to_owned();
         if self.value.is_empty() {
-            // p.get_mut("a").add("b")
-            // p.get("a").value() == String::from("b")
             return self;
         } else {
             for item in self.value.iter_mut() {
@@ -49,8 +47,6 @@ impl Pair {
     fn get_ref(&self, value: &str) -> &Pair {
         let value_owned = value.to_owned();
         if self.value.is_empty() {
-            // p.get_mut("a").add("b")
-            // p.get("a").value() == String::from("b")
             return self;
         } else {
             for item in self.value.iter() {
