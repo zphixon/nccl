@@ -16,7 +16,7 @@ In rust:
 // TODO
 let config = nccl::parse_file("config.nccl");
 let ports = config["server"]["port"].keys_as::<i32>();
-assert_eq!(ports, vec!["80", "443"]);
+assert_eq!(ports, vec![80, 443]);
 ```
 
 config.nccl:
