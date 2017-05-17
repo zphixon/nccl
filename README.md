@@ -8,7 +8,7 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 * no data types
 * inherit stuff from other bindings
 
-## demo
+## Demo
 
 In rust:
 
@@ -33,6 +33,7 @@ server
         /var/www/html
 ```
 
+## Example config
 
 ```
 # one major syntactical feature:
