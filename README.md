@@ -13,7 +13,7 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 In rust:
 
 ```rust
-let config = nccl::parse_file("config.nccl");
+let config = nccl::parse_file("config.nccl").unwrap();
 let ports = config["server"]["port"].keys_as::<i32>();
 assert_eq!(ports, vec![80, 443]);
 ```
