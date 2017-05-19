@@ -71,12 +71,29 @@ impl Pair {
         }
     }
 
+    pub fn value_as<T>(&self) -> Result<T, Error> where T: FromStr {
+        match self.value() {
+            Ok(value) => match value {
+                Value::String(s) => match s.parse::<T>() {
+                    Ok(ok) => Ok(ok),
+                    Err(_) => Err(Error::ParseError)
+                },
+                Value::Vec(_) => Err(Error::ParseError)
+            },
+            Err(err) => Err(err)
+        }
+    }
+
     pub fn keys(&self) -> Vec<String> {
         self.value.clone().into_iter().map(|x| x.key).collect()
     }
 
-    pub fn keys_as<T>(&self) -> Result<Vec<T>, <T as ::std::str::FromStr>::Err> where T: FromStr {
-        self.keys().iter().map(|s| s.parse::<T>()).collect::<Result<Vec<_>, _>>()
+    pub fn keys_as<T: FromStr>(&self) -> Result<Vec<T>, Error> {
+        // XXX this is gross
+        match self.keys().iter().map(|s| s.parse::<T>()).collect::<Result<Vec<T>, _>>() {
+            Ok(ok) => Ok(ok),
+            Err(_) => Err(Error::ParseError)
+        }
     }
 }
 

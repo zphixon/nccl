@@ -62,9 +62,7 @@ fn pair_value_parse() {
     let mut p = Pair::new("top");
     p.add("bools");
     p["bools"].add("true");
-    p["bools"].add("false");
-    assert!(p["bools"].keys_as::<bool>().unwrap()[0]);
-    assert!(!p["bools"].keys_as::<bool>().unwrap()[1]);
+    assert!(p["bools"].value_as::<bool>().unwrap());
 }
 
 #[test]
