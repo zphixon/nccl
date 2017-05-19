@@ -3,6 +3,7 @@ use std::ops::{Index, IndexMut};
 use std::str::FromStr;
 
 use value::Value;
+use error::Error;
 
 // top level key that contains everything is __top_level__
 #[derive(Clone, Debug, PartialEq)]
@@ -32,41 +33,42 @@ impl Pair {
         return false;
     }
 
-    pub fn get(&mut self, value: &str) -> &mut Pair {
+    pub fn get(&mut self, value: &str) -> Result<&mut Pair, Error> {
         let value_owned = value.to_owned();
         if self.value.is_empty() {
-            return self;
+            return Ok(self);
         } else {
             for item in self.value.iter_mut() {
                 if item.key == value_owned {
-                    return item;
+                    return Ok(item);
                 }
             }
         }
-        panic!("\"{}\" not found in pair", value_owned);
+        Err(Error::KeyNotFound)
     }
 
-    fn get_ref(&self, value: &str) -> &Pair {
+    pub fn get_ref(&self, value: &str) -> Result<&Pair, Error> {
         let value_owned = value.to_owned();
         if self.value.is_empty() {
-            return self;
+            return Ok(self);
         } else {
             for item in self.value.iter() {
                 if item.key == value_owned {
-                    return item;
+                    return Ok(item);
                 }
             }
         }
-        panic!("\"{}\" not found in pair", value_owned);
+        Err(Error::KeyNotFound)
     }
 
-    pub fn value(&self) -> Value {
+    pub fn value(&self) -> Result<Value, Error>  {
         if self.value.len() == 1 {
-            return Value::String(self.value[0].key.clone());
+            Ok(Value::String(self.value[0].key.clone()))
         } else if self.value.len() > 1 {
-            return Value::Vec(self.keys());
+            Ok(Value::Vec(self.keys()))
+        } else {
+            Err(Error::NoValue)
         }
-        panic!("pair is terminal");
     }
 
     pub fn keys(&self) -> Vec<String> {
@@ -81,13 +83,13 @@ impl Pair {
 impl<'a> Index<&'a str> for Pair {
     type Output = Pair;
     fn index(&self, i: &str) -> &Pair {
-        self.get_ref(i)
+        self.get_ref(i).unwrap()
     }
 }
 
 impl<'a> IndexMut<&'a str> for Pair {
     fn index_mut(&mut self, i: &str) -> &mut Pair {
-        self.get(i)
+        self.get(i).unwrap()
     }
 }
 

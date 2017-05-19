@@ -5,6 +5,7 @@ pub enum Error {
     KeyNotFound,
     IndentationError,
     NameError,
+    NoValue,
 }
 
 impl ::std::fmt::Display for Error {
@@ -19,6 +20,7 @@ impl ::std::error::Error for Error {
             Error::KeyNotFound => "Key not found.",
             Error::IndentationError => "Incorrect indentation: Not 4 spaces.",
             Error::NameError => "Schema not found.",
+            Error::NoValue => "No value associated with key.",
         }
     }
 }
