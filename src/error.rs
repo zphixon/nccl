@@ -6,6 +6,7 @@ pub enum Error {
     IndentationError,
     NameError,
     NoValue,
+    ParseError,
 }
 
 impl ::std::fmt::Display for Error {
@@ -21,6 +22,7 @@ impl ::std::error::Error for Error {
             Error::IndentationError => "Incorrect indentation: Not 4 spaces.",
             Error::NameError => "Schema not found.",
             Error::NoValue => "No value associated with key.",
+            Error::ParseError => "Unable to parse value.",
         }
     }
 }

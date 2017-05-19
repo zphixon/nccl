@@ -29,7 +29,7 @@ fn pair_add() {
 fn pair_get() {
     let mut p = Pair::new("top_level");
     p.add("key");
-    assert_eq!(p.get("key"), &mut Pair {
+    assert_eq!(p.get("key").unwrap(), &mut Pair {
         key: "key".into(),
         value: vec![]
     });
@@ -63,8 +63,8 @@ fn pair_value_parse() {
     p.add("bools");
     p["bools"].add("true");
     p["bools"].add("false");
-    assert!(p["bools"].keys_as::<bool>()[0]);
-    assert!(!p["bools"].keys_as::<bool>()[1]);
+    assert!(p["bools"].keys_as::<bool>().unwrap()[0]);
+    assert!(!p["bools"].keys_as::<bool>().unwrap()[1]);
 }
 
 #[test]
@@ -91,7 +91,7 @@ fn readme() {
     config["server"]["port"].add("443");
     config["server"]["root"].add("/var/www/html");
 
-    let ports = config["server"]["port"].keys_as::<i32>();
+    let ports = config["server"]["port"].keys_as::<i32>().unwrap();
     assert_eq!(ports, vec![80, 443]);
 }
 

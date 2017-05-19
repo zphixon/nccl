@@ -75,8 +75,8 @@ impl Pair {
         self.value.clone().into_iter().map(|x| x.key).collect()
     }
 
-    pub fn keys_as<T>(&self) -> Vec<T> where T: FromStr {
-        self.keys().iter().filter_map(|s| s.parse::<T>().ok()).collect::<Vec<T>>()
+    pub fn keys_as<T>(&self) -> Result<Vec<T>, <T as ::std::str::FromStr>::Err> where T: FromStr {
+        self.keys().iter().map(|s| s.parse::<T>()).collect::<Result<Vec<_>, _>>()
     }
 }
 
