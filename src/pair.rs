@@ -30,11 +30,13 @@ impl Pair {
                 return true;
             }
         }
+
         return false;
     }
 
     pub fn get(&mut self, value: &str) -> Result<&mut Pair, Error> {
         let value_owned = value.to_owned();
+
         if self.value.is_empty() {
             return Ok(self);
         } else {
@@ -44,11 +46,13 @@ impl Pair {
                 }
             }
         }
+
         Err(Error::KeyNotFound)
     }
 
     pub fn get_ref(&self, value: &str) -> Result<&Pair, Error> {
         let value_owned = value.to_owned();
+
         if self.value.is_empty() {
             return Ok(self);
         } else {
@@ -58,6 +62,7 @@ impl Pair {
                 }
             }
         }
+
         Err(Error::KeyNotFound)
     }
 
