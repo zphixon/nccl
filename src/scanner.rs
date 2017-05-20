@@ -54,11 +54,13 @@ impl Scanner {
                     return Err(Error::ParseError);
                 }
             },
+
             b'#' => {
                 while self.peek() != b'\n' && !self.is_at_end() {
                     self.advance();
                 }
             },
+
             b' ' => {
                 match self.indent {
                     Indent::Neither => {
@@ -90,6 +92,7 @@ impl Scanner {
                     Indent::Tabs => return Err(Error::IndentationError)
                 }
             },
+
             b'\t' => {
                 match self.indent {
                     Indent::Neither => {
@@ -101,8 +104,10 @@ impl Scanner {
                     },
                     Indent::Spaces(_) => return Err(Error::IndentationError)
                 }
-            }
+            },
+
             b'\n' => self.add_token(TokenKind::Newline),
+
             _ => return Err(Error::ParseError)
         }
         Ok(())
