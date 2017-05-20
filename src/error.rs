@@ -7,6 +7,7 @@ pub enum Error {
     NameError,
     NoValue,
     ParseError,
+    FileError,
 }
 
 impl ::std::fmt::Display for Error {
@@ -23,6 +24,7 @@ impl ::std::error::Error for Error {
             Error::NameError => "Schema not found.",
             Error::NoValue => "No value associated with key.",
             Error::ParseError => "Unable to parse value.",
+            Error::FileError => "Could not open file.",
         }
     }
 }
