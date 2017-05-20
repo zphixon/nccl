@@ -94,9 +94,8 @@ inherit from: schema
         liar
 
 indentation?
-    four spaces
-    no tabs
-    sorry haters
-        the one true indent style
+    must use the same throughout
+    eg 2 or 4 spaces for the entire file
+    or tabs for the entire file
 ```
 
