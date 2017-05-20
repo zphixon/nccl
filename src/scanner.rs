@@ -2,12 +2,20 @@
 use token::{Token, TokenKind};
 use error::Error;
 
+// ranked worst to least
+enum Indent {
+    Neither,
+    Tabs,
+    Spaces(u8),
+}
+
 pub struct Scanner {
     source: Vec<u8>,
     tokens: Vec<Token>,
     start: usize,
     current: usize,
     line: u64,
+    indent: Indent,
 }
 
 impl Scanner {
@@ -18,6 +26,7 @@ impl Scanner {
             start: 0,
             current: 0,
             line: 1,
+            indent: Indent::Neither,
         }
     }
 
@@ -51,14 +60,48 @@ impl Scanner {
                 }
             },
             b' ' => {
-                let mut spaces = 0;
-                while self.peek() == b' ' && !self.is_at_end() {
-                    self.advance();
-                }
-                if self.is_at_end() || spaces != 4 {
-                    return Err(Error::ParseError);
+                match self.indent {
+                    Indent::Neither => {
+                        let mut spaces = 0;
+                        while self.peek() == b' ' && !self.is_at_end() {
+                            self.advance();
+                            spaces += 1;
+                        }
+                        if self.is_at_end() {
+                            return Err(Error::ParseError);
+                        }
+                        self.indent = Indent::Spaces(spaces);
+                        self.add_token(TokenKind::Indent);
+                    }
+                    Indent::Spaces(s) => {
+                        let mut spaces = 0;
+                        while spaces <= s && self.peek() == b' ' && !self.is_at_end() {
+                            self.advance();
+                            spaces += 1;
+                        }
+                        if self.is_at_end() {
+                            return Err(Error::ParseError);
+                        }
+                        if spaces != s {
+                            return Err(Error::IndentationError);
+                        }
+                        self.add_token(TokenKind::Indent);
+                    },
+                    Indent::Tabs => return Err(Error::IndentationError)
                 }
             },
+            b'\t' => {
+                match self.indent {
+                    Indent::Neither => {
+                        self.add_token(TokenKind::Indent);
+                        self.indent = Indent::Tabs;
+                    },
+                    Indent::Tabs => {
+                        self.add_token(TokenKind::Indent);
+                    },
+                    Indent::Spaces(_) => return Err(Error::IndentationError)
+                }
+            }
             b'\n' => self.add_token(TokenKind::Newline),
             _ => return Err(Error::ParseError)
         }
