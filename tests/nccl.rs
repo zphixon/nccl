@@ -1,8 +1,7 @@
 
 extern crate nccl;
 
-
-use nccl::{Pair, Value, Scanner};
+use nccl::{Pair, Scanner};
 
 #[test]
 fn pair_new() {
