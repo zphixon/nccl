@@ -78,6 +78,12 @@ fn error_key_not_found() {
 }
 
 #[test]
+fn scan_file() {
+    println!("{:?}", nccl::parse_file("config.nccl"));
+    panic!();
+}
+
+#[test]
 fn readme() {
     let mut config = Pair::new("top_level");
 
