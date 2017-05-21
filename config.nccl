@@ -1,0 +1,9 @@
+server
+    domain
+        example.com
+        www.example.com
+    port
+        80
+        443
+    root
+        /var/www/html
