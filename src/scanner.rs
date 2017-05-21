@@ -170,17 +170,6 @@ impl Scanner {
         self.tokens.push(Token::new(kind, value, self.line));
     }
 
-    fn matches(&mut self, expected: char) -> bool {
-        if self.is_at_end() {
-            false
-        } else if self.source[self.current] != expected as u8 {
-            false
-        } else {
-            self.current += 1;
-            true
-        }
-    }
-
     fn peek(&mut self) -> u8 {
         if self.current >= self.source.len() {
             b'\0'
