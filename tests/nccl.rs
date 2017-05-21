@@ -1,7 +1,7 @@
 
 extern crate nccl;
 
-use nccl::{Pair, Scanner};
+use nccl::{Pair, Scanner, NcclError, ErrorKind};
 
 #[test]
 fn pair_new() {
@@ -65,10 +65,16 @@ fn pair_value_parse() {
 }
 
 #[test]
-fn scanner() {
-    let mut s = Scanner::new("\"this: is neato\": burrito 64\n".into());
-    println!("{:?}", s.scan_tokens());
-    panic!();
+fn scanner_literal() {
+    let mut s = Scanner::new("\"this: is neato\": burrito 64\n    yes.".into());
+    s.scan_tokens().unwrap();
+}
+
+#[test]
+#[should_panic]
+fn error_key_not_found() {
+    let mut p = Pair::new("jjj");
+    p.get("jwiofiojwaef jio").unwrap();
 }
 
 #[test]
