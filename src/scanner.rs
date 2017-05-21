@@ -112,9 +112,9 @@ impl Scanner {
                 self.line += 1;
             },
 
-            b'"' => if let Err(error) = self.string() {},
+            b'"' => if let Err(e) = self.string() { error = Err(e); },
 
-            _ => if let Err(error) = self.identifier() {},
+            _ => if let Err(e) = self.identifier() { error = Err(e); },
         }
 
         error
