@@ -38,7 +38,7 @@ impl Pair {
         let value_owned = value.to_owned();
 
         if self.value.is_empty() {
-            return Ok(self);
+            return Err(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", value), 0));
         } else {
             for item in self.value.iter_mut() {
                 if item.key == value_owned {
@@ -47,7 +47,7 @@ impl Pair {
             }
         }
 
-        Err(NcclError::new(ErrorKind::KeyNotFound, "Could not find key", 0))
+        Err(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", value), 0))
     }
 
     pub fn get_ref(&self, value: &str) -> Result<&Pair, NcclError> {
