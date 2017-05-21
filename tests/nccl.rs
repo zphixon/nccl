@@ -67,8 +67,7 @@ fn pair_value_parse() {
 
 #[test]
 fn scanner() {
-    let mut s = Scanner::new(r#"key
-                                 value"#.into());
+    let mut s = Scanner::new("\"this: is neato\": burrito 64\n".into());
     println!("{:?}", s.scan_tokens());
     panic!();
 }
