@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 use std::str::FromStr;
 
 use value::Value;
-use error::Error;
+use error::{NcclError, ErrorKind};
 
 // top level key that contains everything is __top_level__
 #[derive(Clone, Debug, PartialEq)]
@@ -34,7 +34,7 @@ impl Pair {
         return false;
     }
 
-    pub fn get(&mut self, value: &str) -> Result<&mut Pair, Error> {
+    pub fn get(&mut self, value: &str) -> Result<&mut Pair, NcclError> {
         let value_owned = value.to_owned();
 
         if self.value.is_empty() {
@@ -47,10 +47,10 @@ impl Pair {
             }
         }
 
-        Err(Error::KeyNotFound)
+        Err(NcclError::new(ErrorKind::KeyNotFound, "Could not find key", 0))
     }
 
-    pub fn get_ref(&self, value: &str) -> Result<&Pair, Error> {
+    pub fn get_ref(&self, value: &str) -> Result<&Pair, NcclError> {
         let value_owned = value.to_owned();
 
         if self.value.is_empty() {
@@ -63,27 +63,27 @@ impl Pair {
             }
         }
 
-        Err(Error::KeyNotFound)
+        Err(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0))
     }
 
-    pub fn value(&self) -> Result<Value, Error>  {
+    pub fn value(&self) -> Result<Value, NcclError>  {
         if self.value.len() == 1 {
             Ok(Value::String(self.value[0].key.clone()))
         } else if self.value.len() > 1 {
             Ok(Value::Vec(self.keys()))
         } else {
-            Err(Error::NoValue)
+            Err(NcclError::new(ErrorKind::NoValue, "Key does not have value", 0))
         }
     }
 
-    pub fn value_as<T>(&self) -> Result<T, Error> where T: FromStr {
+    pub fn value_as<T>(&self) -> Result<T, NcclError> where T: FromStr {
         match self.value() {
             Ok(value) => match value {
                 Value::String(s) => match s.parse::<T>() {
                     Ok(ok) => Ok(ok),
-                    Err(_) => Err(Error::ParseError)
+                    Err(_) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse key", 0))
                 },
-                Value::Vec(_) => Err(Error::ParseError)
+                Value::Vec(_) => Err(NcclError::new(ErrorKind::ParseError, "Cannot parse non-terminal key", 0))
             },
             Err(err) => Err(err)
         }
@@ -93,11 +93,11 @@ impl Pair {
         self.value.clone().into_iter().map(|x| x.key).collect()
     }
 
-    pub fn keys_as<T: FromStr>(&self) -> Result<Vec<T>, Error> {
+    pub fn keys_as<T: FromStr>(&self) -> Result<Vec<T>, NcclError> {
         // XXX this is gross
         match self.keys().iter().map(|s| s.parse::<T>()).collect::<Result<Vec<T>, _>>() {
             Ok(ok) => Ok(ok),
-            Err(_) => Err(Error::ParseError)
+            Err(_) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse keys", 0))
         }
     }
 }

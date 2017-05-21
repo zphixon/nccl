@@ -1,6 +1,6 @@
 
 use token::{Token, TokenKind};
-use error::Error;
+use error::{NcclError, ErrorKind};
 
 // ranked worst to least
 enum Indent {
@@ -30,7 +30,7 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Error> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, NcclError> {
         while !self.is_at_end() {
             self.start = self.current;
             match self.scan_token() {
@@ -43,7 +43,7 @@ impl Scanner {
         Ok(self.tokens.clone())
     }
 
-    fn scan_token(&mut self) -> Result<(), Error> {
+    fn scan_token(&mut self) -> Result<(), NcclError> {
         match self.advance() {
             b':' => {
                 self.add_token(TokenKind::Colon);
@@ -51,7 +51,7 @@ impl Scanner {
                     self.advance();
                 }
                 if self.is_at_end() {
-                    return Err(Error::ParseError);
+                    return Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found EOF", self.line));
                 }
             },
 
@@ -70,7 +70,7 @@ impl Scanner {
                             spaces += 1;
                         }
                         if self.is_at_end() {
-                            return Err(Error::ParseError);
+                            return Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
                         }
                         self.indent = Indent::Spaces(spaces);
                         self.add_token(TokenKind::Indent);
@@ -82,14 +82,14 @@ impl Scanner {
                             spaces += 1;
                         }
                         if self.is_at_end() {
-                            return Err(Error::ParseError);
+                            return Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
                         }
                         if spaces != s {
-                            return Err(Error::IndentationError);
+                            return Err(NcclError::new(ErrorKind::IndentationError, "Incorrect number of spaces", self.line));
                         }
                         self.add_token(TokenKind::Indent);
                     },
-                    Indent::Tabs => return Err(Error::IndentationError)
+                    Indent::Tabs => return Err(NcclError::new(ErrorKind::IndentationError, "Expected spaces, found tabs", self.line))
                 }
             },
 
@@ -102,13 +102,13 @@ impl Scanner {
                     Indent::Tabs => {
                         self.add_token(TokenKind::Indent);
                     },
-                    Indent::Spaces(_) => return Err(Error::IndentationError)
+                    Indent::Spaces(_) => return Err(NcclError::new(ErrorKind::IndentationError, "Expected tabs, found spaces", self.line))
                 }
             },
 
             b'\n' => self.add_token(TokenKind::Newline),
 
-            _ => return Err(Error::ParseError)
+            _ => return Err(NcclError::new(ErrorKind::ParseError, "Unexpected token", self.line))
         }
         Ok(())
     }

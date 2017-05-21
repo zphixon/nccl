@@ -2,7 +2,7 @@
 extern crate nccl;
 
 
-use nccl::{Pair, Value};
+use nccl::{Pair, Value, Scanner};
 
 #[test]
 fn pair_new() {
@@ -63,6 +63,14 @@ fn pair_value_parse() {
     p.add("bools");
     p["bools"].add("true");
     assert!(p["bools"].value_as::<bool>().unwrap());
+}
+
+#[test]
+fn scanner() {
+    let mut s = Scanner::new(r#"key
+                                 value"#.into());
+    println!("{:?}", s.scan_tokens());
+    panic!();
 }
 
 #[test]

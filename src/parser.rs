@@ -4,7 +4,7 @@ use std::io::Read;
 use std::path::Path;
 
 use pair::Pair;
-use error::Error;
+use error::{NcclError, ErrorKind};
 
 #[allow(dead_code)]
 pub struct Parser {
@@ -26,8 +26,8 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Pair, Error> {
-        Err(Error::ParseError)
+    pub fn parse(&mut self) -> Result<Pair, NcclError> {
+        Err(NcclError::new(ErrorKind::ParseError, "egh", 93))
     }
 
     fn match_tokens(&mut self, chars: Vec<u8>) -> bool {
@@ -60,7 +60,7 @@ impl Parser {
     }
 }
 
-pub fn parse_file(filename: &str) -> Result<Pair, Error> {
+pub fn parse_file(filename: &str) -> Result<Pair, NcclError> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
         let mut data = String::new();
 
@@ -69,7 +69,7 @@ pub fn parse_file(filename: &str) -> Result<Pair, Error> {
         let mut parser = Parser::new(data);
         parser.parse()
     } else {
-        Err(Error::FileError)
+        Err(NcclError::new(ErrorKind::FileError, "hefi", 651))
     }
 }
 
