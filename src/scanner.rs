@@ -78,15 +78,15 @@ impl Scanner {
                     }
                     Indent::Spaces(s) => {
                         let mut spaces = 0;
-                        while spaces <= s && self.peek() == b' ' && !self.is_at_end() {
+                        while spaces < s  && !self.is_at_end() {
                             self.advance();
                             spaces += 1;
+                            if self.peek() != b' ' {
+                                error = Err(NcclError::new(ErrorKind::IndentationError, "Incorrect number of spaces", self.line));
+                            }
                         }
                         if self.is_at_end() {
                             error = Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
-                        }
-                        if spaces != s {
-                            error = Err(NcclError::new(ErrorKind::IndentationError, "Incorrect number of spaces", self.line));
                         }
                         self.add_token(TokenKind::Indent);
                     },
@@ -161,7 +161,6 @@ impl Scanner {
     }
 
     fn add_token(&mut self, kind: TokenKind) {
-        // assume valid UTF8
         let text = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
         self.tokens.push(Token::new(kind, text, self.line));
     }
