@@ -44,6 +44,7 @@ impl Scanner {
     }
 
     fn scan_token(&mut self) -> Result<(), NcclError> {
+        let mut error = Ok(());
         match self.advance() {
             b':' => {
                 self.add_token(TokenKind::Colon);
@@ -51,7 +52,7 @@ impl Scanner {
                     self.advance();
                 }
                 if self.is_at_end() {
-                    return Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found EOF", self.line));
+                    error = Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found EOF", self.line));
                 }
             },
 
@@ -70,7 +71,7 @@ impl Scanner {
                             spaces += 1;
                         }
                         if self.is_at_end() {
-                            return Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
+                            error = Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
                         }
                         self.indent = Indent::Spaces(spaces);
                         self.add_token(TokenKind::Indent);
@@ -82,14 +83,14 @@ impl Scanner {
                             spaces += 1;
                         }
                         if self.is_at_end() {
-                            return Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
+                            error = Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
                         }
                         if spaces != s {
-                            return Err(NcclError::new(ErrorKind::IndentationError, "Incorrect number of spaces", self.line));
+                            error = Err(NcclError::new(ErrorKind::IndentationError, "Incorrect number of spaces", self.line));
                         }
                         self.add_token(TokenKind::Indent);
                     },
-                    Indent::Tabs => return Err(NcclError::new(ErrorKind::IndentationError, "Expected spaces, found tabs", self.line))
+                    Indent::Tabs => { error = Err(NcclError::new(ErrorKind::IndentationError, "Expected tabs, found spaces", self.line)); }
                 }
             },
 
@@ -102,14 +103,51 @@ impl Scanner {
                     Indent::Tabs => {
                         self.add_token(TokenKind::Indent);
                     },
-                    Indent::Spaces(_) => return Err(NcclError::new(ErrorKind::IndentationError, "Expected tabs, found spaces", self.line))
+                    Indent::Spaces(_) => { error = Err(NcclError::new(ErrorKind::IndentationError, "Expected spaces, found tabs", self.line)); }
                 }
             },
 
-            b'\n' => self.add_token(TokenKind::Newline),
+            b'\n' => {
+                self.add_token(TokenKind::Newline);
+                self.line += 1;
+            },
 
-            _ => return Err(NcclError::new(ErrorKind::ParseError, "Unexpected token", self.line))
+            b'"' => if let Err(error) = self.string() {},
+
+            _ => if let Err(error) = self.identifier() {},
         }
+
+        error
+    }
+
+    fn identifier(&mut self) -> Result<(), NcclError> {
+        while self.peek() != b'\n' && !self.is_at_end() {
+            self.advance();
+        }
+
+        let value = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
+        self.add_token_string(TokenKind::Name, value);
+
+        Ok(())
+    }
+
+    fn string(&mut self) -> Result<(), NcclError> {
+        while self.peek() != b'"' && !self.is_at_end() {
+            if self.peek() == b'\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            return Err(NcclError::new(ErrorKind::ParseError, "Unterminated string", self.line));
+        }
+
+        self.advance();
+
+        let value = String::from_utf8(self.source[self.start + 1..self.current - 1].to_vec()).unwrap();
+        self.add_token_string(TokenKind::Name, value);
+
         Ok(())
     }
 
@@ -119,13 +157,17 @@ impl Scanner {
 
     fn advance(&mut self) -> u8 {
         self.current += 1;
-        self.source[self.current]
+        self.source[self.current - 1]
     }
 
     fn add_token(&mut self, kind: TokenKind) {
         // assume valid UTF8
         let text = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
         self.tokens.push(Token::new(kind, text, self.line));
+    }
+
+    fn add_token_string(&mut self, kind: TokenKind, value: String) {
+        self.tokens.push(Token::new(kind, value, self.line));
     }
 
     fn matches(&mut self, expected: char) -> bool {
