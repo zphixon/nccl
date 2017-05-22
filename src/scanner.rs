@@ -128,7 +128,7 @@ impl Scanner {
         }
 
         let value = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
-        self.add_token_string(TokenKind::Name, value);
+        self.add_token_string(TokenKind::Value, value);
 
         Ok(())
     }
@@ -170,7 +170,7 @@ impl Scanner {
 
         self.advance();
 
-        self.add_token_string(TokenKind::Name, value);
+        self.add_token_string(TokenKind::Value, value);
 
         Ok(())
     }
