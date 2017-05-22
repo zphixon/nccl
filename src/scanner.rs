@@ -51,7 +51,7 @@ impl Scanner {
                 while self.peek() == b' ' && !self.is_at_end() {
                     self.advance();
                 }
-                if self.is_at_end() {
+                if self.is_at_end() || self.peek() == b'\n' {
                     error = Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found EOF", self.line));
                 }
             },
@@ -121,7 +121,7 @@ impl Scanner {
     }
 
     fn identifier(&mut self) -> Result<(), NcclError> {
-        while self.peek() != b'\n' && !self.is_at_end() {
+        while self.peek() != b'\n' && self.peek() != b':' && !self.is_at_end() {
             self.advance();
         }
 
