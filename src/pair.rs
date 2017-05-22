@@ -2,7 +2,6 @@
 use std::ops::{Index, IndexMut};
 use std::str::FromStr;
 
-use value::Value;
 use error::{NcclError, ErrorKind};
 
 // top level key that contains everything is __top_level__
@@ -66,11 +65,11 @@ impl Pair {
         Err(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0))
     }
 
-    pub fn value(&self) -> Result<Value, NcclError>  {
+    pub fn value(&self) -> Result<String, NcclError>  {
         if self.value.len() == 1 {
-            Ok(Value::String(self.value[0].key.clone()))
+            Ok(self.value[0].key.clone())
         } else if self.value.len() > 1 {
-            Ok(Value::Vec(self.keys()))
+            Err(NcclError::new(ErrorKind::NoValue, "Key has multiple values", 0))
         } else {
             Err(NcclError::new(ErrorKind::NoValue, "Key does not have value", 0))
         }
@@ -78,12 +77,9 @@ impl Pair {
 
     pub fn value_as<T>(&self) -> Result<T, NcclError> where T: FromStr {
         match self.value() {
-            Ok(value) => match value {
-                Value::String(s) => match s.parse::<T>() {
-                    Ok(ok) => Ok(ok),
-                    Err(_) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse key", 0))
-                },
-                Value::Vec(_) => Err(NcclError::new(ErrorKind::ParseError, "Cannot parse non-terminal key", 0))
+            Ok(value) => match value.parse::<T>() {
+                Ok(ok) => Ok(ok),
+                Err(err) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0))
             },
             Err(err) => Err(err)
         }
@@ -97,7 +93,7 @@ impl Pair {
         // XXX this is gross
         match self.keys().iter().map(|s| s.parse::<T>()).collect::<Result<Vec<T>, _>>() {
             Ok(ok) => Ok(ok),
-            Err(_) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse keys", 0))
+            Err(_) => Err(NcclError::new(ErrorKind::FromStrError, "Could not parse keys", 0))
         }
     }
 }
