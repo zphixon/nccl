@@ -27,21 +27,71 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Pair, NcclError> {
+        Ok(self.pair.clone())
     }
 
-    fn nccl(&mut self) {
-        self.value();
-        if self.peek().kind != TokenKind::Colon {
+    fn add(&mut self, value: String) {
+        self.pair.add(&value);
+    }
+
+    fn nccl(&mut self) -> Result<(), NcclError> {
+        while !self.is_at_end() {
+            self.value()?;
+            if self.peek().kind == TokenKind::Colon {
+                self.colon()?;
+                self.schema()?;
+            }
             self.newline()?;
             self.indent()?;
+            self.value()?;
+            self.newline()?;
+        }
+        Ok(())
+    }
+
+    fn value(&mut self) -> Result<(), NcclError> {
+        if !self.is_at_end() {
+            if self.peek().kind != TokenKind::Value {
+            } else {
+                return Err(NcclError::new(ErrorKind::ParseError, &format!("Expected value, found {:?}", self.peek().kind), self.line));
+            }
+            Ok(())
         } else {
-            self.schema();
+            Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line))
         }
     }
 
-    fn value(&mut self) {}
+    fn indent(&mut self) -> Result<(), NcclError> {
+        if !self.is_at_end() {
+            Ok(())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, "Expected indent, found EOF", self.line))
+        }
+    }
 
-    fn indent(&mut self) {}
+    fn newline(&mut self) -> Result<(), NcclError> {
+        if !self.is_at_end() {
+            Ok(())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, "Expected newline, found EOF", self.line))
+        }
+    }
+
+    fn schema(&mut self) -> Result<(), NcclError> {
+        if !self.is_at_end() {
+            Ok(())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, "Expected schema, found EOF", self.line))
+        }
+    }
+
+    fn colon(&mut self) -> Result<(), NcclError> {
+        if !self.is_at_end() {
+            Ok(())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, "Expected colon, found EOF", self.line))
+        }
+    }
 
     fn matches(&mut self, kind: TokenKind) -> bool {
         if self.check(kind) {
