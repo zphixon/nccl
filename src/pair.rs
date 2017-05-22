@@ -23,6 +23,21 @@ impl Pair {
         self.value.push(Pair::new(value));
     }
 
+    pub fn add_vec(&mut self, path: Vec<String>, value: String) {
+        let mut pairs = vec![];
+        for item in path {
+            pairs.push(Pair::new(&item));
+        }
+    }
+
+    pub fn add_pair(&mut self, pair: Pair) {
+        if !self.keys().contains(&pair.key) {
+            self.value.push(pair);
+        } else {
+            self[&pair.key].value = pair.value;
+        }
+    }
+
     pub fn has_key(&self, key: &str) -> bool {
         for item in self.value.iter() {
             if &item.key == key {

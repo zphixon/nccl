@@ -94,6 +94,26 @@ fn string_escape() {
 }
 
 #[test]
+fn add_pair() {
+    // create a new pair
+     let mut p1 = Pair::new("happy birthday");
+
+     p1.add("Bobby");
+     p1["Bobby"].add("Today!");
+
+     // we think Ron's birthday is the 3rd...
+     p1.add("Ron");
+     p1["Ron"].add("March 3rd");
+
+     // whoops, we were wrong
+     let mut p2 = Pair::new("Ron");
+     p2.add("March 2nd");
+
+     // there you go Ron, happy belated birthday
+     p1.add_pair(p2);
+}
+
+#[test]
 fn readme() {
     let mut config = Pair::new("top_level");
 
