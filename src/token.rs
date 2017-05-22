@@ -4,7 +4,6 @@ pub enum TokenKind {
     Name,
     Colon,
     Indent,
-    Newline,
     EOF,
 }
 

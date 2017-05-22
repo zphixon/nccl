@@ -1,75 +1,80 @@
 
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-
 use pair::Pair;
 use error::{NcclError, ErrorKind};
+use token::{Token, TokenKind};
 
 #[allow(dead_code)]
 pub struct Parser {
-    position: usize,
+    current: usize,
+    tokens: Vec<Token>,
+    pair: Pair,
     line: u64,
-    column: u64,
-    pairs: Pair,
-    data: Vec<u8>,
 }
 
+// nccl = (value (":" value)? indent value)*
+// value = [^:]+
+// indent = " "+ | "\t"
+
 impl Parser {
-    pub fn new(data: String) -> Self {
+    pub fn new(tokens: Vec<Token>) -> Self {
         Parser {
-            position: 0,
-            line: 0,
-            column: 0,
-            pairs: Pair::new("((top_level))"),
-            data: data.into_bytes(),
+            current: 0,
+            tokens: tokens,
+            pair: Pair::new("__top_level__"),
         }
     }
 
     pub fn parse(&mut self) -> Result<Pair, NcclError> {
-        Err(NcclError::new(ErrorKind::ParseError, "egh", 93))
+        Ok(Pair::new(""))
     }
 
-    fn match_tokens(&mut self, chars: Vec<u8>) -> bool {
-        for c in chars {
-            if self.check(c) {
-                self.advance();
-                return true;
-            }
+    fn nccl(&mut self) {}
+    fn value(&mut self) {}
+    fn indent(&mut self) {}
+
+    fn matches(&mut self, kind: TokenKind) -> bool {
+        if self.check(kind) {
+            self.advance();
+            true
+        } else {
+            false
         }
-
-        false
     }
 
-    fn check(&mut self, token: u8) -> bool {
+    fn check(&mut self, kind: TokenKind) -> bool {
         if self.is_at_end() {
             false
         } else {
-            self.peek() == token
+            self.peek().kind == kind
         }
     }
 
-    fn peek(&mut self) -> u8 {
-        self.data[self.position]
-    }
+    fn advance(&mut self) -> &Token {
+        if !self.is_at_end() {
+            self.current += 1;
+        }
 
-    fn advance(&mut self) {}
+        self.previous()
+    }
 
     fn is_at_end(&mut self) -> bool {
-        false
+        self.peek().kind == TokenKind::EOF
     }
-}
 
-pub fn parse_file(filename: &str) -> Result<Pair, NcclError> {
-    if let Ok(mut file) = File::open(Path::new(filename)) {
-        let mut data = String::new();
+    fn peek(&mut self) -> &Token {
+        &self.tokens[self.current]
+    }
 
-        file.read_to_string(&mut data).unwrap();
+    fn previous(&mut self) -> &Token {
+        &self.tokens[self.current - 1]
+    }
 
-        let mut parser = Parser::new(data);
-        parser.parse()
-    } else {
-        Err(NcclError::new(ErrorKind::FileError, "hefi", 651))
+    fn consume(&mut self, kind: TokenKind, message: &str) -> Result<&Token, NcclError> {
+        if self.check(kind) {
+            Ok(self.advance())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, message, self.line))
+        }
     }
 }
 

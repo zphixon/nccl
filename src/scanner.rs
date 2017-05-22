@@ -107,10 +107,7 @@ impl Scanner {
                 }
             },
 
-            b'\n' => {
-                self.add_token(TokenKind::Newline);
-                self.line += 1;
-            },
+            b'\n' => self.line += 1,
 
             b'\r' => {},
 
