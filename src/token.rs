@@ -10,9 +10,9 @@ pub enum TokenKind {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
-    kind: TokenKind,
-    lexeme: String,
-    line: u64,
+    pub kind: TokenKind,
+    pub lexeme: String,
+    pub line: u64,
 }
 
 impl Token {

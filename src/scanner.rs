@@ -134,10 +134,17 @@ impl Scanner {
     }
 
     fn string(&mut self) -> Result<(), NcclError> {
+        let mut value = String::new();
         while self.peek() != b'"' && !self.is_at_end() {
             if self.peek() == b'\n' {
                 self.line += 1;
             }
+
+            if self.peek() == b'\\' {
+                self.advance();
+            }
+
+            value.push(self.source[self.current] as char);
             self.advance();
         }
 
@@ -147,7 +154,7 @@ impl Scanner {
 
         self.advance();
 
-        let value = String::from_utf8(self.source[self.start + 1..self.current - 1].to_vec()).unwrap();
+        //let value = String::from_utf8(self.source[self.start + 1..self.current - 1].to_vec()).unwrap();
         self.add_token_string(TokenKind::Name, value);
 
         Ok(())
