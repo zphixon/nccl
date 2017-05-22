@@ -79,7 +79,7 @@ impl Pair {
         match self.value() {
             Ok(value) => match value.parse::<T>() {
                 Ok(ok) => Ok(ok),
-                Err(err) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0))
+                Err(_) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0))
             },
             Err(err) => Err(err)
         }
