@@ -83,6 +83,11 @@ fn scan_file() {
 }
 
 #[test]
+fn dos_unix_lines() {
+    assert_eq!(nccl::parse_file("config.nccl"), nccl::parse_file("config_dos.nccl"));
+}
+
+#[test]
 fn readme() {
     let mut config = Pair::new("top_level");
 

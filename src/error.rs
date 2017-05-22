@@ -1,7 +1,7 @@
 
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 /// nccl Error type.
 pub enum ErrorKind {
     KeyNotFound,
@@ -12,7 +12,7 @@ pub enum ErrorKind {
     FileError,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct NcclError {
     kind: ErrorKind,
     line: u64,
