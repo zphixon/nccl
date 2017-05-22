@@ -11,8 +11,9 @@ pub struct Parser {
     line: u64,
 }
 
-// nccl = (value (":" value)? indent value)*
+// nccl = (value (":" value)? newline indent value newline)*
 // value = [^:]+
+// newline = "\n" | "\r\n"
 // indent = " "+ | "\t"
 
 impl Parser {
@@ -26,11 +27,20 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Pair, NcclError> {
-        Ok(Pair::new(""))
     }
 
-    fn nccl(&mut self) {}
+    fn nccl(&mut self) {
+        self.value();
+        if self.peek().kind != TokenKind::Colon {
+            self.newline()?;
+            self.indent()?;
+        } else {
+            self.schema();
+        }
+    }
+
     fn value(&mut self) {}
+
     fn indent(&mut self) {}
 
     fn matches(&mut self, kind: TokenKind) -> bool {
