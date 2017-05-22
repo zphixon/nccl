@@ -21,6 +21,7 @@ impl Parser {
             current: 0,
             tokens: tokens,
             pair: Pair::new("__top_level__"),
+            line: 1,
         }
     }
 
