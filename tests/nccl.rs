@@ -88,6 +88,13 @@ fn dos_unix_lines() {
 }
 
 #[test]
+fn string_escape() {
+    // "\"hello\""
+    let mut s = Scanner::new("\"\\\"hello\\\"\"".into());
+    assert_eq!(s.scan_tokens().unwrap()[0].lexeme, "\"hello\"");
+}
+
+#[test]
 fn readme() {
     let mut config = Pair::new("top_level");
 
