@@ -112,6 +112,8 @@ impl Scanner {
                 self.line += 1;
             },
 
+            b'\r' => {},
+
             b'"' => if let Err(e) = self.string() { error = Err(e); },
 
             _ => if let Err(e) = self.identifier() { error = Err(e); },
@@ -121,7 +123,7 @@ impl Scanner {
     }
 
     fn identifier(&mut self) -> Result<(), NcclError> {
-        while self.peek() != b'\n' && self.peek() != b':' && !self.is_at_end() {
+        while self.peek() != b'\n' && self.peek() != b'\r' && self.peek() != b':' && !self.is_at_end() {
             self.advance();
         }
 
