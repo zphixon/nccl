@@ -142,9 +142,25 @@ impl Scanner {
 
             if self.peek() == b'\\' {
                 self.advance();
+                match self.peek() {
+                    b'n' => {
+                        value.push('\n');
+                    },
+                    b'r' => {
+                        value.push('\r');
+                    }
+                    b'\\' => {
+                        value.push('\\');
+                    },
+                    b'"' => {
+                        value.push('"');
+                    },
+                    _ => return Err(NcclError::new(ErrorKind::ParseError, &format!("Unknown format code: {}", self.peek()), self.line))
+                }
+            } else {
+                value.push(self.source[self.current] as char);
             }
 
-            value.push(self.source[self.current] as char);
             self.advance();
         }
 

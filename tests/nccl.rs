@@ -89,9 +89,8 @@ fn dos_unix_lines() {
 
 #[test]
 fn string_escape() {
-    // "\"hello\""
-    let mut s = Scanner::new("\"\\\"hello\\\"\"".into());
-    assert_eq!(s.scan_tokens().unwrap()[0].lexeme, "\"hello\"");
+    let mut s = Scanner::new("\"\\\"hello\\\"\\n\"".into());
+    assert_eq!(s.scan_tokens().unwrap()[0].lexeme, "\"hello\"\n");
 }
 
 #[test]
