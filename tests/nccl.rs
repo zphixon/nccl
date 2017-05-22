@@ -79,8 +79,7 @@ fn error_key_not_found() {
 
 #[test]
 fn scan_file() {
-    println!("{:?}", nccl::parse_file("config.nccl"));
-    panic!();
+    assert!(nccl::parse_file("config.nccl").is_ok());
 }
 
 #[test]

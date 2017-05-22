@@ -79,11 +79,11 @@ impl Scanner {
                     Indent::Spaces(s) => {
                         let mut spaces = 0;
                         while spaces < s  && !self.is_at_end() {
+                            if self.peek() != b' ' {
+                                error = Err(NcclError::new(ErrorKind::IndentationError, &format!("Incorrect number of spaces: found {}, expected {}", spaces, s), self.line));
+                            }
                             self.advance();
                             spaces += 1;
-                            if self.peek() != b' ' {
-                                error = Err(NcclError::new(ErrorKind::IndentationError, "Incorrect number of spaces", self.line));
-                            }
                         }
                         if self.is_at_end() {
                             error = Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
