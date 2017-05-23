@@ -3,9 +3,9 @@ use pair::Pair;
 use error::{NcclError, ErrorKind};
 use token::{Token, TokenKind};
 
-#[allow(dead_code)]
 pub struct Parser {
     current: usize,
+    path: Vec<String>,
     tokens: Vec<Token>,
     pair: Pair,
     line: u64,
@@ -20,6 +20,7 @@ impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Parser {
             current: 0,
+            path: vec![],
             tokens: tokens,
             pair: Pair::new("__top_level__"),
             line: 1,
@@ -27,34 +28,27 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Result<Pair, NcclError> {
-        Ok(self.pair.clone())
-    }
-
-    fn add(&mut self, value: String) {
-        self.pair.add(&value);
-    }
-
-    fn nccl(&mut self) -> Result<(), NcclError> {
         while !self.is_at_end() {
             self.value()?;
-            if self.peek().kind == TokenKind::Colon {
+            if self.peek().kind == TokenKind::Value {
                 self.colon()?;
-                self.schema()?;
+                self.value()?;
             }
             self.newline()?;
             self.indent()?;
             self.value()?;
             self.newline()?;
         }
-        Ok(())
+
+        Ok(self.pair.clone())
+    }
+
+    fn add(&mut self, value: String) {
+        //self.pair.add_vec(self.path, value);
     }
 
     fn value(&mut self) -> Result<(), NcclError> {
         if !self.is_at_end() {
-            if self.peek().kind != TokenKind::Value {
-            } else {
-                return Err(NcclError::new(ErrorKind::ParseError, &format!("Expected value, found {:?}", self.peek().kind), self.line));
-            }
             Ok(())
         } else {
             Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line))
@@ -71,17 +65,10 @@ impl Parser {
 
     fn newline(&mut self) -> Result<(), NcclError> {
         if !self.is_at_end() {
+            self.line += 1;
             Ok(())
         } else {
             Err(NcclError::new(ErrorKind::ParseError, "Expected newline, found EOF", self.line))
-        }
-    }
-
-    fn schema(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected schema, found EOF", self.line))
         }
     }
 

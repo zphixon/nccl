@@ -23,11 +23,13 @@ impl Pair {
         self.value.push(Pair::new(value));
     }
 
-    pub fn add_vec(&mut self, path: Vec<String>, value: String) {
-        let mut pairs = vec![];
-        for item in path {
-            pairs.push(Pair::new(&item));
-        }
+    pub fn add_vec(&mut self, mut path: Vec<String>) {
+        //Pair::new(path[2]).add(Pair::new(path[1]).add(Pair::new(path[0])));
+        self.add_pair(path.into_iter().rev()
+            .fold(Pair::new(""), |mut acc, next| {
+                acc.add_pair(Pair::new(&next));
+                acc.get(&next).unwrap().clone()
+            }));
     }
 
     pub fn add_pair(&mut self, pair: Pair) {
@@ -49,13 +51,13 @@ impl Pair {
     }
 
     pub fn get(&mut self, value: &str) -> Result<&mut Pair, NcclError> {
-        let value_owned = value.to_owned();
+        let value = value.to_owned();
 
         if self.value.is_empty() {
             return Err(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", value), 0));
         } else {
             for item in self.value.iter_mut() {
-                if item.key == value_owned {
+                if item.key == value {
                     return Ok(item);
                 }
             }

@@ -114,6 +114,14 @@ fn add_pair() {
 }
 
 #[test]
+fn add_vec() {
+    let mut p = Pair::new("");
+    p.add_vec(vec!["a".into(), "b".into(), "c".into()]);
+    println!("{:?}", p);
+    panic!();
+}
+
+#[test]
 fn readme() {
     let mut config = Pair::new("top_level");
 
