@@ -24,7 +24,8 @@ impl Pair {
     }
 
     pub fn add_vec(&mut self, mut path: Vec<String>) {
-        //Pair::new(path[2]).add(Pair::new(path[1]).add(Pair::new(path[0])));
+        // equivalent to
+        // Pair::new(path[0]).add(Pair::new(path[1]).add(Pair::new(path[2])));
         self.add_pair(path.into_iter().rev()
             .fold(Pair::new(""), |mut acc, next| {
                 acc.add_pair(Pair::new(&next));
