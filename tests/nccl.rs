@@ -114,11 +114,10 @@ fn add_pair() {
 }
 
 #[test]
-fn add_vec() {
-    let mut p = Pair::new("");
+fn add_vec_traverse() {
+    let mut p = Pair::new("top");
     p.add_vec(vec!["a".into(), "b".into(), "c".into()]);
-    println!("{:?}", p);
-    panic!();
+    assert_eq!(p.traverse(3), &mut Pair::new("c"));
 }
 
 #[test]

@@ -23,14 +23,18 @@ impl Pair {
         self.value.push(Pair::new(value));
     }
 
-    pub fn add_vec(&mut self, mut path: Vec<String>) {
-        // equivalent to
-        // Pair::new(path[0]).add(Pair::new(path[1]).add(Pair::new(path[2])));
-        self.add_pair(path.into_iter().rev()
-            .fold(Pair::new(""), |mut acc, next| {
-                acc.add_pair(Pair::new(&next));
-                acc.get(&next).unwrap().clone()
-            }));
+    pub fn add_vec(&mut self, path: Vec<String>) {
+        for (k, v) in path.into_iter().enumerate() {
+            self.traverse(k).add(&v);
+        }
+    }
+
+    pub fn traverse(&mut self, levels: usize) -> &mut Pair {
+        if levels == 0 {
+            self
+        } else {
+            self.value[0].traverse(levels - 1)
+        }
     }
 
     pub fn add_pair(&mut self, pair: Pair) {
