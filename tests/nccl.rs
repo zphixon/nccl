@@ -114,10 +114,35 @@ fn add_pair() {
 }
 
 #[test]
-fn add_vec_traverse() {
+fn add_slice_traverse() {
     let mut p = Pair::new("top");
-    p.add_vec(vec!["a".into(), "b".into(), "c".into()]);
+    p.add_slice(&["a".into(), "b".into(), "c".into()]);
     assert_eq!(p.traverse(3), &mut Pair::new("c"));
+}
+
+#[test]
+fn traverse_path() {
+    let mut p = Pair::new("top");
+    p.add_slice(&["a".into(), "b".into(), "c".into()]);
+    p.traverse_path(&["a".into(), "b".into()]).add("happy");
+    assert_eq!(p.traverse_path(&["a".into(), "b".into(), "happy".into()]), &mut Pair::new("happy"));
+}
+
+#[test]
+fn add_slice() {
+    let mut config = Pair::new("top_level");
+    config.add("server");
+    config["server"].add("domain");
+    config["server"].add("port");
+    config["server"].add("root");
+    config["server"]["domain"].add("example.com");
+    config["server"]["domain"].add("www.example.com");
+    config["server"]["port"].add("80");
+    config["server"]["port"].add("443");
+    config["server"]["root"].add("/var/www/html");
+
+    config.add_slice(&["server".into(), "port".into(), "22".into()]);
+    assert_eq!(config["server"]["port"].keys(), vec!["80", "443", "22"]);
 }
 
 #[test]

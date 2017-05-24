@@ -23,10 +23,8 @@ impl Pair {
         self.value.push(Pair::new(value));
     }
 
-    pub fn add_vec(&mut self, path: Vec<String>) {
-        for (k, v) in path.into_iter().enumerate() {
-            self.traverse(k).add(&v);
-        }
+    pub fn add_slice(&mut self, path: &[String]) {
+        self.traverse_path(&path[0..path.len() - 1]).add(&path[path.len() - 1]);
     }
 
     pub fn traverse(&mut self, levels: usize) -> &mut Pair {
@@ -34,6 +32,15 @@ impl Pair {
             self
         } else {
             self.value[0].traverse(levels - 1)
+        }
+    }
+
+    pub fn traverse_path(&mut self, path: &[String]) -> &mut Pair {
+        if path.len() == 0 {
+            self
+        } else {
+            self.add(&path[0]);
+            self.get(&path[0]).unwrap().traverse_path(&path[1..path.len()])
         }
     }
 
