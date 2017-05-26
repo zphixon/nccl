@@ -1,7 +1,7 @@
 
 extern crate nccl;
 
-use nccl::{Pair, Scanner, NcclError, ErrorKind};
+use nccl::{Pair, Scanner, NcclError, ErrorKind, Parser};
 
 #[test]
 fn pair_new() {
@@ -150,6 +150,13 @@ fn add_slice() {
 fn multiple_errors() {
     let mut s = Scanner::new("hey: momma\n   test\n\tjeii\n    oh no!\n".into());
     s.scan_tokens().unwrap();
+}
+
+#[test]
+fn parser() {
+    let mut p = Parser::new(Scanner::new("hello\n    people\n    of\n    the world\n\nthis\n    is neat".into()).scan_tokens().unwrap());
+    println!("{:?}", p.parse().unwrap());
+    panic!();
 }
 
 #[test]

@@ -33,14 +33,8 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Pair, NcclError> {
         while !self.is_at_end() {
             self.value()?;
-            if self.peek().kind == TokenKind::Value {
-                self.colon()?;
-                self.value()?;
-            }
             self.newline()?;
-            self.indent()?;
-            self.value()?;
-            self.newline()?;
+            self.advance();
         }
 
         Ok(self.pair.clone())
@@ -52,10 +46,24 @@ impl Parser {
 
     fn value(&mut self) -> Result<(), NcclError> {
         if !self.is_at_end() {
+            self.name()?;
+            if self.peek().kind == TokenKind::Colon {
+                self.schema()?;
+            }
+            self.newline()?;
+
             Ok(())
         } else {
             Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line))
         }
+    }
+
+    fn name(&mut self) -> Result<(), NcclError> {
+        Ok(())
+    }
+
+    fn schema(&mut self) -> Result<(), NcclError> {
+        Ok(())
     }
 
     fn indent(&mut self) -> Result<(), NcclError> {
