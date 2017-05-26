@@ -11,7 +11,10 @@ pub struct Parser {
     line: u64,
 }
 
-// nccl = (value (":" value)? newline indent value newline)*
+// nccl = pair+
+// pair = value schema? newline key+
+// schema = ": " value
+// key = indent (pair | value) newline
 // value = [^:]+
 // newline = "\n" | "\r\n"
 // indent = " "+ | "\t"
