@@ -34,10 +34,10 @@ impl NcclError {
 
 impl fmt::Display for NcclError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.kind == ErrorKind::ParseError {
-            write!(f, "An error has ocurred: {:?} on line {}\n\t{}", self.kind, self.line, self.message)
-        } else {
-            write!(f, "An error has ocurred: {:?}\n\t{}", self.kind, self.message)
+        match self.kind {
+            ErrorKind::ParseError | ErrorKind::IndentationError
+                => write!(f, "An error has ocurred: {:?} on line {}\n\t{}", self.kind, self.line, self.message),
+            _ => write!(f, "An error has ocurred: {:?}\n\t{}", self.kind, self.message)
         }
     }
 }

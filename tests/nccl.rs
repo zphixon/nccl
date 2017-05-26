@@ -146,6 +146,13 @@ fn add_slice() {
 }
 
 #[test]
+#[should_panic]
+fn multiple_errors() {
+    let mut s = Scanner::new("hey: momma\n   test\n\tjeii\n    oh no!\n".into());
+    s.scan_tokens().unwrap();
+}
+
+#[test]
 fn readme() {
     let mut config = Pair::new("top_level");
 
