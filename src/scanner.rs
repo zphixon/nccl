@@ -30,21 +30,21 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, NcclError> {
-        let mut err = Ok(());
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<NcclError>> {
+        let mut err = vec![];
 
         while !self.is_at_end() {
             self.start = self.current;
             let e = self.scan_token();
             if e.is_err() {
-                err = e;
+                err.push(e.err().unwrap());
             }
         }
 
         self.tokens.push(Token::new(TokenKind::EOF, "".into(), self.line));
 
-        if err.is_err() {
-            Err(err.err().unwrap())
+        if !err.is_empty() {
+            Err(err)
         } else {
             Ok(self.tokens.clone())
         }

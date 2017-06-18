@@ -22,13 +22,11 @@ pub struct NcclError {
 
 impl NcclError {
     pub fn new(kind: ErrorKind, message: &str, line: u64) -> Self {
-        let r = NcclError {
+        NcclError {
             kind: kind,
             message: message.to_owned(),
             line: line,
-        };
-        println!("{}", &r);
-        r
+        }
     }
 }
 
