@@ -155,8 +155,16 @@ fn multiple_errors() {
 #[test]
 fn parser() {
     let mut p = Parser::new(Scanner::new("hello\n    people\n    of\n    the world\n\nthis\n    is neat".into()).scan_tokens().unwrap());
-    println!("{:?}", p.parse().unwrap());
-    panic!();
+    assert!(p.parse().is_ok());
+}
+
+#[test]
+fn add_vec() {
+    let mut p = Pair::new("__top_level__");
+    p.add("a");
+    p.add_slice(&["a".into(), "hello".into(), "world".into()]);
+    p.add_slice(&["a".into(), "hello".into(), "world".into()]);
+    assert_eq!(p["a"]["hello"].value.len(), 1);
 }
 
 #[test]
