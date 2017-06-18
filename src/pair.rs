@@ -24,7 +24,10 @@ impl Pair {
     }
 
     pub fn add_slice(&mut self, path: &[String]) {
-        self.traverse_path(&path[0..path.len() - 1]).add(&path[path.len() - 1]);
+        let mut s = self.traverse_path(&path[0..path.len() - 1]);
+        if !s.has_key(&path[path.len() - 1]) {
+            s.add(&path[path.len() - 1]);
+        }
     }
 
     pub fn traverse(&mut self, levels: usize) -> &mut Pair {
@@ -39,7 +42,9 @@ impl Pair {
         if path.len() == 0 {
             self
         } else {
-            self.add(&path[0]);
+            if !self.has_key(&path[0]) {
+                self.add(&path[0]);
+            }
             self.get(&path[0]).unwrap().traverse_path(&path[1..path.len()])
         }
     }
