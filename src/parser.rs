@@ -3,6 +3,8 @@ use pair::Pair;
 use error::{NcclError, ErrorKind};
 use token::{Token, TokenKind};
 
+use std::io::Write;
+
 pub struct Parser {
     current: usize,
     path: Vec<String>,
@@ -11,13 +13,12 @@ pub struct Parser {
     line: u64,
 }
 
-// nccl = (value newline)+
-// value = name schema? newline (key newline)*
-// key = indent value
-// name = [^:]+
-// schema = ": " name
-// newline = ("\n" | "\r\n")+
-// indent = " "+ | "\t"
+// nccl = value+
+// value = name schema? nl key*
+// key = indent (name nl | indent value)
+// name = not colon
+// nl = newline
+// schema = ":" name
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
@@ -33,7 +34,6 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Pair, NcclError> {
         while !self.is_at_end() {
             self.value()?;
-            self.newline()?;
             self.advance();
         }
 
@@ -47,10 +47,16 @@ impl Parser {
     fn value(&mut self) -> Result<(), NcclError> {
         if !self.is_at_end() {
             self.name()?;
+
             if self.peek().kind == TokenKind::Colon {
                 self.schema()?;
             }
+
             self.newline()?;
+
+            while self.peek().kind != TokenKind::Indent {
+                self.key()?;
+            }
 
             Ok(())
         } else {
@@ -58,16 +64,46 @@ impl Parser {
         }
     }
 
-    fn name(&mut self) -> Result<(), NcclError> {
-        Ok(())
+    fn key(&mut self) -> Result<(), NcclError> {
+        if !self.is_at_end() {
+            self.indent()?;
+
+            if self.peek().kind == TokenKind::Value {
+                self.name()?;
+                self.newline()?;
+            } else if self.peek().kind == TokenKind::Indent {
+                self.indent()?;
+                self.value()?;
+            }
+
+            Ok(())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, "Expected key, found EOF", self.line))
+        }
     }
 
     fn schema(&mut self) -> Result<(), NcclError> {
-        Ok(())
+        if !self.is_at_end() {
+            self.colon()?;
+            self.name()?;
+            Ok(())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, "Expected schema, found EOF", self.line))
+        }
+    }
+
+    fn name(&mut self) -> Result<(), NcclError> {
+        if !self.is_at_end() {
+            self.advance();
+            Ok(())
+        } else {
+            Err(NcclError::new(ErrorKind::ParseError, "Expected name, found EOF", self.line))
+        }
     }
 
     fn indent(&mut self) -> Result<(), NcclError> {
         if !self.is_at_end() {
+            self.advance();
             Ok(())
         } else {
             Err(NcclError::new(ErrorKind::ParseError, "Expected indent, found EOF", self.line))
@@ -77,6 +113,7 @@ impl Parser {
     fn newline(&mut self) -> Result<(), NcclError> {
         if !self.is_at_end() {
             self.line += 1;
+            self.advance();
             Ok(())
         } else {
             Err(NcclError::new(ErrorKind::ParseError, "Expected newline, found EOF", self.line))
@@ -85,6 +122,7 @@ impl Parser {
 
     fn colon(&mut self) -> Result<(), NcclError> {
         if !self.is_at_end() {
+            self.advance();
             Ok(())
         } else {
             Err(NcclError::new(ErrorKind::ParseError, "Expected colon, found EOF", self.line))
