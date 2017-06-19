@@ -153,18 +153,24 @@ fn multiple_errors() {
 }
 
 #[test]
-fn readme() {
-    let config = nccl::parse_file("examples/config.nccl").unwrap();
-    let ports = config["server"]["port"].keys_as::<u32>().unwrap();
-    assert_eq!(ports, vec![80, 443]);
-}
-
-#[test]
 fn add_vec() {
     let mut p = Pair::new("__top_level__");
     p.add("a");
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
     assert_eq!(p["a"]["hello"].value.len(), 1);
+}
+
+#[test]
+fn long() {
+    let oh_dear = nccl::parse_file("examples/long.nccl").unwrap();
+    oh_dear.pretty_print();
+}
+
+#[test]
+fn readme() {
+    let config = nccl::parse_file("examples/config.nccl").unwrap();
+    let ports = config["server"]["port"].keys_as::<u32>().unwrap();
+    assert_eq!(ports, vec![80, 443]);
 }
 

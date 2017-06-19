@@ -19,6 +19,20 @@ impl Pair {
         }
     }
 
+    pub fn pretty_print(&self) {
+        self.pp_rec(0);
+    }
+
+    fn pp_rec(&self, indent: u32) {
+        for _ in 0..indent {
+            print!("    ");
+        }
+        println!("{}", self.key);
+        for value in self.value.iter() {
+            value.pp_rec(indent + 1);
+        }
+    }
+
     pub fn add(&mut self, value: &str) {
         self.value.push(Pair::new(value));
     }
