@@ -120,7 +120,7 @@ impl Scanner {
     }
 
     fn identifier(&mut self) -> Result<(), NcclError> {
-        while self.peek() != b'\n' && self.peek() != b'\r' && self.peek() != b':' && !self.is_at_end() {
+        while self.peek() != b'\n' && self.peek() != b'\r' && !self.is_at_end() {
             self.advance();
         }
 
