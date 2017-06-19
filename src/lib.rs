@@ -30,8 +30,8 @@ pub fn print_tokens(tokens: Vec<Token>) {
     for token in tokens {
         match token.kind {
             TokenKind::Value => print!("\"{}\"", token.lexeme),
-            TokenKind::Colon => print!(":"),
-            TokenKind::Indent => print!("    "),
+            TokenKind::Colon => print!(" : "),
+            TokenKind::Indent => print!(" >> "),
             TokenKind::Newline => println!(""),
             TokenKind::EOF => println!("end"),
         }

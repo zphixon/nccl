@@ -48,13 +48,20 @@ impl Parser {
                         self.path.clear();
                         self.indent = 0;
                     }
+                    println!("{} : {:?}", self.tokens[i].lexeme, self.path);
                 },
 
                 TokenKind::Colon => { // clone existing w/ schema name, rename
-                    if let Ok(p) = self.pair.get(&self.tokens[i + 1].lexeme) {
-                    } else {
-                        errors.push(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find schema named {}", self.tokens[i + 1].lexeme), self.line));
-                    }
+                    println!("{:?}", &self.tokens[i - 1 .. i + 5]);
+                    //let mut p = self.pair.clone();
+                    //if let Ok(mut x) = p.get(&self.tokens[i + 1].lexeme) {
+                    //    x.key = self.tokens[i - 1].lexeme.clone();
+                    //    //panic!("{:?}", &self.tokens[i - 3 .. i + 2]);
+                    //} else {
+                    //    errors.push(NcclError::new(ErrorKind::ParseError, &format!("Schema not found: {}", self.tokens[i + 1].lexeme), self.line));
+                    //}
+                    i += 2;
+                    self.indent += 1;
                 },
 
                 TokenKind::Indent => { // set new self.index

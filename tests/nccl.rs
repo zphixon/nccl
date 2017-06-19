@@ -3,6 +3,10 @@ extern crate nccl;
 
 use nccl::{Pair, Scanner, NcclError, ErrorKind, Parser};
 
+use ::std::fs::File;
+use ::std::path::Path;
+use ::std::io::Read;
+
 #[test]
 fn pair_new() {
     assert_eq!(Pair::new("hello"), Pair {
@@ -114,13 +118,6 @@ fn add_pair() {
 }
 
 #[test]
-fn add_slice_traverse() {
-    let mut p = Pair::new("top");
-    p.add_slice(&["a".into(), "b".into(), "c".into()]);
-    assert_eq!(p.traverse(3), &mut Pair::new("c"));
-}
-
-#[test]
 fn traverse_path() {
     let mut p = Pair::new("top");
     p.add_slice(&["a".into(), "b".into(), "c".into()]);
@@ -165,6 +162,11 @@ fn add_vec() {
 fn long() {
     let oh_dear = nccl::parse_file("examples/long.nccl").unwrap();
     oh_dear.pretty_print();
+    //let mut s = String::new();
+    //let mut f = File::open(Path::new("examples/long.nccl")).unwrap();
+    //f.read_to_string(&mut s);
+    //nccl::print_tokens(Scanner::new(s).scan_tokens().unwrap());
+    panic!();
 }
 
 #[test]
