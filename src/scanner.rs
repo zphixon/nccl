@@ -2,7 +2,7 @@
 use token::{Token, TokenKind};
 use error::{NcclError, ErrorKind};
 
-// ranked worst to least
+// ranked worst to best
 enum Indent {
     Neither,
     Tabs,
