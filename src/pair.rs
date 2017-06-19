@@ -45,14 +45,6 @@ impl Pair {
         }
     }
 
-    pub fn traverse(&mut self, levels: usize) -> &mut Pair {
-        if levels == 0 {
-            self
-        } else {
-            self.value[0].traverse(levels - 1)
-        }
-    }
-
     pub fn traverse_path(&mut self, path: &[String]) -> &mut Pair {
         if path.len() == 0 {
             self
