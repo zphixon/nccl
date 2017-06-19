@@ -106,23 +106,21 @@ impl Pair {
         Err(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0))
     }
 
-    pub fn value(&self) -> Result<String, NcclError>  {
+    pub fn value(&self) -> Option<String>  {
         if self.value.len() == 1 {
-            Ok(self.value[0].key.clone())
-        } else if self.value.len() > 1 {
-            Err(NcclError::new(ErrorKind::NoValue, "Key has multiple values", 0))
+            Some(self.value[0].key.clone())
         } else {
-            Err(NcclError::new(ErrorKind::NoValue, "Key does not have value", 0))
+            None
         }
     }
 
     pub fn value_as<T>(&self) -> Result<T, NcclError> where T: FromStr {
         match self.value() {
-            Ok(value) => match value.parse::<T>() {
+            Some(value) => match value.parse::<T>() {
                 Ok(ok) => Ok(ok),
                 Err(_) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0))
             },
-            Err(err) => Err(err)
+            None => Err(NcclError::new(ErrorKind::NoValue, "Key has no or multiple associated values", 0))
         }
     }
 
