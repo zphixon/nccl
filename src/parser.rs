@@ -26,16 +26,14 @@ impl Parser {
     }
 
     pub fn new_with(tokens: Vec<Token>, pair: Pair) -> Self {
-        let mut r = Parser {
+        Parser {
             current: 0,
             path: vec![],
             indent: 0,
             tokens: tokens,
-            pair: Pair::new("__top_level__"),
+            pair: pair,
             line: 1
-        };
-        r.pair.add_pair(pair);
-        r
+        }
     }
 
     // faked you out with that Scanner, didn't I?
