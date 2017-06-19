@@ -58,7 +58,9 @@ impl Scanner {
                 while self.peek() == b' ' && !self.is_at_end() {
                     self.advance();
                 }
-                if self.is_at_end() || self.peek() == b'\n' {
+                if self.peek() == b'\n' {
+                    error = Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found newline", self.line));
+                } else if self.is_at_end() {
                     error = Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found EOF", self.line));
                 }
             },
