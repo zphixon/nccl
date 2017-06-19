@@ -153,10 +153,10 @@ fn multiple_errors() {
 }
 
 #[test]
-fn parser() {
-    let mut p = Parser::new(Scanner::new("hello\n    people\n    of\n    the world\n\nthis\n    is neat".into()).scan_tokens().unwrap());
-    panic!("{:?}", p.parse());
-    //assert!(p.parse().is_ok());
+fn readme() {
+    let config = nccl::parse_file("config.nccl").unwrap();
+    let ports = config["server"]["port"].keys_as::<u32>().unwrap();
+    assert_eq!(ports, vec![80, 443]);
 }
 
 #[test]
@@ -166,33 +166,5 @@ fn add_vec() {
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
     assert_eq!(p["a"]["hello"].value.len(), 1);
-}
-
-#[test]
-fn readme() {
-    let mut config = Pair::new("top_level");
-
-    // server
-    //     domain
-    //         example.com
-    //         www.example.com
-    //     port
-    //         80
-    //         443
-    //     root
-    //         /var/www/html
-
-    config.add("server");
-    config["server"].add("domain");
-    config["server"].add("port");
-    config["server"].add("root");
-    config["server"]["domain"].add("example.com");
-    config["server"]["domain"].add("www.example.com");
-    config["server"]["port"].add("80");
-    config["server"]["port"].add("443");
-    config["server"]["root"].add("/var/www/html");
-
-    let ports = config["server"]["port"].keys_as::<i32>().unwrap();
-    assert_eq!(ports, vec![80, 443]);
 }
 
