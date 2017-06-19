@@ -168,6 +168,12 @@ fn long() {
 }
 
 #[test]
+#[should_panic]
+fn error_without_schema() {
+    Scanner::new("hello: \n    what's up\n    things, yo".into()).scan_tokens().unwrap();
+}
+
+#[test]
 fn readme() {
     let config = nccl::parse_file("examples/config.nccl").unwrap();
     let ports = config["server"]["port"].keys_as::<u32>().unwrap();
