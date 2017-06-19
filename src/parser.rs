@@ -50,7 +50,7 @@ impl Parser {
                 },
 
                 TokenKind::Colon => { // TODO
-                    unimplemented!();
+                    i += 1;
                 },
 
                 TokenKind::Indent => { // set new self.index
