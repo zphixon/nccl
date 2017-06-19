@@ -68,6 +68,7 @@ impl Parser {
 
                 TokenKind::Newline => { // reset self.index
                     self.indent = 0;
+                    self.line += 1;
                 },
 
                 TokenKind::EOF => break,
