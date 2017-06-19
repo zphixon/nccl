@@ -79,12 +79,12 @@ fn error_key_not_found() {
 
 #[test]
 fn scan_file() {
-    assert!(nccl::parse_file("config.nccl").is_ok());
+    assert!(nccl::parse_file("examples/config.nccl").is_ok());
 }
 
 #[test]
 fn dos_unix_lines() {
-    assert_eq!(nccl::parse_file("config.nccl"), nccl::parse_file("config_dos.nccl"));
+    assert_eq!(nccl::parse_file("examples/config.nccl"), nccl::parse_file("examples/config_dos.nccl"));
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn multiple_errors() {
 
 #[test]
 fn readme() {
-    let config = nccl::parse_file("config.nccl").unwrap();
+    let config = nccl::parse_file("examples/config.nccl").unwrap();
     let ports = config["server"]["port"].keys_as::<u32>().unwrap();
     assert_eq!(ports, vec![80, 443]);
 }
