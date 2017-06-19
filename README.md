@@ -6,7 +6,6 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 * key/value bindings
 * no data types
-* inherit stuff from other bindings
 
 ## Demo
 
@@ -60,10 +59,11 @@ dates
     tomorrow
 
 strings
-    are bare words unless
-    they have a colon
-    "in which case:"
-        just use quotes
+    are bare words
+    unless you want newlines
+    in which case:
+        "just
+use quotes"
     "this is still valid"
     this """too"""
 
@@ -74,24 +74,6 @@ lists
         value
     3
     false
-
-schema
-    must be a top-level key
-        looks like normal
-    default value
-        in fact is normal!
-    more things
-        other default
-    no default
-
-inherit from: schema
-    uses colon to inherit
-    default value
-        override default
-    more things
-        override again
-    no default
-        liar
 
 indentation?
     must use the same throughout

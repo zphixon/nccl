@@ -1,6 +1,6 @@
 
 use pair::Pair;
-use error::{NcclError, ErrorKind};
+use error::NcclError;
 use token::{Token, TokenKind};
 
 #[derive(Debug)]
@@ -25,10 +25,22 @@ impl Parser {
         }
     }
 
+    pub fn new_with(tokens: Vec<Token>, pair: Pair) -> Self {
+        let mut r = Parser {
+            current: 0,
+            path: vec![],
+            indent: 0,
+            tokens: tokens,
+            pair: Pair::new("__top_level__"),
+            line: 1
+        };
+        r.pair.add_pair(pair);
+        r
+    }
+
     // faked you out with that Scanner, didn't I?
     // you thought this was going to be recursive descent. YOU WERE WRONG!
     pub fn parse(mut self) -> Result<Pair, Vec<NcclError>> {
-        let mut errors = vec![];
         let mut i = 0;
 
         while i < self.tokens.len() {
@@ -48,20 +60,6 @@ impl Parser {
                         self.path.clear();
                         self.indent = 0;
                     }
-                    println!("{} : {:?}", self.tokens[i].lexeme, self.path);
-                },
-
-                TokenKind::Colon => { // clone existing w/ schema name, rename
-                    println!("{:?}", &self.tokens[i - 1 .. i + 5]);
-                    //let mut p = self.pair.clone();
-                    //if let Ok(mut x) = p.get(&self.tokens[i + 1].lexeme) {
-                    //    x.key = self.tokens[i - 1].lexeme.clone();
-                    //    //panic!("{:?}", &self.tokens[i - 3 .. i + 2]);
-                    //} else {
-                    //    errors.push(NcclError::new(ErrorKind::ParseError, &format!("Schema not found: {}", self.tokens[i + 1].lexeme), self.line));
-                    //}
-                    i += 2;
-                    self.indent += 1;
                 },
 
                 TokenKind::Indent => { // set new self.index
@@ -87,11 +85,7 @@ impl Parser {
             i += 1;
         }
 
-        if errors.len() > 0 {
-            Err(errors)
-        } else {
-            Ok(self.pair)
-        }
+        Ok(self.pair)
     }
 }
 

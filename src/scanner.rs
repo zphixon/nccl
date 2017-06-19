@@ -53,18 +53,6 @@ impl Scanner {
     fn scan_token(&mut self) -> Result<(), NcclError> {
         let mut error = Ok(());
         match self.advance() {
-            b':' => {
-                self.add_token(TokenKind::Colon);
-                while self.peek() == b' ' && !self.is_at_end() {
-                    self.advance();
-                }
-                if self.peek() == b'\n' {
-                    error = Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found newline", self.line));
-                } else if self.is_at_end() {
-                    error = Err(NcclError::new(ErrorKind::ParseError, "Expected schema name, found EOF", self.line));
-                }
-            },
-
             b'#' => {
                 while self.peek() != b'\n' && !self.is_at_end() {
                     self.advance();
