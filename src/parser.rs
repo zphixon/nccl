@@ -1,177 +1,81 @@
 
 use pair::Pair;
-use error::{NcclError, ErrorKind};
+use error::NcclError;
 use token::{Token, TokenKind};
 
-use std::io::Write;
-
+#[derive(Debug)]
 pub struct Parser {
     current: usize,
     path: Vec<String>,
+    indent: usize,
     tokens: Vec<Token>,
     pair: Pair,
     line: u64,
 }
-
-// nccl = value+
-// value = name schema? nl key*
-// key = indent (name nl | indent value)
-// name = not colon
-// nl = newline
-// schema = ":" name
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Parser {
             current: 0,
             path: vec![],
+            indent: 0,
             tokens: tokens,
             pair: Pair::new("__top_level__"),
             line: 1,
         }
     }
 
-    pub fn parse(&mut self) -> Result<Pair, NcclError> {
-        while !self.is_at_end() {
-            self.value()?;
-            self.advance();
-        }
+    // faked you out with that Scanner, didn't I?
+    // you thought this was going to be recursive descent. YOU WERE WRONG!
+    pub fn parse(mut self) -> Result<Pair, Vec<NcclError>> {
+        let mut i = 0;
 
-        Ok(self.pair.clone())
-    }
+        while i < self.tokens.len() {
+            match self.tokens[i].kind {
+                TokenKind::Value => { // add to path respective of self.index
+                    if self.indent <= self.path.len() {
+                        let mut new = self.path[0..self.indent].to_owned();
+                        new.push(self.tokens[i].lexeme.clone());
+                        self.path = new;
+                    } else {
+                        self.path.push(self.tokens[i].lexeme.clone());
+                    }
 
-    fn add(&mut self, value: String) {
-        //self.pair.add_vec(self.path, value);
-    }
+                    self.pair.add_slice(&self.path);
 
-    fn value(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            self.name()?;
+                    if i + 2 <= self.tokens.len() && self.tokens[i + 2].kind == TokenKind::Value {
+                        self.path.clear();
+                        self.indent = 0;
+                    }
+                },
 
-            if self.peek().kind == TokenKind::Colon {
-                self.schema()?;
+                TokenKind::Colon => { // TODO
+                    unimplemented!();
+                },
+
+                TokenKind::Indent => { // set new self.index
+                    let mut indent = 0;
+
+                    while self.tokens[i].kind == TokenKind::Indent {
+                        indent += 1;
+                        i += 1;
+                    }
+
+                    i -= 1;
+
+                    self.indent = indent;
+                },
+
+                TokenKind::Newline => { // reset self.index
+                    self.indent = 0;
+                },
+
+                TokenKind::EOF => break,
             }
-
-            self.newline()?;
-
-            while self.peek().kind != TokenKind::Indent {
-                self.key()?;
-            }
-
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line))
-        }
-    }
-
-    fn key(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            self.indent()?;
-
-            if self.peek().kind == TokenKind::Value {
-                self.name()?;
-                self.newline()?;
-            } else if self.peek().kind == TokenKind::Indent {
-                self.indent()?;
-                self.value()?;
-            }
-
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected key, found EOF", self.line))
-        }
-    }
-
-    fn schema(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            self.colon()?;
-            self.name()?;
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected schema, found EOF", self.line))
-        }
-    }
-
-    fn name(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            self.advance();
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected name, found EOF", self.line))
-        }
-    }
-
-    fn indent(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            self.advance();
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected indent, found EOF", self.line))
-        }
-    }
-
-    fn newline(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            self.line += 1;
-            self.advance();
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected newline, found EOF", self.line))
-        }
-    }
-
-    fn colon(&mut self) -> Result<(), NcclError> {
-        if !self.is_at_end() {
-            self.advance();
-            Ok(())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, "Expected colon, found EOF", self.line))
-        }
-    }
-
-    fn matches(&mut self, kind: TokenKind) -> bool {
-        if self.check(kind) {
-            self.advance();
-            true
-        } else {
-            false
-        }
-    }
-
-    fn check(&mut self, kind: TokenKind) -> bool {
-        if self.is_at_end() {
-            false
-        } else {
-            self.peek().kind == kind
-        }
-    }
-
-    fn advance(&mut self) -> &Token {
-        if !self.is_at_end() {
-            self.current += 1;
+            i += 1;
         }
 
-        self.previous()
-    }
-
-    fn is_at_end(&mut self) -> bool {
-        self.peek().kind == TokenKind::EOF
-    }
-
-    fn peek(&mut self) -> &Token {
-        &self.tokens[self.current]
-    }
-
-    fn previous(&mut self) -> &Token {
-        &self.tokens[self.current - 1]
-    }
-
-    fn consume(&mut self, kind: TokenKind, message: &str) -> Result<&Token, NcclError> {
-        if self.check(kind) {
-            Ok(self.advance())
-        } else {
-            Err(NcclError::new(ErrorKind::ParseError, message, self.line))
-        }
+        Ok(self.pair)
     }
 }
 
