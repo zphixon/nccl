@@ -162,17 +162,14 @@ fn add_vec() {
 fn long() {
     let oh_dear = nccl::parse_file("examples/long.nccl").unwrap();
     oh_dear.pretty_print();
-    //let mut s = String::new();
-    //let mut f = File::open(Path::new("examples/long.nccl")).unwrap();
-    //f.read_to_string(&mut s);
-    //nccl::print_tokens(Scanner::new(s).scan_tokens().unwrap());
-    panic!();
 }
 
 #[test]
-#[should_panic]
-fn error_without_schema() {
-    Scanner::new("hello: \n    what's up\n    things, yo".into()).scan_tokens().unwrap();
+fn inherit2() {
+    let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
+    let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
+    assert_eq!(user["sandwich"]["meat"].value.len(), 3);
+    assert_eq!(user["hello"]["world"].value.len(), 3);
 }
 
 #[test]
@@ -180,11 +177,5 @@ fn readme() {
     let config = nccl::parse_file("examples/config.nccl").unwrap();
     let ports = config["server"]["port"].keys_as::<u32>().unwrap();
     assert_eq!(ports, vec![80, 443]);
-}
-
-#[test]
-fn as_tokens() {
-    let config = nccl::parse_file("examples/config.nccl").unwrap();
-    nccl::print_tokens(config.as_tokens());
 }
 
