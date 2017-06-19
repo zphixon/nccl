@@ -19,22 +19,23 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<NcclError>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
         let mut data = String::new();
         file.read_to_string(&mut data).unwrap();
-        //let tokens = Scanner::new(data).scan_tokens()?;
         Parser::new(Scanner::new(data).scan_tokens()?).parse()
     } else {
         Err(vec![NcclError::new(ErrorKind::FileError, "Could not find file.", 0)])
     }
 }
 
-pub fn print_tokens(tokens: Vec<Token>) {
-    for token in tokens {
-        match token.kind {
-            TokenKind::Value => print!("\"{}\"", token.lexeme),
-            TokenKind::Colon => print!(" : "),
-            TokenKind::Indent => print!(" >> "),
-            TokenKind::Newline => println!(""),
-            TokenKind::EOF => println!("end"),
-        }
+pub fn parse_string(data: &str) -> Result<Pair, Vec<NcclError>> {
+    Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
+}
+
+pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<NcclError>> {
+    if let Ok(mut file) = File::open(Path::new(filename)) {
+        let mut data = String::new();
+        file.read_to_string(&mut data).unwrap();
+        Parser::new_with(Scanner::new(data).scan_tokens()?, pair).parse()
+    } else {
+        Err(vec![NcclError::new(ErrorKind::FileError, "Could not find file.", 0)])
     }
 }
 
