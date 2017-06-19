@@ -1,6 +1,6 @@
 
 use pair::Pair;
-use error::NcclError;
+use error::{NcclError, ErrorKind};
 use token::{Token, TokenKind};
 
 #[derive(Debug)]
@@ -28,6 +28,7 @@ impl Parser {
     // faked you out with that Scanner, didn't I?
     // you thought this was going to be recursive descent. YOU WERE WRONG!
     pub fn parse(mut self) -> Result<Pair, Vec<NcclError>> {
+        let mut errors = vec![];
         let mut i = 0;
 
         while i < self.tokens.len() {
@@ -49,8 +50,11 @@ impl Parser {
                     }
                 },
 
-                TokenKind::Colon => { // TODO
-                    i += 1;
+                TokenKind::Colon => { // clone existing w/ schema name, rename
+                    if let Ok(p) = self.pair.get(&self.tokens[i + 1].lexeme) {
+                    } else {
+                        errors.push(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find schema named {}", self.tokens[i + 1].lexeme), self.line));
+                    }
                 },
 
                 TokenKind::Indent => { // set new self.index
@@ -76,7 +80,11 @@ impl Parser {
             i += 1;
         }
 
-        Ok(self.pair)
+        if errors.len() > 0 {
+            Err(errors)
+        } else {
+            Ok(self.pair)
+        }
     }
 }
 

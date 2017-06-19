@@ -3,6 +3,7 @@ use std::ops::{Index, IndexMut};
 use std::str::FromStr;
 
 use error::{NcclError, ErrorKind};
+use token::{TokenKind, Token};
 
 // top level key that contains everything is __top_level__
 #[derive(Clone, Debug, PartialEq)]
@@ -143,6 +144,24 @@ impl Pair {
             Ok(ok) => Ok(ok),
             Err(_) => Err(NcclError::new(ErrorKind::FromStrError, "Could not parse keys", 0))
         }
+    }
+
+    pub fn as_tokens(&self) -> Vec<Token> {
+        self.as_tokens_rec(0)
+    }
+
+    fn as_tokens_rec(&self, indent: u32) -> Vec<Token> {
+        let mut tokens: Vec<Token> = vec![];
+        tokens.push(Token::new(TokenKind::Value, self.key.clone(), 0));
+        tokens.push(Token::new(TokenKind::Newline, "\n".into(), 0));
+        for value in self.value.iter() {
+            for _ in 0..indent {
+                tokens.push(Token::new(TokenKind::Indent, "".into(), 0));
+            }
+            tokens.append(&mut value.as_tokens_rec(indent + 1));
+            tokens.push(Token::new(TokenKind::Newline, "\n".into(), 0));
+        }
+        tokens
     }
 }
 

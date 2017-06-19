@@ -180,3 +180,9 @@ fn readme() {
     assert_eq!(ports, vec![80, 443]);
 }
 
+#[test]
+fn as_tokens() {
+    let config = nccl::parse_file("examples/config.nccl").unwrap();
+    nccl::print_tokens(config.as_tokens());
+}
+
