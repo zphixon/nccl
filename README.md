@@ -6,6 +6,7 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 * key/value bindings
 * no data types
+* flexible indentation (eat it, python!)
 
 ## Demo
 
