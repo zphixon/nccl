@@ -109,6 +109,9 @@ impl Scanner {
             b'\n' => {
                 self.add_token(TokenKind::Newline);
                 self.line += 1;
+                if self.peek() != b' ' && self.peek() != b'\t' && self.peek() != b'#' {
+                    self.indent = Indent::Neither;
+                }
             },
 
             b'\r' => {},
