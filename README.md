@@ -58,26 +58,27 @@ dates
     "2017-03-21T23:44:42+04"
     tomorrow
 
+# this uses 3 spaces for the whole key
 strings
-    are bare words
-    unless you want newlines
-    in which case:
-        "just
-use quotes"
-    "this is still valid"
-    this """too"""
+   are bare words
+   unless you want newlines
+   in which case:
+      "just\nuse quotes"
+   "this is still valid"
+   this """too"""
 
+# this uses tabs for the whole key
 lists
-    juan
-    deaux
-    key
-        value
-    3
-    false
+	juan
+	deaux
+	key
+		value
+	3
+	false
 
 indentation?
-    must use the same throughout
-    eg 2 or 4 spaces for the entire file
-    or tabs for the entire file
+    must use the same for top-level values
+    eg 2 or 4 spaces for one key
+    or tabs for one key
 ```
 
