@@ -11,6 +11,8 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 ## Demo
 
+### Simple
+
 In rust:
 
 ```rust
@@ -33,9 +35,14 @@ server
         /var/www/html
 ```
 
-nccl lets you define your own configuration to inherit from:
+### Inheritance
 
-inherit.nccl
+Nccl lets you define your own configuration to inherit from. Just use
+`nccl::parse_file_with` with the result from the configuration you would like
+to inherit from.
+
+inherit.nccl:
+
 ```
 hello
     world
@@ -52,7 +59,8 @@ sandwich
         cheddar
 ```
 
-inherit2.nccl
+inherit2.nccl:
+
 ```
 hello
     world
@@ -69,7 +77,8 @@ sandwich
         muenster
 ```
 
-main.rs
+In rust:
+
 ```rust
 let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
 let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
