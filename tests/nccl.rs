@@ -170,6 +170,18 @@ fn inherit2() {
 }
 
 #[test]
+#[should_panic]
+fn tabs() {
+    let tabs = nccl::parse_file("examples/tabs.nccl").unwrap();
+}
+
+#[test]
+#[should_panic]
+fn spaces() {
+    let spaces = nccl::parse_file("examples/spaces.nccl").unwrap();
+}
+
+#[test]
 fn readme() {
     let config = nccl::parse_file("examples/config.nccl").unwrap();
     let ports = config["server"]["port"].keys_as::<u32>().unwrap();
