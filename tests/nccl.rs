@@ -71,10 +71,9 @@ fn scanner_literal() {
 }
 
 #[test]
-#[should_panic]
 fn error_key_not_found() {
     let mut p = Pair::new("jjj");
-    p.get("jwiofiojwaef jio").unwrap();
+    assert!(p.get("jwiofiojwaef jio").is_err());
 }
 
 #[test]
@@ -140,10 +139,9 @@ fn add_slice() {
 }
 
 #[test]
-#[should_panic]
 fn multiple_errors() {
     let mut s = Scanner::new("hey: momma\n   test\n\tjeii\n    oh no!\n".into());
-    s.scan_tokens().unwrap();
+    assert!(s.scan_tokens().is_err());
 }
 
 #[test]
@@ -170,15 +168,23 @@ fn inherit2() {
 }
 
 #[test]
-#[should_panic]
 fn tabs() {
-    let tabs = nccl::parse_file("examples/tabs.nccl").unwrap();
+    assert!(nccl::parse_file("examples/tabs.nccl").is_err());
 }
 
 #[test]
-#[should_panic]
 fn spaces() {
-    let spaces = nccl::parse_file("examples/spaces.nccl").unwrap();
+    assert!(nccl::parse_file("examples/spaces").is_err());
+}
+
+#[test]
+fn comments() {
+    assert!(nccl::parse_file("examples/comments.nccl").is_ok());
+}
+
+#[test]
+fn indent() {
+    assert!(nccl::parse_file("examples/indent.nccl").is_ok());
 }
 
 #[test]
