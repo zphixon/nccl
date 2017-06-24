@@ -2,6 +2,8 @@
 use token::{Token, TokenKind};
 use error::{NcclError, ErrorKind};
 
+use std::error::Error;
+
 // ranked worst to best
 enum Indent {
     Neither,
@@ -30,14 +32,14 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<NcclError>> {
-        let mut err = vec![];
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<Box<Error>>> {
+        let mut err: Vec<Box<Error>> = vec![];
 
         while !self.is_at_end() {
             self.start = self.current;
             let e = self.scan_token();
             if e.is_err() {
-                err.push(e.err().unwrap());
+                err.push(Box::new(e.err().unwrap()));
             }
         }
 

@@ -1,7 +1,8 @@
 
 use pair::Pair;
-use error::NcclError;
 use token::{Token, TokenKind};
+
+use std::error::Error;
 
 #[derive(Debug)]
 pub struct Parser {
@@ -38,7 +39,7 @@ impl Parser {
 
     // faked you out with that Scanner, didn't I?
     // you thought this was going to be recursive descent. YOU WERE WRONG!
-    pub fn parse(mut self) -> Result<Pair, Vec<NcclError>> {
+    pub fn parse(mut self) -> Result<Pair, Vec<Box<Error>>> {
         let mut i = 0;
 
         while i < self.tokens.len() {

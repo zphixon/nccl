@@ -1,9 +1,10 @@
 
-use std::ops::{Index, IndexMut};
-use std::str::FromStr;
-
 use error::{NcclError, ErrorKind};
 use token::{TokenKind, Token};
+
+use std::ops::{Index, IndexMut};
+use std::str::FromStr;
+use std::error::Error;
 
 // top level key that contains everything is __top_level__
 #[derive(Clone, Debug, PartialEq)]
@@ -74,11 +75,11 @@ impl Pair {
         return false;
     }
 
-    pub fn get(&mut self, value: &str) -> Result<&mut Pair, NcclError> {
+    pub fn get(&mut self, value: &str) -> Result<&mut Pair, Box<Error>> {
         let value = value.to_owned();
 
         if self.value.is_empty() {
-            return Err(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", value), 0));
+            return Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", value), 0)));
         } else {
             for item in self.value.iter_mut() {
                 if item.key == value {
@@ -87,10 +88,10 @@ impl Pair {
             }
         }
 
-        Err(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", value), 0))
+        Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", value), 0)))
     }
 
-    pub fn get_ref(&self, value: &str) -> Result<&Pair, NcclError> {
+    pub fn get_ref(&self, value: &str) -> Result<&Pair, Box<Error>> {
         let value_owned = value.to_owned();
 
         if self.value.is_empty() {
@@ -103,7 +104,7 @@ impl Pair {
             }
         }
 
-        Err(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0))
+        Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0)))
     }
 
     pub fn value(&self) -> Option<String>  {
@@ -114,13 +115,13 @@ impl Pair {
         }
     }
 
-    pub fn value_as<T>(&self) -> Result<T, NcclError> where T: FromStr {
+    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where T: FromStr {
         match self.value() {
             Some(value) => match value.parse::<T>() {
                 Ok(ok) => Ok(ok),
-                Err(_) => Err(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0))
+                Err(_) => Err(Box::new(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0)))
             },
-            None => Err(NcclError::new(ErrorKind::NoValue, "Key has no or multiple associated values", 0))
+            None => Err(Box::new(NcclError::new(ErrorKind::NoValue, "Key has no or multiple associated values", 0)))
         }
     }
 
@@ -128,11 +129,11 @@ impl Pair {
         self.value.clone().into_iter().map(|x| x.key).collect()
     }
 
-    pub fn keys_as<T: FromStr>(&self) -> Result<Vec<T>, NcclError> {
+    pub fn keys_as<T: FromStr>(&self) -> Result<Vec<T>, Box<Error>> {
         // XXX this is gross
         match self.keys().iter().map(|s| s.parse::<T>()).collect::<Result<Vec<T>, _>>() {
             Ok(ok) => Ok(ok),
-            Err(_) => Err(NcclError::new(ErrorKind::FromStrError, "Could not parse keys", 0))
+            Err(_) => Err(Box::new(NcclError::new(ErrorKind::FromStrError, "Could not parse keys", 0)))
         }
     }
 
