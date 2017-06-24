@@ -177,15 +177,6 @@ impl Scanner {
         Ok(())
     }
 
-    fn is_at_end(&mut self) -> bool {
-        self.current >= self.source.len()
-    }
-
-    fn advance(&mut self) -> u8 {
-        self.current += 1;
-        self.source[self.current - 1]
-    }
-
     fn add_token(&mut self, kind: TokenKind) {
         let text = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
         self.tokens.push(Token::new(kind, text, self.line));
@@ -193,6 +184,15 @@ impl Scanner {
 
     fn add_token_string(&mut self, kind: TokenKind, value: String) {
         self.tokens.push(Token::new(kind, value, self.line));
+    }
+
+    fn is_at_end(&mut self) -> bool {
+        self.current >= self.source.len()
+    }
+
+    fn advance(&mut self) -> u8 {
+        self.current += 1;
+        self.source[self.current - 1]
     }
 
     fn peek(&mut self) -> u8 {

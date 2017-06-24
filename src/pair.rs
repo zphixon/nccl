@@ -21,20 +21,6 @@ impl Pair {
         }
     }
 
-    pub fn pretty_print(&self) {
-        self.pp_rec(0);
-    }
-
-    fn pp_rec(&self, indent: u32) {
-        for _ in 0..indent {
-            print!("    ");
-        }
-        println!("{}", self.key);
-        for value in self.value.iter() {
-            value.pp_rec(indent + 1);
-        }
-    }
-
     pub fn add(&mut self, value: &str) {
         self.value.push(Pair::new(value));
     }
@@ -43,17 +29,6 @@ impl Pair {
         let mut s = self.traverse_path(&path[0..path.len() - 1]);
         if !s.has_key(&path[path.len() - 1]) {
             s.add(&path[path.len() - 1]);
-        }
-    }
-
-    pub fn traverse_path(&mut self, path: &[String]) -> &mut Pair {
-        if path.len() == 0 {
-            self
-        } else {
-            if !self.has_key(&path[0]) {
-                self.add(&path[0]);
-            }
-            self.get(&path[0]).unwrap().traverse_path(&path[1..path.len()])
         }
     }
 
@@ -73,6 +48,17 @@ impl Pair {
         }
 
         return false;
+    }
+
+    pub fn traverse_path(&mut self, path: &[String]) -> &mut Pair {
+        if path.len() == 0 {
+            self
+        } else {
+            if !self.has_key(&path[0]) {
+                self.add(&path[0]);
+            }
+            self.get(&path[0]).unwrap().traverse_path(&path[1..path.len()])
+        }
     }
 
     pub fn get(&mut self, value: &str) -> Result<&mut Pair, Box<Error>> {
@@ -153,6 +139,20 @@ impl Pair {
             tokens.push(Token::new(TokenKind::Newline, "\n".into(), 0));
         }
         tokens
+    }
+
+    pub fn pretty_print(&self) {
+        self.pp_rec(0);
+    }
+
+    fn pp_rec(&self, indent: u32) {
+        for _ in 0..indent {
+            print!("    ");
+        }
+        println!("{}", self.key);
+        for value in self.value.iter() {
+            value.pp_rec(indent + 1);
+        }
     }
 }
 
