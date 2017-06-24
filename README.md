@@ -33,6 +33,50 @@ server
         /var/www/html
 ```
 
+nccl lets you define your own configuration to inherit from:
+
+inherit.nccl
+```
+hello
+    world
+        panama
+    friends
+        doggos
+
+sandwich
+    meat
+        bologne
+        ham
+    cheese
+        provolone
+        cheddar
+```
+
+inherit2.nccl
+```
+hello
+    world
+        alaska
+        neighbor
+    friends
+        John
+        Alex
+
+sandwich
+    meat
+        turkey
+    cheese
+        muenster
+```
+
+main.rs
+```rust
+let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
+let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
+assert_eq!(user["sandwich"]["meat"].value.len(), 3);
+assert_eq!(user["hello"]["world"].value.len(), 3);
+```
+
 ## Example config
 
 ```
