@@ -9,8 +9,8 @@ use std::error::Error;
 // top level key that contains everything is __top_level__
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pair {
-    pub key: String,
-    pub value: Vec<Pair>
+    key: String,
+    value: Vec<Pair>
 }
 
 impl Pair {
