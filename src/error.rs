@@ -1,5 +1,6 @@
 
 use std::fmt;
+use std::error;
 
 #[derive(Debug, PartialEq)]
 /// nccl Error type.
@@ -36,6 +37,16 @@ impl fmt::Display for NcclError {
             ErrorKind::ParseError | ErrorKind::IndentationError
                 => write!(f, "An error has ocurred: {:?} on line {}\n\t{}", self.kind, self.line, self.message),
             _ => write!(f, "An error has ocurred: {:?}\n\t{}", self.kind, self.message)
+        }
+    }
+}
+
+impl error::Error for NcclError {
+    fn description(&self) -> &str {
+        &match self.kind {
+            ErrorKind::ParseError | ErrorKind::IndentationError
+                => "An error has occurred while parsing.",
+            _ => "An error has occurred while interacting with a Pair"
         }
     }
 }
