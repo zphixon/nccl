@@ -4,47 +4,6 @@ extern crate nccl;
 use nccl::{Pair, Scanner};
 
 #[test]
-fn pair_new() {
-    assert_eq!(Pair::new("hello"), Pair {
-        key: "hello".into(),
-        value: vec![]
-    });
-}
-
-#[test]
-fn pair_add() {
-    let mut p = Pair::new("top_level");
-    p.add("key");
-    assert_eq!(p, Pair {
-        key: "top_level".into(),
-        value: vec![Pair {
-            key: "key".into(),
-            value: vec![]
-        }]
-    });
-}
-
-#[test]
-fn pair_get() {
-    let mut p = Pair::new("top_level");
-    p.add("key");
-    assert_eq!(p.get("key").unwrap(), &mut Pair {
-        key: "key".into(),
-        value: vec![]
-    });
-}
-
-#[test]
-fn pair_index() {
-    let mut p = Pair::new("top_level");
-    p.add("key");
-    assert_eq!(p["key"], Pair {
-        key: "key".into(),
-        value: vec![]
-    });
-}
-
-#[test]
 fn pair_keys() {
     let mut p = Pair::new("top");
     p.add("numbers");
@@ -150,7 +109,7 @@ fn add_vec() {
     p.add("a");
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
-    assert_eq!(p["a"]["hello"].value.len(), 1);
+    assert_eq!(p["a"]["hello"].keys().len(), 1);
 }
 
 #[test]
@@ -163,8 +122,8 @@ fn long() {
 fn inherit2() {
     let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
     let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-    assert_eq!(user["sandwich"]["meat"].value.len(), 3);
-    assert_eq!(user["hello"]["world"].value.len(), 3);
+    assert_eq!(user["sandwich"]["meat"].keys().len(), 3);
+    assert_eq!(user["hello"]["world"].keys().len(), 3);
 }
 
 #[test]
