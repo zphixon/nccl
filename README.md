@@ -82,8 +82,8 @@ In rust:
 ```rust
 let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
 let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-assert_eq!(user["sandwich"]["meat"].value.len(), 3);
-assert_eq!(user["hello"]["world"].value.len(), 3);
+assert_eq!(user["sandwich"]["meat"].keys().len(), 3);
+assert_eq!(user["hello"]["world"].keys().len(), 3);
 ```
 
 ## Example config
