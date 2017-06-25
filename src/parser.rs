@@ -58,7 +58,7 @@ impl Parser {
 
                     self.pair.add_slice(&self.path);
 
-                    if i + 2 <= self.tokens.len() && self.tokens[i + 2].kind == TokenKind::Value {
+                    if i + 2 < self.tokens.len() && self.tokens[i + 2].kind == TokenKind::Value {
                         self.path.clear();
                         self.indent = 0;
                     }
