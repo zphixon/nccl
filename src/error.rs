@@ -3,7 +3,7 @@ use std::fmt;
 use std::error;
 
 #[derive(Debug, PartialEq)]
-/// nccl Error type.
+/// Kinds of nccl errors.
 pub enum ErrorKind {
     KeyNotFound,
     IndentationError,
@@ -15,6 +15,7 @@ pub enum ErrorKind {
 }
 
 #[derive(Debug, PartialEq)]
+/// nccl error type.
 pub struct NcclError {
     kind: ErrorKind,
     line: u64,
@@ -22,6 +23,7 @@ pub struct NcclError {
 }
 
 impl NcclError {
+    /// Creates a new NcclError.
     pub fn new(kind: ErrorKind, message: &str, line: u64) -> Self {
         NcclError {
             kind: kind,
