@@ -1,5 +1,5 @@
 
-# nccl
+# nccl [![Freaking travis](https://travis-ci.org/cheezgi/nccl.svg?branch=master)](https://travis-ci.org/cheezgi/nccl)
 
 **non-crap config language**
 
