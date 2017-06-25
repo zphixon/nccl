@@ -1,4 +1,17 @@
 
+//! Nccl is an easy way to add minimal configuration to your crate without
+//! having to deal with complicated interfaces, obnoxious syntax, or outdated
+//! languages. Nccl makes it easy for a user to pick up your configuration.
+//! It's as easy as five cents.
+//!
+//! Nccl was motivated by the fact that other configuration languages are too
+//! complicated for end-users. Strict enforcement of data types is a hassle for
+//! people who just want stuff to do things. In nccl's case, not having data
+//! types is motivated by the fact that a lot of configuration isn't based on
+//! numbers, dates, or booleans, but strings. In the case where a more
+//! complicated format is required, it's as simple as a call to `.value_as()` or
+//! `.keys_as()`.
+
 mod error;
 mod pair;
 mod parser;
