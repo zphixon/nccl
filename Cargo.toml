@@ -2,5 +2,15 @@
 name = "nccl"
 version = "0.1.0"
 authors = ["cheezgi <zackh@firemail.cc>"]
+description = "Minimal configuration file format and library."
+documentation = "https://docs.rs/nccl"
+homepage = "https://github.com/cheezgi/nccl"
+repository = "https://github.com/cheezgi/nccl"
+keywords = ["nccl", "configuration", "config"]
+categories = ["config"]
+license = "MIT"
+
+[badges]
+travis-ci = { repository = "cheezgi/nccl" }
 
 [dependencies]
