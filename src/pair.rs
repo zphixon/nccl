@@ -71,18 +71,18 @@ impl Pair {
     /// assert!(p.has_key("server"));
     /// ```
     pub fn has_key(&self, key: &str) -> bool {
-        for item in self.value.iter() {
-            if &item.key == key {
+        for item in &self.value {
+            if item.key == key {
                 return true;
             }
         }
 
-        return false;
+        false
     }
 
     /// Traverses a Pair using a slice, adding the item if it does not exist.
     pub fn traverse_path(&mut self, path: &[String]) -> &mut Pair {
-        if path.len() == 0 {
+        if path.is_empty() {
             self
         } else {
             if !self.has_key(&path[0]) {
@@ -105,7 +105,7 @@ impl Pair {
         if self.value.is_empty() {
             return Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", value), 0)));
         } else {
-            for item in self.value.iter_mut() {
+            for item in &mut self.value {
                 if item.key == value {
                     return Ok(item);
                 }
@@ -129,7 +129,7 @@ impl Pair {
         if self.value.is_empty() {
             return Ok(self);
         } else {
-            for item in self.value.iter() {
+            for item in &self.value {
                 if item.key == value_owned {
                     return Ok(item);
                 }
@@ -213,7 +213,7 @@ impl Pair {
             print!("    ");
         }
         println!("{}", self.key);
-        for value in self.value.iter() {
+        for value in &self.value {
             value.pp_rec(indent + 1);
         }
     }

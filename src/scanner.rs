@@ -186,7 +186,7 @@ impl Scanner {
         self.tokens.push(Token::new(kind, value, self.line));
     }
 
-    fn is_at_end(&mut self) -> bool {
+    fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
 

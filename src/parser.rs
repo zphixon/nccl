@@ -81,13 +81,11 @@ impl Parser {
                             errors.push(Box::new(NcclError::new(ErrorKind::IndentationError, "Incorrect level of indentation found", self.line)));
                             self.indent = prev_indent;
                         }
+                    } else if indent - prev_indent == 1 || indent - prev_indent == 0 {
+                        self.indent = indent;
                     } else {
-                        if indent - prev_indent == 1 || indent - prev_indent == 0 {
-                            self.indent = indent;
-                        } else {
-                            errors.push(Box::new(NcclError::new(ErrorKind::IndentationError, "Incorrect level of indentation found", self.line)));
-                            self.indent = prev_indent;
-                        }
+                        errors.push(Box::new(NcclError::new(ErrorKind::IndentationError, "Incorrect level of indentation found", self.line)));
+                        self.indent = prev_indent;
                     }
                 },
 
@@ -102,7 +100,7 @@ impl Parser {
             i += 1;
         }
 
-        if errors.len() == 0 {
+        if errors.is_empty() {
             Ok(self.pair)
         } else {
             Err(errors)

@@ -45,7 +45,7 @@ impl fmt::Display for NcclError {
 
 impl error::Error for NcclError {
     fn description(&self) -> &str {
-        &match self.kind {
+        match self.kind {
             ErrorKind::ParseError | ErrorKind::IndentationError
                 => "An error has occurred while parsing.",
             _ => "An error has occurred while interacting with a Pair"
