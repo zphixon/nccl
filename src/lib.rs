@@ -227,6 +227,12 @@ mod tests {
     }
 
     #[test]
+    fn escapes() {
+        let p = ::parse_file("examples/escapes.nccl").unwrap();
+        assert_eq!(p["hello"].value().unwrap(), "people of the earth\nhow's it doing?\"");
+    }
+
+    #[test]
     fn readme() {
         let config = ::parse_file("examples/config.nccl").unwrap();
         let ports = config["server"]["port"].keys_as::<u32>().unwrap();
