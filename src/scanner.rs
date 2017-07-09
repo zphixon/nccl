@@ -195,6 +195,11 @@ impl Scanner {
         self.source[self.current - 1]
     }
 
+    fn reverse(&mut self) -> u8 {
+        self.current -= 1;
+        self.source[self.current]
+    }
+
     fn peek(&mut self) -> u8 {
         if self.current >= self.source.len() {
             b'\0'
