@@ -157,6 +157,15 @@ impl Scanner {
                     b'"' => {
                         value.push('"');
                     },
+                    b'\n' => {
+                        self.advance();
+                        println!("newline");
+                        while self.peek() == b' ' || self.peek() == b'\t' {
+                            println!("advance");
+                            self.advance();
+                        }
+                        self.reverse();
+                    },
                     _ => return Err(NcclError::new(ErrorKind::ParseError, &format!("Unknown format code: {}", self.peek()), self.line))
                 }
             } else {
