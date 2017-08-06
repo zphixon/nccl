@@ -1,6 +1,25 @@
 
 use std::fmt;
 
+pub fn parse_into_value(into: String) -> Value {
+    match into.parse::<bool>() {
+        Ok(b) => return Value::Bool(b),
+        Err(_) => {},
+    }
+
+    match into.parse::<i64>() {
+        Ok(i) => return Value::Integer(i),
+        Err(_) => {},
+    }
+
+    match into.parse::<f64>() {
+        Ok(f) => return Value::Float(f),
+        Err(_) => {},
+    }
+
+    Value::String(into)
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     String(String),
