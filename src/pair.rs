@@ -164,7 +164,7 @@ impl Pair {
     /// let p = nccl::parse_file("examples/long.nccl").unwrap();
     /// assert_eq!(p["bool too"].value_as::<bool>().unwrap(), false);
     /// ```
-    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where T: From<Value> {
+    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where Value: Into<T> {
         match self.value() {
             Some(v) => Ok(v.into()),
             None => Err(Box::new(NcclError::new(ErrorKind::MultipleValues, "Could not convert value: multiple values. Use keys() or keys_as()", 0)))
