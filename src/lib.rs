@@ -94,7 +94,7 @@ mod tests {
         p["numbers"].add("3");
         p["numbers"].add("4");
         p["numbers"].add("5");
-        assert_eq!(p["numbers"].keys(), vec!["1", "2", "3", "4", "5"]);
+        assert_eq!(p["numbers"].keys_as::<String>(), vec!["1", "2", "3", "4", "5"]);
     }
 
     #[test]
@@ -176,7 +176,7 @@ mod tests {
         config["server"]["root"].add("/var/www/html");
 
         config.add_slice(&["server".into(), "port".into(), "22".into()]);
-        assert_eq!(config["server"]["port"].keys(), vec!["80", "443", "22"]);
+        assert_eq!(config["server"]["port"].keys_as::<String>(), vec!["80", "443", "22"]);
     }
 
     #[test]
@@ -231,13 +231,13 @@ mod tests {
     #[test]
     fn escapes() {
         let p = ::parse_file("examples/escapes.nccl").unwrap();
-        assert_eq!(p["hello"].value().unwrap(), "people of the earth\nhow's it doing?\"");
+        assert_eq!(p["hello"].value_as::<String>().unwrap(), "people of the earth\nhow's it doing?\"");
     }
 
     #[test]
     fn readme() {
         let config = ::parse_file("examples/config.nccl").unwrap();
-        let ports = config["server"]["port"].keys_as::<u32>().unwrap();
+        let ports = config["server"]["port"].keys_as::<i64>();
         assert_eq!(ports, vec![80, 443]);
     }
 }
