@@ -26,9 +26,9 @@ pub struct Pair {
 
 impl Pair {
     /// Creates a new Pair.
-    pub fn new(key: &str) -> Self {
+    pub fn new<T: Into<Value>>(key: T) -> Self {
         Pair {
-            key: key.to_owned().into(),
+            key: key.into(),
             value: vec![]
         }
     }
@@ -41,12 +41,12 @@ impl Pair {
     /// let mut p = nccl::Pair::new("hello");
     /// p.add("world");
     /// ```
-    pub fn add(&mut self, value: &str) {
-        self.value.push(Pair::new(value));
+    pub fn add<T: Into<Value>>(&mut self, value: T) {
+        self.value.push(Pair::new(value.into()));
     }
 
     /// Recursively adds a slice to a Pair.
-    pub fn add_slice(&mut self, path: &[String]) {
+    pub fn add_slice(&mut self, path: &[Value]) {
         let mut s = self.traverse_path(&path[0..path.len() - 1]);
         if !s.has_key(&path[path.len() - 1]) {
             s.add(&path[path.len() - 1]);
@@ -55,7 +55,7 @@ impl Pair {
 
     /// Adds a Pair to a Pair.
     pub fn add_pair(&mut self, pair: Pair) {
-        if !self.keys().contains(&pair.key) {
+        if !self.has_key(&pair.key) {
             self.value.push(pair);
         } else {
             self[&pair.key].value = pair.value;
@@ -82,7 +82,7 @@ impl Pair {
     }
 
     /// Traverses a Pair using a slice, adding the item if it does not exist.
-    pub fn traverse_path(&mut self, path: &[String]) -> &mut Pair {
+    pub fn traverse_path(&mut self, path: &[Value]) -> &mut Pair {
         if path.is_empty() {
             self
         } else {
@@ -193,8 +193,8 @@ impl Pair {
     /// let ports = config["server"]["port"].keys_as::<i32>().unwrap();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
-    pub fn keys_as<T: From<Value>>(&self) -> Vec<T> where Value: Into<T> {
-        self.keys().iter().map(|s| s.clone().into()).collect()
+    pub fn keys_as<T>(&self) -> Vec<T> where Value: Into<T> {
+        self.keys().into_iter().map(Into::into).collect()
     }
 
     /// Pretty-prints a Pair.
