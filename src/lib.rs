@@ -191,7 +191,7 @@ mod tests {
         p.add("a");
         p.add_slice(&["a".into(), "hello".into(), "world".into()]);
         p.add_slice(&["a".into(), "hello".into(), "world".into()]);
-        assert_eq!(p["a"]["hello"].keys().len(), 1);
+        assert_eq!(p["a"]["hello"].keys_as::<String>().len(), 1);
     }
 
     #[test]
@@ -204,8 +204,8 @@ mod tests {
     fn inherit2() {
         let schemas = ::parse_file("examples/inherit.nccl").unwrap();
         let user = ::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-        assert_eq!(user["sandwich"]["meat"].keys().len(), 3);
-        assert_eq!(user["hello"]["world"].keys().len(), 3);
+        assert_eq!(user["sandwich"]["meat"].keys_as::<String>().len(), 3);
+        assert_eq!(user["hello"]["world"].keys_as::<String>().len(), 3);
     }
 
     #[test]

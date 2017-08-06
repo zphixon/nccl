@@ -140,15 +140,7 @@ impl Pair {
         Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0)))
     }
 
-    /// Gets the value of a key if there is only one.
-    ///
-    /// Examples:
-    ///
-    /// ```
-    /// let p = nccl::parse_file("examples/config.nccl").unwrap();
-    /// assert_eq!(p["server"]["root"].value_as::<String>().unwrap(), "/var/www/html");
-    /// ```
-    pub fn value(&self) -> Option<Value>  {
+    fn value(&self) -> Option<Value>  {
         if self.value.len() == 1 {
             Some(self.value[0].key.clone())
         } else {
@@ -171,16 +163,7 @@ impl Pair {
         }
     }
 
-    /// Gets keys of a value as a vector of Strings.
-    ///
-    /// Examples:
-    ///
-    /// ```
-    /// let v: Vec<String> = vec!["bologne".into(), "ham".into()];
-    /// let p = nccl::parse_file("examples/inherit.nccl").unwrap();
-    /// assert_eq!(p["sandwich"]["meat"].keys_as::<String>(), v);
-    /// ```
-    pub fn keys(&self) -> Vec<Value> {
+    fn keys(&self) -> Vec<Value> {
         self.value.clone().into_iter().map(|x| x.key).collect()
     }
 
