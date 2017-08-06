@@ -11,7 +11,7 @@ use std::error::Error;
 ///
 /// ```
 /// let p = nccl::parse_file("examples/config.nccl").unwrap();
-/// let ports = p["server"]["port"].keys_as::<u32>().unwrap();
+/// let ports = p["server"]["port"].keys_as::<i64>();
 ///
 /// println!("Operating on ports:");
 /// for port in ports.iter() {
@@ -146,7 +146,7 @@ impl Pair {
     ///
     /// ```
     /// let p = nccl::parse_file("examples/config.nccl").unwrap();
-    /// assert_eq!(p["server"]["root"].value().unwrap(), "/var/www/html");
+    /// assert_eq!(p["server"]["root"].value_as::<String>().unwrap(), "/var/www/html");
     /// ```
     pub fn value(&self) -> Option<Value>  {
         if self.value.len() == 1 {
@@ -178,7 +178,7 @@ impl Pair {
     /// ```
     /// let v: Vec<String> = vec!["bologne".into(), "ham".into()];
     /// let p = nccl::parse_file("examples/inherit.nccl").unwrap();
-    /// assert_eq!(p["sandwich"]["meat"].keys(), v);
+    /// assert_eq!(p["sandwich"]["meat"].keys_as::<String>(), v);
     /// ```
     pub fn keys(&self) -> Vec<Value> {
         self.value.clone().into_iter().map(|x| x.key).collect()
@@ -190,7 +190,7 @@ impl Pair {
     ///
     /// ```
     /// let config = nccl::parse_file("examples/config.nccl").unwrap();
-    /// let ports = config["server"]["port"].keys_as::<i32>().unwrap();
+    /// let ports = config["server"]["port"].keys_as::<i64>();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
     pub fn keys_as<T>(&self) -> Vec<T> where Value: Into<T> {

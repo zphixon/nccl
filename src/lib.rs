@@ -37,7 +37,7 @@ use std::error::Error;
 ///
 /// ```
 /// let config = nccl::parse_file("examples/config.nccl").unwrap();
-/// let ports = config["server"]["port"].keys_as::<i32>().unwrap();
+/// let ports = config["server"]["port"].keys_as::<i64>();
 /// assert_eq!(ports, vec![80, 443]);
 /// ```
 pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
@@ -77,7 +77,7 @@ pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<Error
 ///
 /// ```
 /// let raw = nccl::parse_string("hello\n\tworld!").unwrap();
-/// assert_eq!(raw["hello"].value().unwrap(), "world!");
+/// assert_eq!(raw["hello"].value_as::<String>().unwrap(), "world!");
 /// ```
 pub fn parse_string(data: &str) -> Result<Pair, Vec<Box<Error>>> {
     Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
@@ -101,7 +101,7 @@ mod tests {
     fn pair_value_parse() {
         let mut p = ::Pair::new("top");
         p.add("bools");
-        p["bools"].add("true");
+        p["bools"].add(true);
         assert!(p["bools"].value_as::<bool>().unwrap());
     }
 
