@@ -17,9 +17,11 @@ mod pair;
 mod parser;
 mod token;
 mod scanner;
+mod value;
 
 pub use error::*;
 pub use pair::*;
+pub use value::*;
 
 use parser::*;
 use scanner::*;
