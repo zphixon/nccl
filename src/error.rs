@@ -9,6 +9,7 @@ pub enum ErrorKind {
     IndentationError,
     NameError,
     NoValue,
+    MultipleValues,
     ParseError,
     FromStrError,
     FileError,

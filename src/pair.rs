@@ -167,7 +167,7 @@ impl Pair {
     pub fn value_as<T>(&self) -> Result<T, Box<Error>> where T: From<Value> {
         match self.value() {
             Some(v) => Ok(v.into()),
-            None => Err(Box::new(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0)))
+            None => Err(Box::new(NcclError::new(ErrorKind::MultipleValues, "Could not convert value: multiple values. Use keys() or keys_as()", 0)))
         }
     }
 
