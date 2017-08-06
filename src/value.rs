@@ -11,7 +11,7 @@ pub enum Value {
 
 impl<'a> From<&'a Value> for Value {
     fn from(v: &'a Value) -> Self {
-        *v
+        v.clone()
     }
 }
 
@@ -51,12 +51,6 @@ impl From<f64> for Value {
     }
 }
 
-impl<'a> Into<&'a Value> for Value {
-    fn into(self) -> &'a Self {
-        &self
-    }
-}
-
 impl Into<String> for Value {
     fn into(self) -> String {
         match self {
@@ -66,11 +60,29 @@ impl Into<String> for Value {
     }
 }
 
-impl<'a> Into<&'a String> for Value {
-    fn into(self) -> &'a String {
+impl Into<bool> for Value {
+    fn into(self) -> bool {
         match self {
-            Value::String(s) => &s,
-            _ => panic!("value is not a string: {}", self)
+            Value::Bool(b) => b,
+            _ => panic!("value is not a bool: {}", self)
+        }
+    }
+}
+
+impl Into<i64> for Value {
+    fn into(self) -> i64 {
+        match self {
+            Value::Integer(i) => i,
+            _ => panic!("value is not an integer: {}", self)
+        }
+    }
+}
+
+impl Into<f64> for Value {
+    fn into(self) -> f64 {
+        match self {
+            Value::Float(f) => f,
+            _ => panic!("value is not a float: {}", self)
         }
     }
 }

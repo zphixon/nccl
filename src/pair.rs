@@ -3,7 +3,6 @@ use error::{NcclError, ErrorKind};
 use value::Value;
 
 use std::ops::{Index, IndexMut};
-use std::str::FromStr;
 use std::error::Error;
 
 /// Struct that contains configuration information.
@@ -72,8 +71,9 @@ impl Pair {
     /// assert!(p.has_key("server"));
     /// ```
     pub fn has_key<T>(&self, key: T) -> bool where Value: From<T> {
+        let k = key.into();
         for item in &self.value {
-            if item.key == key.into() {
+            if item.key == k {
                 return true;
             }
         }
@@ -101,20 +101,18 @@ impl Pair {
     /// p.get("hello!").unwrap();
     /// ```
     pub fn get<T>(&mut self, value: T) -> Result<&mut Pair, Box<Error>> where Value: From<T> {
-        //let value = value.to_owned();
+        let v = value.into();
 
         if self.value.is_empty() {
-            let v: Value = value.into();
             return Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", v), 0)));
         } else {
             for item in &mut self.value {
-                if item.key == value.into() {
+                if item.key == v {
                     return Ok(item);
                 }
             }
         }
 
-        let v: Value = value.into();
         Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", v), 0)))
     }
 
@@ -127,13 +125,13 @@ impl Pair {
     /// p.get("hello!").unwrap();
     /// ```
     pub fn get_ref<T>(&self, value: T) -> Result<&Pair, Box<Error>> where Value: From<T> {
-        //let value_owned = value.to_owned();
+        let v = value.into();
 
         if self.value.is_empty() {
             return Ok(self);
         } else {
             for item in &self.value {
-                if item.key == value.into() {
+                if item.key == v {
                     return Ok(item);
                 }
             }
@@ -171,13 +169,6 @@ impl Pair {
             Some(v) => Ok(v.into()),
             None => Err(Box::new(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0)))
         }
-        //match self.value() {
-        //    Some(value) => match value.parse::<T>() {
-        //        Ok(ok) => Ok(ok),
-        //        Err(_) => Err(Box::new(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0)))
-        //    },
-        //    None => Err(Box::new(NcclError::new(ErrorKind::NoValue, "Key has no or multiple associated values", 0)))
-        //}
     }
 
     /// Gets keys of a value as a vector of Strings.
@@ -202,13 +193,8 @@ impl Pair {
     /// let ports = config["server"]["port"].keys_as::<i32>().unwrap();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
-    pub fn keys_as<T>(&self) -> Vec<T> where Value: Into<T> {
-        self.keys().iter().map(|s| s.into()).collect()
-        // XXX this is gross
-        //match self.keys().iter().map(|s| s.into().parse::<T>()).collect::<Result<Vec<T>, _>>() {
-        //    Ok(ok) => Ok(ok),
-        //    Err(_) => Err(Box::new(NcclError::new(ErrorKind::FromStrError, "Could not parse keys", 0)))
-        //}
+    pub fn keys_as<T: From<Value>>(&self) -> Vec<T> where Value: Into<T> {
+        self.keys().iter().map(|s| s.clone().into()).collect()
     }
 
     /// Pretty-prints a Pair.
@@ -239,17 +225,4 @@ impl<T> IndexMut<T> for Pair where Value: From<T> {
         self.get(i).unwrap()
     }
 }
-
-//impl<'a> Index<&'a str> for Pair {
-//    type Output = Pair;
-//    fn index(&self, i: &str) -> &Pair {
-//        self.get_ref(i).unwrap()
-//    }
-//}
-//
-//impl<'a> IndexMut<&'a str> for Pair {
-//    fn index_mut(&mut self, i: &str) -> &mut Pair {
-//        self.get(i).unwrap()
-//    }
-//}
 
