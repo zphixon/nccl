@@ -15,15 +15,15 @@ impl<'a> From<&'a Value> for Value {
     }
 }
 
-impl<'a> From<&'a String> for Value {
-    fn from(s: &'a String) -> Self {
-        Value::String(s.to_owned())
-    }
-}
-
 impl From<String> for Value {
     fn from(s: String) -> Self {
         Value::String(s)
+    }
+}
+
+impl<'a> From<&'a String> for Value {
+    fn from(s: &'a String) -> Self {
+        Value::String(s.to_owned())
     }
 }
 
@@ -48,6 +48,30 @@ impl From<i64> for Value {
 impl From<f64> for Value {
     fn from(f: f64) -> Self {
         Value::Float(f)
+    }
+}
+
+impl<'a> Into<&'a Value> for Value {
+    fn into(self) -> &'a Self {
+        &self
+    }
+}
+
+impl Into<String> for Value {
+    fn into(self) -> String {
+        match self {
+            Value::String(s) => s,
+            _ => panic!("value is not a string: {}", self)
+        }
+    }
+}
+
+impl<'a> Into<&'a String> for Value {
+    fn into(self) -> &'a String {
+        match self {
+            Value::String(s) => &s,
+            _ => panic!("value is not a string: {}", self)
+        }
     }
 }
 

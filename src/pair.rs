@@ -166,7 +166,7 @@ impl Pair {
     /// let p = nccl::parse_file("examples/long.nccl").unwrap();
     /// assert_eq!(p["bool too"].value_as::<bool>().unwrap(), false);
     /// ```
-    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where T: Into<Value> {
+    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where T: From<Value> {
         match self.value() {
             Some(v) => Ok(v.into()),
             None => Err(Box::new(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0)))
@@ -202,7 +202,7 @@ impl Pair {
     /// let ports = config["server"]["port"].keys_as::<i32>().unwrap();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
-    pub fn keys_as<T>(&self) -> Vec<T> where Value: From<T> {
+    pub fn keys_as<T>(&self) -> Vec<T> where Value: Into<T> {
         self.keys().iter().map(|s| s.into()).collect()
         // XXX this is gross
         //match self.keys().iter().map(|s| s.into().parse::<T>()).collect::<Result<Vec<T>, _>>() {
@@ -227,14 +227,14 @@ impl Pair {
     }
 }
 
-impl<T: Into<Value>> Index<T> for Pair {
+impl<T> Index<T> for Pair where Value: From<T> {
     type Output = Pair;
     fn index(&self, i: T) -> &Pair {
         self.get_ref(i).unwrap()
     }
 }
 
-impl<T: Into<Value>> IndexMut<T> for Pair {
+impl<T> IndexMut<T> for Pair where Value: From<T> {
     fn index_mut(&mut self, i: T) -> &mut Pair {
         self.get(i).unwrap()
     }
