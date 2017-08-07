@@ -83,6 +83,24 @@ pub fn parse_string(data: &str) -> Result<Pair, Vec<Box<Error>>> {
     Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
 }
 
+pub trait TryFrom<T>: Sized {
+    type Error;
+    fn try_from(value: T) -> Result<Self, Self::Error>;
+}
+
+pub trait TryInto<T>: Sized {
+    type Error;
+    fn try_into(self) -> Result<T, Self::Error>;
+}
+
+impl<T, U> TryInto<U> for T where U: TryFrom<T> {
+    type Error = U::Error;
+
+    fn try_into(self) -> Result<U, U::Error> {
+        U::try_from(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

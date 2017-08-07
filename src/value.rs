@@ -1,4 +1,6 @@
 
+use ::TryInto;
+
 use std::fmt;
 
 pub fn parse_into_value(into: String) -> Value {
@@ -26,6 +28,64 @@ pub enum Value {
     Bool(bool),
     Integer(i64),
     Float(f64),
+}
+
+impl Value {
+    fn into_string(self) -> Result<String, ()> {
+        match self {
+            Value::String(s) => Ok(s),
+            _ => Err(())
+        }
+    }
+
+    fn into_bool(self) -> Result<bool, ()> {
+        match self {
+            Value::Bool(b) => Ok(b),
+            _ => Err(())
+        }
+    }
+
+    fn into_integer(self) -> Result<i64, ()> {
+        match self {
+            Value::Integer(i) => Ok(i),
+            _ => Err(())
+        }
+    }
+
+    fn into_float(self) -> Result<f64, ()> {
+        match self {
+            Value::Float(f) => Ok(f),
+            _ => Err(())
+        }
+    }
+}
+
+impl TryInto<String> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<String, Self::Error> {
+        self.into_string()
+    }
+}
+
+impl TryInto<bool> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<bool, Self::Error> {
+        self.into_bool()
+    }
+}
+
+impl TryInto<i64> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<i64, Self::Error> {
+        self.into_integer()
+    }
+}
+
+impl TryInto<f64> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<f64, Self::Error> {
+        self.into_float()
+    }
 }
 
 impl<'a> From<&'a Value> for Value {
@@ -72,37 +132,25 @@ impl From<f64> for Value {
 
 impl Into<String> for Value {
     fn into(self) -> String {
-        match self {
-            Value::String(s) => s,
-            _ => panic!("value is not a string: {}", self)
-        }
+        self.into_string().unwrap()
     }
 }
 
 impl Into<bool> for Value {
     fn into(self) -> bool {
-        match self {
-            Value::Bool(b) => b,
-            _ => panic!("value is not a bool: {}", self)
-        }
+        self.into_bool().unwrap()
     }
 }
 
 impl Into<i64> for Value {
     fn into(self) -> i64 {
-        match self {
-            Value::Integer(i) => i,
-            _ => panic!("value is not an integer: {}", self)
-        }
+        self.into_integer().unwrap()
     }
 }
 
 impl Into<f64> for Value {
     fn into(self) -> f64 {
-        match self {
-            Value::Float(f) => f,
-            _ => panic!("value is not a float: {}", self)
-        }
+        self.into_float().unwrap()
     }
 }
 
