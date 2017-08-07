@@ -37,7 +37,7 @@ use std::error::Error;
 ///
 /// ```
 /// let config = nccl::parse_file("examples/config.nccl").unwrap();
-/// let ports = config["server"]["port"].keys_as::<i64>();
+/// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
 /// assert_eq!(ports, vec![80, 443]);
 /// ```
 pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
@@ -58,8 +58,8 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
 /// ```
 /// let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
 /// let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-/// assert_eq!(user["sandwich"]["meat"].keys_as::<String>().len(), 3);
-/// assert_eq!(user["hello"]["world"].keys_as::<String>().len(), 3);
+/// assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
+/// assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
 /// ```
 pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<Error>>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {

@@ -12,7 +12,7 @@ use std::error::Error;
 ///
 /// ```
 /// let p = nccl::parse_file("examples/config.nccl").unwrap();
-/// let ports = p["server"]["port"].keys_as::<i64>();
+/// let ports = p["server"]["port"].keys_as::<i64>().unwrap();
 ///
 /// println!("Operating on ports:");
 /// for port in ports.iter() {
@@ -177,7 +177,7 @@ impl Pair {
     ///
     /// ```
     /// let config = nccl::parse_file("examples/config.nccl").unwrap();
-    /// let ports = config["server"]["port"].keys_as::<i64>();
+    /// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
     pub fn keys_as<T>(&self) -> Result<Vec<T>, Box<Error>> where Value: TryInto<T> {
