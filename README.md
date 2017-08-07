@@ -17,7 +17,7 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 Currently work is being done to port `nccl` over to use a `Value` enum rather
 than storing everything as `String`s. This means stuff will break! Please make
 checkout the `use-value-over-string` branch to fix any errors that might arise
-due to this change.
+due to this change. See #2 for details.
 
 ## Demo
 
