@@ -58,8 +58,8 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
 /// ```
 /// let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
 /// let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-/// assert_eq!(user["sandwich"]["meat"].keys().len(), 3);
-/// assert_eq!(user["hello"]["world"].keys().len(), 3);
+/// assert_eq!(user["sandwich"]["meat"].keys_as::<String>().len(), 3);
+/// assert_eq!(user["hello"]["world"].keys_as::<String>().len(), 3);
 /// ```
 pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<Error>>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
@@ -112,7 +112,7 @@ mod tests {
         p["numbers"].add("3");
         p["numbers"].add("4");
         p["numbers"].add("5");
-        assert_eq!(p["numbers"].keys_as::<String>(), vec!["1", "2", "3", "4", "5"]);
+        assert_eq!(p["numbers"].keys_as::<String>().unwrap(), vec!["1", "2", "3", "4", "5"]);
     }
 
     #[test]
@@ -194,7 +194,7 @@ mod tests {
         config["server"]["root"].add("/var/www/html");
 
         config.add_slice(&["server".into(), "port".into(), "22".into()]);
-        assert_eq!(config["server"]["port"].keys_as::<String>(), vec!["80", "443", "22"]);
+        assert_eq!(config["server"]["port"].keys_as::<String>().unwrap(), vec!["80", "443", "22"]);
     }
 
     #[test]
@@ -209,7 +209,7 @@ mod tests {
         p.add("a");
         p.add_slice(&["a".into(), "hello".into(), "world".into()]);
         p.add_slice(&["a".into(), "hello".into(), "world".into()]);
-        assert_eq!(p["a"]["hello"].keys_as::<String>().len(), 1);
+        assert_eq!(p["a"]["hello"].keys_as::<String>().unwrap().len(), 1);
     }
 
     #[test]
@@ -222,8 +222,8 @@ mod tests {
     fn inherit2() {
         let schemas = ::parse_file("examples/inherit.nccl").unwrap();
         let user = ::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-        assert_eq!(user["sandwich"]["meat"].keys_as::<String>().len(), 3);
-        assert_eq!(user["hello"]["world"].keys_as::<String>().len(), 3);
+        assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
+        assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
     }
 
     #[test]
@@ -255,7 +255,7 @@ mod tests {
     #[test]
     fn readme() {
         let config = ::parse_file("examples/config.nccl").unwrap();
-        let ports = config["server"]["port"].keys_as::<i64>();
+        let ports = config["server"]["port"].keys_as::<i64>().unwrap();
         assert_eq!(ports, vec![80, 443]);
     }
 }
