@@ -7,6 +7,7 @@ use std::error;
 pub enum ErrorKind {
     KeyNotFound,
     IndentationError,
+    IntoError,
     NameError,
     NoValue,
     MultipleValues,
