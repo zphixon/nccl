@@ -159,9 +159,7 @@ impl Scanner {
                     },
                     b'\n' => {
                         self.advance();
-                        println!("newline");
                         while self.peek() == b' ' || self.peek() == b'\t' {
-                            println!("advance");
                             self.advance();
                         }
                         self.reverse();
