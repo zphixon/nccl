@@ -3,6 +3,20 @@ use ::TryInto;
 
 use std::fmt;
 
+/// Parses a String into a Value, first attempting bool, i64, and f64.
+///
+/// Examples:
+/// ```
+/// match parse_into_value("32.3") {
+///     Value::Float(f) => println!("value is float: {}", f),
+///     _ => panic!("it's broke yo"),
+/// }
+///
+/// match parse_into_value("something silly") {
+///     Value::String(s) => println!("none of the above: {}", s),
+///     _ => panic!("it's really broke yo")
+/// }
+/// ```
 pub fn parse_into_value(into: String) -> Value {
     match into.parse::<bool>() {
         Ok(b) => return Value::Bool(b),
@@ -23,6 +37,7 @@ pub fn parse_into_value(into: String) -> Value {
 }
 
 #[derive(Debug, PartialEq, Clone)]
+/// Wrapper type for possible types in nccl configuration.
 pub enum Value {
     String(String),
     Bool(bool),

@@ -40,6 +40,7 @@ impl Pair {
     ///
     /// ```
     /// let mut p = nccl::Pair::new("hello");
+    /// p.add(true);
     /// p.add("world");
     /// ```
     pub fn add<T: Into<Value>>(&mut self, value: T) {
@@ -68,8 +69,10 @@ impl Pair {
     /// Examples:
     ///
     /// ```
-    /// let p = nccl::parse_file("examples/config.nccl").unwrap();
+    /// use nccl::NcclError;
+    /// let mut p = nccl::parse_file("examples/config.nccl").unwrap();
     /// assert!(p.has_key("server"));
+    /// assert!(p["server"]["port"].has_key(80));
     /// ```
     pub fn has_key<T>(&self, key: T) -> bool where Value: From<T> {
         let k = key.into();
@@ -122,8 +125,8 @@ impl Pair {
     ///
     /// ```
     /// let mut p = nccl::Pair::new("top_level");
-    /// p.add("hello!");
-    /// p.get("hello!").unwrap();
+    /// p.add(32);
+    /// p.get(32).unwrap();
     /// ```
     pub fn get_ref<T>(&self, value: T) -> Result<&Pair, Box<Error>> where Value: From<T> {
         let v = value.into();
@@ -155,7 +158,7 @@ impl Pair {
     ///
     /// ```
     /// let p = nccl::parse_file("examples/long.nccl").unwrap();
-    /// assert_eq!(p["bool too"].value_as::<bool>().unwrap(), false);
+    /// assert!(!p["bool too"].value_as::<bool>().unwrap());
     /// ```
     pub fn value_as<T>(&self) -> Result<T, Box<Error>> where Value: TryInto<T> {
         match self.value() {
@@ -192,6 +195,25 @@ impl Pair {
     }
 
     /// Pretty-prints a Pair.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// let config = nccl::parse_file("examples/config.nccl").unwrap();
+    /// config.pretty_print();
+    ///
+    /// // String("__top_level__")
+    /// //     String("server")
+    /// //         String("domain")
+    /// //             String("example.com")
+    /// //             String("www.example.com")
+    /// //         String("port")
+    /// //             Integer(80)
+    /// //             Integer(443)
+    /// //         String("root")
+    /// //             String("/var/www/html")
+    /// ```
+    ///
     pub fn pretty_print(&self) {
         self.pp_rec(0);
     }

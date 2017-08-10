@@ -83,16 +83,19 @@ pub fn parse_string(data: &str) -> Result<Pair, Vec<Box<Error>>> {
     Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
 }
 
+/// Allows safe type conversions. Copied from nightly stdlib.
 pub trait TryFrom<T>: Sized {
     type Error;
     fn try_from(value: T) -> Result<Self, Self::Error>;
 }
 
+/// Allows safe type conversions. Copied from nightly stdlib.
 pub trait TryInto<T>: Sized {
     type Error;
     fn try_into(self) -> Result<T, Self::Error>;
 }
 
+/// Allows safe type conversions. Copied from nightly stdlib.
 impl<T, U> TryInto<U> for T where U: TryFrom<T> {
     type Error = U::Error;
 
