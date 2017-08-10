@@ -19,7 +19,7 @@ In rust:
 
 ```rust
 let config = nccl::parse_file("config.nccl").unwrap();
-let ports = config["server"]["port"].keys_as::<i32>().unwrap();
+let ports = config["server"]["port"].keys_as::<i64>().unwrap();
 assert_eq!(ports, vec![80, 443]);
 ```
 
