@@ -1,8 +1,9 @@
 
 use error::{NcclError, ErrorKind};
+use value::Value;
+use ::TryInto;
 
 use std::ops::{Index, IndexMut};
-use std::str::FromStr;
 use std::error::Error;
 
 /// Struct that contains configuration information.
@@ -11,7 +12,7 @@ use std::error::Error;
 ///
 /// ```
 /// let p = nccl::parse_file("examples/config.nccl").unwrap();
-/// let ports = p["server"]["port"].keys_as::<u32>().unwrap();
+/// let ports = p["server"]["port"].keys_as::<i64>().unwrap();
 ///
 /// println!("Operating on ports:");
 /// for port in ports.iter() {
@@ -20,15 +21,15 @@ use std::error::Error;
 /// ```
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pair {
-    key: String,
+    key: Value,
     value: Vec<Pair>
 }
 
 impl Pair {
     /// Creates a new Pair.
-    pub fn new(key: &str) -> Self {
+    pub fn new<T: Into<Value>>(key: T) -> Self {
         Pair {
-            key: key.to_owned(),
+            key: key.into(),
             value: vec![]
         }
     }
@@ -39,14 +40,15 @@ impl Pair {
     ///
     /// ```
     /// let mut p = nccl::Pair::new("hello");
+    /// p.add(true);
     /// p.add("world");
     /// ```
-    pub fn add(&mut self, value: &str) {
-        self.value.push(Pair::new(value));
+    pub fn add<T: Into<Value>>(&mut self, value: T) {
+        self.value.push(Pair::new(value.into()));
     }
 
     /// Recursively adds a slice to a Pair.
-    pub fn add_slice(&mut self, path: &[String]) {
+    pub fn add_slice(&mut self, path: &[Value]) {
         let mut s = self.traverse_path(&path[0..path.len() - 1]);
         if !s.has_key(&path[path.len() - 1]) {
             s.add(&path[path.len() - 1]);
@@ -55,7 +57,7 @@ impl Pair {
 
     /// Adds a Pair to a Pair.
     pub fn add_pair(&mut self, pair: Pair) {
-        if !self.keys().contains(&pair.key) {
+        if !self.has_key(&pair.key) {
             self.value.push(pair);
         } else {
             self[&pair.key].value = pair.value;
@@ -67,12 +69,15 @@ impl Pair {
     /// Examples:
     ///
     /// ```
-    /// let p = nccl::parse_file("examples/config.nccl").unwrap();
+    /// use nccl::NcclError;
+    /// let mut p = nccl::parse_file("examples/config.nccl").unwrap();
     /// assert!(p.has_key("server"));
+    /// assert!(p["server"]["port"].has_key(80));
     /// ```
-    pub fn has_key(&self, key: &str) -> bool {
+    pub fn has_key<T>(&self, key: T) -> bool where Value: From<T> {
+        let k = key.into();
         for item in &self.value {
-            if item.key == key {
+            if item.key == k {
                 return true;
             }
         }
@@ -81,7 +86,7 @@ impl Pair {
     }
 
     /// Traverses a Pair using a slice, adding the item if it does not exist.
-    pub fn traverse_path(&mut self, path: &[String]) -> &mut Pair {
+    pub fn traverse_path(&mut self, path: &[Value]) -> &mut Pair {
         if path.is_empty() {
             self
         } else {
@@ -99,20 +104,20 @@ impl Pair {
     /// p.add("hello!");
     /// p.get("hello!").unwrap();
     /// ```
-    pub fn get(&mut self, value: &str) -> Result<&mut Pair, Box<Error>> {
-        let value = value.to_owned();
+    pub fn get<T>(&mut self, value: T) -> Result<&mut Pair, Box<Error>> where Value: From<T> {
+        let v = value.into();
 
         if self.value.is_empty() {
-            return Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", value), 0)));
+            return Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Pair does not have key: {}", v), 0)));
         } else {
             for item in &mut self.value {
-                if item.key == value {
+                if item.key == v {
                     return Ok(item);
                 }
             }
         }
 
-        Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", value), 0)))
+        Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", v), 0)))
     }
 
     /// Gets a mutable child Pair from a Pair. Used by Pair's implementation of
@@ -120,17 +125,17 @@ impl Pair {
     ///
     /// ```
     /// let mut p = nccl::Pair::new("top_level");
-    /// p.add("hello!");
-    /// p.get("hello!").unwrap();
+    /// p.add(32);
+    /// p.get(32).unwrap();
     /// ```
-    pub fn get_ref(&self, value: &str) -> Result<&Pair, Box<Error>> {
-        let value_owned = value.to_owned();
+    pub fn get_ref<T>(&self, value: T) -> Result<&Pair, Box<Error>> where Value: From<T> {
+        let v = value.into();
 
         if self.value.is_empty() {
             return Ok(self);
         } else {
             for item in &self.value {
-                if item.key == value_owned {
+                if item.key == v {
                     return Ok(item);
                 }
             }
@@ -139,15 +144,7 @@ impl Pair {
         Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0)))
     }
 
-    /// Gets the value of a key if there is only one.
-    ///
-    /// Examples:
-    ///
-    /// ```
-    /// let p = nccl::parse_file("examples/config.nccl").unwrap();
-    /// assert_eq!(p["server"]["root"].value().unwrap(), "/var/www/html");
-    /// ```
-    pub fn value(&self) -> Option<String>  {
+    fn value(&self) -> Option<Value>  {
         if self.value.len() == 1 {
             Some(self.value[0].key.clone())
         } else {
@@ -161,28 +158,19 @@ impl Pair {
     ///
     /// ```
     /// let p = nccl::parse_file("examples/long.nccl").unwrap();
-    /// assert_eq!(p["bool too"].value_as::<bool>().unwrap(), false);
+    /// assert!(!p["bool too"].value_as::<bool>().unwrap());
     /// ```
-    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where T: FromStr {
+    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where Value: TryInto<T> {
         match self.value() {
-            Some(value) => match value.parse::<T>() {
-                Ok(ok) => Ok(ok),
-                Err(_) => Err(Box::new(NcclError::new(ErrorKind::ParseError, "Could not parse value", 0)))
+            Some(v) => match v.try_into() {
+                Ok(t) => Ok(t),
+                Err(_) => return Err(Box::new(NcclError::new(ErrorKind::IntoError, "Could not convert to T", 0)))
             },
-            None => Err(Box::new(NcclError::new(ErrorKind::NoValue, "Key has no or multiple associated values", 0)))
+            None => Err(Box::new(NcclError::new(ErrorKind::MultipleValues, "Could not convert value: multiple values. Use keys() or keys_as()", 0)))
         }
     }
 
-    /// Gets keys of a value as a vector of Strings.
-    ///
-    /// Examples:
-    ///
-    /// ```
-    /// let v: Vec<String> = vec!["bologne".into(), "ham".into()];
-    /// let p = nccl::parse_file("examples/inherit.nccl").unwrap();
-    /// assert_eq!(p["sandwich"]["meat"].keys(), v);
-    /// ```
-    pub fn keys(&self) -> Vec<String> {
+    fn keys(&self) -> Vec<Value> {
         self.value.clone().into_iter().map(|x| x.key).collect()
     }
 
@@ -192,18 +180,40 @@ impl Pair {
     ///
     /// ```
     /// let config = nccl::parse_file("examples/config.nccl").unwrap();
-    /// let ports = config["server"]["port"].keys_as::<i32>().unwrap();
+    /// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
-    pub fn keys_as<T: FromStr>(&self) -> Result<Vec<T>, Box<Error>> {
-        // XXX this is gross
-        match self.keys().iter().map(|s| s.parse::<T>()).collect::<Result<Vec<T>, _>>() {
-            Ok(ok) => Ok(ok),
-            Err(_) => Err(Box::new(NcclError::new(ErrorKind::FromStrError, "Could not parse keys", 0)))
+    pub fn keys_as<T>(&self) -> Result<Vec<T>, Box<Error>> where Value: TryInto<T> {
+        let mut v: Vec<T> = vec![];
+        for key in self.keys() {
+            match key.try_into() {
+                Ok(k) => v.push(k),
+                Err(_) => return Err(Box::new(NcclError::new(ErrorKind::IntoError, "Could not convert to T", 0)))
+            }
         }
+        Ok(v)
     }
 
     /// Pretty-prints a Pair.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// let config = nccl::parse_file("examples/config.nccl").unwrap();
+    /// config.pretty_print();
+    ///
+    /// // String("__top_level__")
+    /// //     String("server")
+    /// //         String("domain")
+    /// //             String("example.com")
+    /// //             String("www.example.com")
+    /// //         String("port")
+    /// //             Integer(80)
+    /// //             Integer(443)
+    /// //         String("root")
+    /// //             String("/var/www/html")
+    /// ```
+    ///
     pub fn pretty_print(&self) {
         self.pp_rec(0);
     }
@@ -219,15 +229,15 @@ impl Pair {
     }
 }
 
-impl<'a> Index<&'a str> for Pair {
+impl<T> Index<T> for Pair where Value: From<T> {
     type Output = Pair;
-    fn index(&self, i: &str) -> &Pair {
+    fn index(&self, i: T) -> &Pair {
         self.get_ref(i).unwrap()
     }
 }
 
-impl<'a> IndexMut<&'a str> for Pair {
-    fn index_mut(&mut self, i: &str) -> &mut Pair {
+impl<T> IndexMut<T> for Pair where Value: From<T> {
+    fn index_mut(&mut self, i: T) -> &mut Pair {
         self.get(i).unwrap()
     }
 }

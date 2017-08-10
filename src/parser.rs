@@ -2,13 +2,14 @@
 use pair::Pair;
 use token::{Token, TokenKind};
 use error::{NcclError, ErrorKind};
+use value::{Value, parse_into_value};
 
 use std::error::Error;
 
 #[derive(Debug)]
 pub struct Parser {
     current: usize,
-    path: Vec<String>,
+    path: Vec<Value>,
     indent: usize,
     tokens: Vec<Token>,
     pair: Pair,
@@ -50,10 +51,10 @@ impl Parser {
                 TokenKind::Value => { // add to path respective of self.index
                     if self.indent <= self.path.len() {
                         let mut new = self.path[0..self.indent].to_owned();
-                        new.push(self.tokens[i].lexeme.clone());
+                        new.push(parse_into_value(self.tokens[i].lexeme.clone().into()));
                         self.path = new;
                     } else {
-                        self.path.push(self.tokens[i].lexeme.clone());
+                        self.path.push(parse_into_value(self.tokens[i].lexeme.clone().into()));
                     }
 
                     self.pair.add_slice(&self.path);

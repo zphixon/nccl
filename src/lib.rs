@@ -17,9 +17,11 @@ mod pair;
 mod parser;
 mod token;
 mod scanner;
+mod value;
 
 pub use error::*;
 pub use pair::*;
+pub use value::*;
 
 use parser::*;
 use scanner::*;
@@ -35,7 +37,7 @@ use std::error::Error;
 ///
 /// ```
 /// let config = nccl::parse_file("examples/config.nccl").unwrap();
-/// let ports = config["server"]["port"].keys_as::<i32>().unwrap();
+/// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
 /// assert_eq!(ports, vec![80, 443]);
 /// ```
 pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
@@ -56,8 +58,8 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
 /// ```
 /// let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
 /// let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-/// assert_eq!(user["sandwich"]["meat"].keys().len(), 3);
-/// assert_eq!(user["hello"]["world"].keys().len(), 3);
+/// assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
+/// assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
 /// ```
 pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<Error>>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
@@ -75,10 +77,31 @@ pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<Error
 ///
 /// ```
 /// let raw = nccl::parse_string("hello\n\tworld!").unwrap();
-/// assert_eq!(raw["hello"].value().unwrap(), "world!");
+/// assert_eq!(raw["hello"].value_as::<String>().unwrap(), "world!");
 /// ```
 pub fn parse_string(data: &str) -> Result<Pair, Vec<Box<Error>>> {
     Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
+}
+
+/// Allows safe type conversions. Copied from nightly stdlib.
+pub trait TryFrom<T>: Sized {
+    type Error;
+    fn try_from(value: T) -> Result<Self, Self::Error>;
+}
+
+/// Allows safe type conversions. Copied from nightly stdlib.
+pub trait TryInto<T>: Sized {
+    type Error;
+    fn try_into(self) -> Result<T, Self::Error>;
+}
+
+/// Allows safe type conversions. Copied from nightly stdlib.
+impl<T, U> TryInto<U> for T where U: TryFrom<T> {
+    type Error = U::Error;
+
+    fn try_into(self) -> Result<U, U::Error> {
+        U::try_from(self)
+    }
 }
 
 #[cfg(test)]
@@ -92,14 +115,14 @@ mod tests {
         p["numbers"].add("3");
         p["numbers"].add("4");
         p["numbers"].add("5");
-        assert_eq!(p["numbers"].keys(), vec!["1", "2", "3", "4", "5"]);
+        assert_eq!(p["numbers"].keys_as::<String>().unwrap(), vec!["1", "2", "3", "4", "5"]);
     }
 
     #[test]
     fn pair_value_parse() {
         let mut p = ::Pair::new("top");
         p.add("bools");
-        p["bools"].add("true");
+        p["bools"].add(true);
         assert!(p["bools"].value_as::<bool>().unwrap());
     }
 
@@ -174,7 +197,7 @@ mod tests {
         config["server"]["root"].add("/var/www/html");
 
         config.add_slice(&["server".into(), "port".into(), "22".into()]);
-        assert_eq!(config["server"]["port"].keys(), vec!["80", "443", "22"]);
+        assert_eq!(config["server"]["port"].keys_as::<String>().unwrap(), vec!["80", "443", "22"]);
     }
 
     #[test]
@@ -189,7 +212,7 @@ mod tests {
         p.add("a");
         p.add_slice(&["a".into(), "hello".into(), "world".into()]);
         p.add_slice(&["a".into(), "hello".into(), "world".into()]);
-        assert_eq!(p["a"]["hello"].keys().len(), 1);
+        assert_eq!(p["a"]["hello"].keys_as::<String>().unwrap().len(), 1);
     }
 
     #[test]
@@ -202,8 +225,8 @@ mod tests {
     fn inherit2() {
         let schemas = ::parse_file("examples/inherit.nccl").unwrap();
         let user = ::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-        assert_eq!(user["sandwich"]["meat"].keys().len(), 3);
-        assert_eq!(user["hello"]["world"].keys().len(), 3);
+        assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
+        assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
     }
 
     #[test]
@@ -229,13 +252,13 @@ mod tests {
     #[test]
     fn escapes() {
         let p = ::parse_file("examples/escapes.nccl").unwrap();
-        assert_eq!(p["hello"].value().unwrap(), "people of the earth\nhow's it doing?\"");
+        assert_eq!(p["hello"].value_as::<String>().unwrap(), "people of the earth\nhow's it doing?\"");
     }
 
     #[test]
     fn readme() {
         let config = ::parse_file("examples/config.nccl").unwrap();
-        let ports = config["server"]["port"].keys_as::<u32>().unwrap();
+        let ports = config["server"]["port"].keys_as::<i64>().unwrap();
         assert_eq!(ports, vec![80, 443]);
     }
 }
