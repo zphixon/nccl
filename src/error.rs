@@ -2,7 +2,7 @@
 use std::fmt;
 use std::error;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 /// Kinds of nccl errors.
 pub enum ErrorKind {
     KeyNotFound,
@@ -29,7 +29,11 @@ impl NcclError {
     pub fn new(kind: ErrorKind, message: &str, line: u64) -> Self {
         NcclError {
             kind: kind,
-            message: message.to_owned(),
+            message: match kind {
+                ErrorKind::ParseError | ErrorKind::IndentationError
+                    => format!("An error has ocurred: {:?} on line {}\n\t{}", kind, line, message),
+                _ => format!("An error has ocurred: {:?}\n\t{}", kind, message)
+            },
             line: line,
         }
     }
@@ -47,11 +51,7 @@ impl fmt::Display for NcclError {
 
 impl error::Error for NcclError {
     fn description(&self) -> &str {
-        match self.kind {
-            ErrorKind::ParseError | ErrorKind::IndentationError
-                => "An error has occurred while parsing.",
-            _ => "An error has occurred while interacting with a Pair"
-        }
+        &self.message
     }
 }
 
