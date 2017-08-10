@@ -9,7 +9,7 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 * flexible indentation (eat it, python!)
 * inherit from existing keys
 
-[Crates.io](https://crates.io/crates/nccl)
+[Crates.io](https://crates.io/crates/nccl) - [Docs](https://docs.rs/crate/nccl/0.1.0)
 
 ## Demo
 
