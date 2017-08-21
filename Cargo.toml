@@ -9,6 +9,7 @@ repository = "https://github.com/cheezgi/nccl"
 keywords = ["nccl", "configuration", "config"]
 categories = ["config"]
 license = "MIT"
+readme = "README.md"
 
 [badges]
 travis-ci = { repository = "cheezgi/nccl" }
