@@ -85,6 +85,24 @@ impl Pair {
         false
     }
 
+    /// Test if a pair has a path of values. Clones every value in path.
+    ///
+    /// ```
+    /// let mut p = nccl::parse_file("examples/config.nccl").unwrap();
+    /// assert!(p.has_path(&["server", "port", 80]))
+    /// ```
+    pub fn has_path<T: Clone>(&self, path: &[T]) -> bool where Value: From<T> {
+        if path.len() == 0 {
+            true
+        } else {
+            if self.has_key(path[0].clone().into()) {
+                self.has_path(&path[1..path.len()])
+            } else {
+                false
+            }
+        }
+    }
+
     /// Traverses a Pair using a slice, adding the item if it does not exist.
     pub fn traverse_path(&mut self, path: &[Value]) -> &mut Pair {
         if path.is_empty() {
