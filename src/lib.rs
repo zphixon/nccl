@@ -6,11 +6,8 @@
 //!
 //! Nccl was motivated by the fact that other configuration languages are too
 //! complicated for end-users. Strict enforcement of data types is a hassle for
-//! people who just want stuff to do things. In nccl's case, not having data
-//! types is motivated by the fact that a lot of configuration isn't based on
-//! numbers, dates, or booleans, but strings. In the case where a more
-//! complicated format is required, it's as simple as a call to `.value_as()` or
-//! `.keys_as()`.
+//! people who just want stuff to do things. In nccl's case, simply inferring
+//! the data type is a great middle ground between user and developer comfort.
 
 mod error;
 mod pair;
