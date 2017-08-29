@@ -49,7 +49,7 @@ impl Pair {
 
     /// Recursively adds a slice to a Pair.
     pub fn add_slice(&mut self, path: &[Value]) {
-        let mut s = self.traverse_path(&path[0..path.len() - 1]);
+        let s = self.traverse_path(&path[0..path.len() - 1]);
         if !s.has_key(&path[path.len() - 1]) {
             s.add(&path[path.len() - 1]);
         }
