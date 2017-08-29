@@ -245,7 +245,7 @@ impl Pair {
         for _ in 0..indent {
             print!("    ");
         }
-        println!("{}", self.key);
+        println!("{:?}", self.key);
         for value in &self.value {
             value.pp_rec(indent + 1);
         }
