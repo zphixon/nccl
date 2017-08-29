@@ -171,7 +171,12 @@ impl Into<f64> for Value {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            &Value::Bool(b) => write!(f, "{}", b),
+            &Value::String(ref s) => write!(f, "{}", s),
+            &Value::Float(fl) => write!(f, "{}", fl),
+            &Value::Integer(i) => write!(f, "{}", i),
+        }
     }
 }
 
