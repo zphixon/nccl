@@ -146,3 +146,4 @@ fn readme() {
     let ports = config["server"]["port"].keys_as::<i64>().unwrap();
     assert_eq!(ports, vec![80, 443]);
 }
+
