@@ -147,3 +147,9 @@ fn readme() {
     assert_eq!(ports, vec![80, 443]);
 }
 
+#[test]
+fn value() {
+    let config = ::parse_file("examples/long.nccl").unwrap();
+    assert_eq!(config["bool too"].value().unwrap(), "false");
+}
+
