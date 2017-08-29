@@ -85,7 +85,10 @@ impl Pair {
         false
     }
 
-    /// Test if a pair has a path of values. Clones every value in path.
+    /// Test if a pair has a path of values. Use `vec_into!` to make
+    /// this method easier to use.
+    ///
+    /// Examples:
     ///
     /// ```
     /// # #[macro_use] extern crate nccl; fn main() {
