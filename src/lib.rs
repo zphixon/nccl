@@ -18,10 +18,12 @@ mod parser;
 mod token;
 mod scanner;
 mod value;
+mod macros;
 
 pub use error::*;
 pub use pair::*;
 pub use value::*;
+pub use macros::*;
 
 use parser::*;
 use scanner::*;
@@ -253,6 +255,12 @@ mod tests {
     fn escapes() {
         let p = ::parse_file("examples/escapes.nccl").unwrap();
         assert_eq!(p["hello"].value_as::<String>().unwrap(), "people of the earth\nhow's it doing?\"");
+    }
+
+    #[test]
+    fn has_path() {
+        let p = ::parse_file("examples/inherit2.nccl").unwrap();
+        //assert!(p.has_path(vec_into!["hello", "world", "alaska"]));
     }
 
     #[test]

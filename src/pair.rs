@@ -88,15 +88,17 @@ impl Pair {
     /// Test if a pair has a path of values. Clones every value in path.
     ///
     /// ```
+    /// # #[macro_use] extern crate nccl; fn main() {
     /// let mut p = nccl::parse_file("examples/config.nccl").unwrap();
-    /// assert!(p.has_path(&["server", "port", 80]))
+    /// assert!(p.has_path(vec_into!["server", "port", 80]));
+    /// # }
     /// ```
-    pub fn has_path<T: Clone>(&self, path: &[T]) -> bool where Value: From<T> {
+    pub fn has_path(&self, path: Vec<Value>) -> bool {
         if path.len() == 0 {
             true
         } else {
-            if self.has_key(path[0].clone().into()) {
-                self.has_path(&path[1..path.len()])
+            if self.has_key(path[0].clone()) {
+                self[path[0].clone()].has_path(path[1..path.len()].to_vec())
             } else {
                 false
             }
