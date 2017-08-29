@@ -167,7 +167,20 @@ impl Pair {
         Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0)))
     }
 
-    fn value(&self) -> Option<Value>  {
+    /// Returns the value of a pair as a string.
+    /// ```
+    /// let config = nccl::parse_file("examples/long.nccl").unwrap();
+    /// assert_eq!(config["bool too"].value().unwrap(), "false");
+    /// ```
+    pub fn value(&self) -> Option<String>  {
+        if self.value.len() == 1 {
+            Some(format!("{}", self.value[0].key.clone()))
+        } else {
+            None
+        }
+    }
+
+    fn value_raw(&self) -> Option<Value> {
         if self.value.len() == 1 {
             Some(self.value[0].key.clone())
         } else {
@@ -184,7 +197,7 @@ impl Pair {
     /// assert!(!p["bool too"].value_as::<bool>().unwrap());
     /// ```
     pub fn value_as<T>(&self) -> Result<T, Box<Error>> where Value: TryInto<T> {
-        match self.value() {
+        match self.value_raw() {
             Some(v) => match v.try_into() {
                 Ok(t) => Ok(t),
                 Err(_) => return Err(Box::new(NcclError::new(ErrorKind::IntoError, "Could not convert to T", 0)))
