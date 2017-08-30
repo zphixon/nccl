@@ -136,7 +136,6 @@ impl Scanner {
                 let value = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
                 self.add_token_string(TokenKind::Value, value);
 
-                //self.newline();
                 while self.advance() != b'\n' {}
 
                 return Ok(());
