@@ -164,7 +164,7 @@ impl Pair {
             }
         }
 
-        Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, "Cound not find key", 0)))
+        Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", v), 0)))
     }
 
     /// Returns the value of a pair as a string.
