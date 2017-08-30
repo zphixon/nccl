@@ -125,8 +125,24 @@ impl Scanner {
     }
 
     fn identifier(&mut self) -> Result<(), NcclError> {
-        while self.peek() != b'\n' && self.peek() != b'\r' && !self.is_at_end() {
-            self.advance();
+        loop {
+            if self.peek() == b'\n' || self.peek() == b'\r' || self.is_at_end() {
+                break;
+            } else if self.peek() == b'#' {
+                while (self.reverse() as char).is_whitespace() {
+                }
+                self.advance();
+
+                let value = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
+                self.add_token_string(TokenKind::Value, value);
+
+                //self.newline();
+                while self.advance() != b'\n' {}
+
+                return Ok(());
+            } else {
+                self.advance();
+            }
         }
 
         let value = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
@@ -180,6 +196,10 @@ impl Scanner {
         self.advance();
 
         self.add_token_string(TokenKind::Value, value);
+
+        while self.peek() != b'\n' {
+            self.advance();
+        }
 
         Ok(())
     }
