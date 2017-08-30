@@ -120,7 +120,11 @@ fn spaces() {
 
 #[test]
 fn comments() {
-    assert!(::parse_file("examples/comments.nccl").is_ok());
+    let z = ::parse_file("examples/comments.nccl").unwrap();
+    z.pretty_print();
+    assert_eq!("bone hurting juice", z["oof ouch owie"].value().unwrap());
+    assert_eq!("another one!", z["no quotes as well"].value().unwrap());
+    assert_eq!("perhaps?", z["at the end"].value().unwrap());
 }
 
 #[test]
