@@ -180,6 +180,11 @@ impl Pair {
         }
     }
 
+    /// Returns the value of the key or a default value.
+    pub fn value_or(&self, or: String) -> String {
+        self.value().unwrap_or(or)
+    }
+
     fn value_raw(&self) -> Option<Value> {
         if self.value.len() == 1 {
             Some(self.value[0].key.clone())
@@ -206,6 +211,11 @@ impl Pair {
         }
     }
 
+    /// Gets the value of a key as a specified type or a default value.
+    pub fn value_as_or<T>(&self, or: T) -> T where Value: TryInto<T> {
+        self.value_as::<T>().unwrap_or(or)
+    }
+
     fn keys(&self) -> Vec<Value> {
         self.value.clone().into_iter().map(|x| x.key).collect()
     }
@@ -228,6 +238,11 @@ impl Pair {
             }
         }
         Ok(v)
+    }
+
+    /// Gets keys of a value as a vector of T or returns a default vector.
+    pub fn keys_as_or<T>(&self, or: Vec<T>) -> Vec<T> where Value: TryInto<T> {
+        self.keys_as::<T>().unwrap_or(or)
     }
 
     /// Pretty-prints a Pair.
