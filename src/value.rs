@@ -8,7 +8,7 @@ use std::fmt;
 /// Examples:
 ///
 /// ```
-/// # use nccl::value::Value; use nccl::parse_into_value;
+/// # use nccl::Value; use nccl::parse_into_value;
 /// match parse_into_value("32.3".into()) {
 ///     Value::Float(f) => println!("value is float: {}", f),
 ///     _ => panic!("it's broke yo"),
