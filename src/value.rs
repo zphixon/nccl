@@ -6,6 +6,7 @@ use std::fmt;
 /// Parses a String into a Value, first attempting bool, i64, and f64.
 ///
 /// Examples:
+///
 /// ```
 /// match parse_into_value("32.3") {
 ///     Value::Float(f) => println!("value is float: {}", f),
