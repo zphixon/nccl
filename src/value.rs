@@ -45,29 +45,69 @@ pub enum Value {
     Float(f64),
 }
 
-impl Value {
-    fn into_string(self) -> Result<String, ()> {
+impl TryInto<String> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<String, Self::Error> {
         match self {
             Value::String(s) => Ok(s),
             _ => Err(())
         }
     }
+}
 
-    fn into_bool(self) -> Result<bool, ()> {
+impl TryInto<bool> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<bool, Self::Error> {
         match self {
             Value::Bool(b) => Ok(b),
             _ => Err(())
         }
     }
+}
 
-    fn into_integer(self) -> Result<i64, ()> {
+impl TryInto<i64> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<i64, Self::Error> {
         match self {
             Value::Integer(i) => Ok(i),
             _ => Err(())
         }
     }
+}
 
-    fn into_float(self) -> Result<f64, ()> {
+impl TryInto<i32> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<i32, Self::Error> {
+        match self {
+            Value::Integer(i) => Ok(i as i32),
+            _ => Err(())
+        }
+    }
+}
+
+impl TryInto<u64> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<u64, Self::Error> {
+        match self {
+            Value::Integer(i) => Ok(i as u64),
+            _ => Err(())
+        }
+    }
+}
+
+impl TryInto<u32> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<u32, Self::Error> {
+        match self {
+            Value::Integer(i) => Ok(i as u32),
+            _ => Err(())
+        }
+    }
+}
+
+impl TryInto<f64> for Value {
+    type Error = ();
+    fn try_into(self) -> Result<f64, Self::Error> {
         match self {
             Value::Float(f) => Ok(f),
             _ => Err(())
@@ -75,31 +115,13 @@ impl Value {
     }
 }
 
-impl TryInto<String> for Value {
+impl TryInto<f32> for Value {
     type Error = ();
-    fn try_into(self) -> Result<String, Self::Error> {
-        self.into_string()
-    }
-}
-
-impl TryInto<bool> for Value {
-    type Error = ();
-    fn try_into(self) -> Result<bool, Self::Error> {
-        self.into_bool()
-    }
-}
-
-impl TryInto<i64> for Value {
-    type Error = ();
-    fn try_into(self) -> Result<i64, Self::Error> {
-        self.into_integer()
-    }
-}
-
-impl TryInto<f64> for Value {
-    type Error = ();
-    fn try_into(self) -> Result<f64, Self::Error> {
-        self.into_float()
+    fn try_into(self) -> Result<f32, Self::Error> {
+        match self {
+            Value::Float(f) => Ok(f as f32),
+            _ => Err(())
+        }
     }
 }
 
@@ -139,33 +161,33 @@ impl From<i64> for Value {
     }
 }
 
+impl From<u64> for Value {
+    fn from(u: u64) -> Self {
+        Value::Integer(u as i64)
+    }
+}
+
+impl From<i32> for Value {
+    fn from(i: i32) -> Self {
+        Value::Integer(i as i64)
+    }
+}
+
+impl From<u32> for Value {
+    fn from(u: u32) -> Self {
+        Value::Integer(u as i64)
+    }
+}
+
 impl From<f64> for Value {
     fn from(f: f64) -> Self {
         Value::Float(f)
     }
 }
 
-impl Into<String> for Value {
-    fn into(self) -> String {
-        self.into_string().unwrap()
-    }
-}
-
-impl Into<bool> for Value {
-    fn into(self) -> bool {
-        self.into_bool().unwrap()
-    }
-}
-
-impl Into<i64> for Value {
-    fn into(self) -> i64 {
-        self.into_integer().unwrap()
-    }
-}
-
-impl Into<f64> for Value {
-    fn into(self) -> f64 {
-        self.into_float().unwrap()
+impl From<f32> for Value {
+    fn from(f: f32) -> Self {
+        Value::Float(f as f64)
     }
 }
 
