@@ -6,13 +6,15 @@ use std::fmt;
 /// Parses a String into a Value, first attempting bool, i64, and f64.
 ///
 /// Examples:
+///
 /// ```
-/// match parse_into_value("32.3") {
+/// # use nccl::Value; use nccl::parse_into_value;
+/// match parse_into_value("32.3".into()) {
 ///     Value::Float(f) => println!("value is float: {}", f),
 ///     _ => panic!("it's broke yo"),
 /// }
 ///
-/// match parse_into_value("something silly") {
+/// match parse_into_value("something silly".into()) {
 ///     Value::String(s) => println!("none of the above: {}", s),
 ///     _ => panic!("it's really broke yo")
 /// }
