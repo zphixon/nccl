@@ -32,8 +32,8 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<Box<Error>>> {
-        let mut err: Vec<Box<Error>> = vec![];
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<Box<dyn Error>>> {
+        let mut err: Vec<Box<dyn Error>> = vec![];
 
         while !self.is_at_end() {
             self.start = self.current;

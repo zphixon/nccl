@@ -39,10 +39,8 @@ impl Parser {
         }
     }
 
-    // faked you out with that Scanner, didn't I?
-    // you thought this was going to be recursive descent. YOU WERE WRONG!
-    pub fn parse(mut self) -> Result<Pair, Vec<Box<Error>>> {
-        let mut errors: Vec<Box<Error>> = vec![];
+    pub fn parse(mut self) -> Result<Pair, Vec<Box<dyn Error>>> {
+        let mut errors: Vec<Box<dyn  Error>> = vec![];
         let mut prev_indent = 0;
         let mut i = 0;
 

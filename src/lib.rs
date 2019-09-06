@@ -39,7 +39,7 @@ use std::error::Error;
 /// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
 /// assert_eq!(ports, vec![80, 443]);
 /// ```
-pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
+pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<dyn Error>>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
         let mut data = String::new();
         file.read_to_string(&mut data).unwrap();
@@ -60,7 +60,7 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<Error>>> {
 /// assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
 /// assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
 /// ```
-pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<Error>>> {
+pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<dyn Error>>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
         let mut data = String::new();
         file.read_to_string(&mut data).unwrap();
@@ -78,7 +78,7 @@ pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<Error
 /// let raw = nccl::parse_string("hello\n\tworld!").unwrap();
 /// assert_eq!(raw["hello"].value_as::<String>().unwrap(), "world!");
 /// ```
-pub fn parse_string(data: &str) -> Result<Pair, Vec<Box<Error>>> {
+pub fn parse_string(data: &str) -> Result<Pair, Vec<Box<dyn Error>>> {
     Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
 }
 

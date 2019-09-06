@@ -127,7 +127,7 @@ impl Pair {
     /// p.add("hello!");
     /// p.get("hello!").unwrap();
     /// ```
-    pub fn get<T>(&mut self, value: T) -> Result<&mut Pair, Box<Error>> where Value: From<T> {
+    pub fn get<T>(&mut self, value: T) -> Result<&mut Pair, Box<dyn Error>> where Value: From<T> {
         let v = value.into();
 
         if self.value.is_empty() {
@@ -151,7 +151,7 @@ impl Pair {
     /// p.add(32);
     /// p.get(32).unwrap();
     /// ```
-    pub fn get_ref<T>(&self, value: T) -> Result<&Pair, Box<Error>> where Value: From<T> {
+    pub fn get_ref<T>(&self, value: T) -> Result<&Pair, Box<dyn Error>> where Value: From<T> {
         let v = value.into();
 
         if self.value.is_empty() {
@@ -201,7 +201,7 @@ impl Pair {
     /// let p = nccl::parse_file("examples/long.nccl").unwrap();
     /// assert!(!p["bool too"].value_as::<bool>().unwrap());
     /// ```
-    pub fn value_as<T>(&self) -> Result<T, Box<Error>> where Value: TryInto<T> {
+    pub fn value_as<T>(&self) -> Result<T, Box<dyn Error>> where Value: TryInto<T> {
         match self.value_raw() {
             Some(v) => match v.try_into() {
                 Ok(t) => Ok(t),
@@ -229,7 +229,7 @@ impl Pair {
     /// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
-    pub fn keys_as<T>(&self) -> Result<Vec<T>, Box<Error>> where Value: TryInto<T> {
+    pub fn keys_as<T>(&self) -> Result<Vec<T>, Box<dyn Error>> where Value: TryInto<T> {
         let mut v: Vec<T> = vec![];
         for key in self.keys() {
             match key.try_into() {
