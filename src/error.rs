@@ -28,13 +28,12 @@ impl NcclError {
     /// Creates a new NcclError.
     pub fn new(kind: ErrorKind, message: &str, line: u64) -> Self {
         NcclError {
-            kind: kind,
             message: match kind {
                 ErrorKind::ParseError | ErrorKind::IndentationError
                     => format!("An error has ocurred: {:?} on line {}\n\t{}", kind, line, message),
                 _ => format!("An error has ocurred: {:?}\n\t{}", kind, message)
             },
-            line: line,
+            kind, line,
         }
     }
 }

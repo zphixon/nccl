@@ -97,14 +97,12 @@ impl Pair {
     /// # }
     /// ```
     pub fn has_path(&self, path: Vec<Value>) -> bool {
-        if path.len() == 0 {
+        if path.is_empty() {
             true
+        } else if self.has_key(path[0].clone()) {
+            self[path[0].clone()].has_path(path[1..path.len()].to_vec())
         } else {
-            if self.has_key(path[0].clone()) {
-                self[path[0].clone()].has_path(path[1..path.len()].to_vec())
-            } else {
-                false
-            }
+            false
         }
     }
 
@@ -205,7 +203,7 @@ impl Pair {
         match self.value_raw() {
             Some(v) => match v.try_into() {
                 Ok(t) => Ok(t),
-                Err(_) => return Err(Box::new(NcclError::new(ErrorKind::IntoError, "Could not convert to T", 0)))
+                Err(_) => Err(Box::new(NcclError::new(ErrorKind::IntoError, "Could not convert to T", 0)))
             },
             None => Err(Box::new(NcclError::new(ErrorKind::MultipleValues, "Could not convert value: multiple values. Use keys() or keys_as()", 0)))
         }

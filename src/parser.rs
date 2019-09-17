@@ -22,7 +22,7 @@ impl Parser {
             current: 0,
             path: vec![],
             indent: 0,
-            tokens: tokens,
+            tokens,
             pair: Pair::new("__top_level__"),
             line: 1,
         }
@@ -33,8 +33,8 @@ impl Parser {
             current: 0,
             path: vec![],
             indent: 0,
-            tokens: tokens,
-            pair: pair,
+            tokens,
+            pair,
             line: 1
         }
     }
@@ -49,10 +49,10 @@ impl Parser {
                 TokenKind::Value => { // add to path respective of self.index
                     if self.indent <= self.path.len() {
                         let mut new = self.path[0..self.indent].to_owned();
-                        new.push(parse_into_value(self.tokens[i].lexeme.clone().into()));
+                        new.push(parse_into_value(self.tokens[i].lexeme.clone()));
                         self.path = new;
                     } else {
-                        self.path.push(parse_into_value(self.tokens[i].lexeme.clone().into()));
+                        self.path.push(parse_into_value(self.tokens[i].lexeme.clone()));
                     }
 
                     self.pair.add_slice(&self.path);

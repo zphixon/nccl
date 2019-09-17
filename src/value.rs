@@ -20,19 +20,14 @@ use std::fmt;
 /// }
 /// ```
 pub fn parse_into_value(into: String) -> Value {
-    match into.parse::<bool>() {
-        Ok(b) => return Value::Bool(b),
-        Err(_) => {},
+    if let Ok(b) = into.parse::<bool>() {
+        return Value::Bool(b);
     }
-
-    match into.parse::<i64>() {
-        Ok(i) => return Value::Integer(i),
-        Err(_) => {},
+    if let Ok(i) = into.parse::<i64>() {
+        return Value::Integer(i);
     }
-
-    match into.parse::<f64>() {
-        Ok(f) => return Value::Float(f),
-        Err(_) => {},
+    if let Ok(f) = into.parse::<f64>() {
+        return Value::Float(f);
     }
 
     Value::String(into)
@@ -171,13 +166,13 @@ impl From<u64> for Value {
 
 impl From<i32> for Value {
     fn from(i: i32) -> Self {
-        Value::Integer(i as i64)
+        Value::Integer(i64::from(i))
     }
 }
 
 impl From<u32> for Value {
     fn from(u: u32) -> Self {
-        Value::Integer(u as i64)
+        Value::Integer(i64::from(u))
     }
 }
 
@@ -189,17 +184,17 @@ impl From<f64> for Value {
 
 impl From<f32> for Value {
     fn from(f: f32) -> Self {
-        Value::Float(f as f64)
+        Value::Float(f64::from(f))
     }
 }
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &Value::Bool(b) => write!(f, "{}", b),
-            &Value::String(ref s) => write!(f, "{}", s),
-            &Value::Float(fl) => write!(f, "{}", fl),
-            &Value::Integer(i) => write!(f, "{}", i),
+        match *self {
+            Value::Bool(b) => write!(f, "{}", b),
+            Value::String(ref s) => write!(f, "{}", s),
+            Value::Float(fl) => write!(f, "{}", fl),
+            Value::Integer(i) => write!(f, "{}", i),
         }
     }
 }

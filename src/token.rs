@@ -17,9 +17,7 @@ pub struct Token {
 impl Token {
     pub fn new(kind: TokenKind, lexeme: String, line: u64) -> Self {
         Token {
-            kind: kind,
-            lexeme: lexeme,
-            line: line,
+            kind, lexeme, line,
         }
     }
 }
