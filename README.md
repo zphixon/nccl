@@ -38,7 +38,7 @@ server
 ```
 
 `nccl` stores your configuration internally as a tree. Leaf nodes are referred
-to as "values," and branch nodes are referred to as "keys." So, in this example,
+to as "values," and branch nodes are referred to as "keys." So in this example,
 `root` is a key, and `/var/www/html` is its value.
 
 ### Inheritance
