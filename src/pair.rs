@@ -50,7 +50,7 @@ impl Pair {
     /// Recursively adds a slice to a Pair.
     pub fn add_slice(&mut self, path: &[Value]) {
         let s = self.traverse_path(&path[0..path.len() - 1]);
-        if !s.has_key(&path[path.len() - 1]) {
+        if !s.has_key(&path[path.len() - 1]) || s[&path[path.len() - 1]].value.is_empty() {
             s.add(&path[path.len() - 1]);
         }
     }
@@ -165,7 +165,8 @@ impl Pair {
         Err(Box::new(NcclError::new(ErrorKind::KeyNotFound, &format!("Could not find key: {}", v), 0)))
     }
 
-    /// Returns the value of a pair as a string.
+    /// Returns the value of a pair as a string. Returns `None` if the pair
+    /// is not a leaf.
     /// ```
     /// let config = nccl::parse_file("examples/long.nccl").unwrap();
     /// assert_eq!(config["bool too"].value().unwrap(), "false");

@@ -7,7 +7,7 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 * key/value bindings
 * flexible indentation (eat it, python!)
-* inherit from existing keys
+* inheritance from existing keys
 
 [Crates.io](https://crates.io/crates/nccl) - [Docs](https://docs.rs/crate/nccl)
 
@@ -37,11 +37,19 @@ server
         /var/www/html
 ```
 
+`nccl` stores your configuration internally as a tree. Leaf nodes are referred
+to as "values," and branch nodes are referred to as "keys." So, in this example,
+`root` is a key, and `/var/www/html` is its value.
+
 ### Inheritance
 
 Nccl lets you define your own configuration to inherit from. Just use
 `nccl::parse_file_with` with the result from the configuration you would like
 to inherit from.
+
+Note, if a key is present in both the parent configuration and the child
+configuration, the key will not be duplicated. Values that are present in both
+configurations with the same path will be duplicated.
 
 inherit.nccl:
 

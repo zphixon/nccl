@@ -91,7 +91,7 @@ fn add_vec() {
     p.add("a");
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
-    assert_eq!(p["a"]["hello"].keys_as::<String>().unwrap().len(), 1);
+    assert_eq!(p["a"]["hello"].keys_as::<String>().unwrap().len(), 2);
 }
 
 #[test]
@@ -155,5 +155,25 @@ fn readme() {
 fn value() {
     let config = ::parse_file("examples/long.nccl").unwrap();
     assert_eq!(config["bool too"].value().unwrap(), "false");
+}
+
+#[test]
+fn duplicates() {
+    let config = ::parse_file("examples/duplicates.nccl").unwrap();
+    assert_eq!(config["something"].keys_as::<String>().unwrap(), vec!["with", "duplicates", "duplicates"]);
+}
+
+#[test]
+fn duplicates2() {
+    let config = ::parse_file("examples/duplicates.nccl").unwrap();
+    let config2 = ::parse_file_with("examples/duplicates2.nccl", config).unwrap();
+    assert_eq!(3, config2["something"].keys_as::<String>().unwrap().len());
+}
+
+#[test]
+fn duplicates3() {
+    let config = ::parse_file("examples/duplicates2.nccl").unwrap();
+    let config2 = ::parse_file_with("examples/duplicates.nccl", config).unwrap();
+    assert_eq!(3, config2["something"].keys_as::<String>().unwrap().len());
 }
 
