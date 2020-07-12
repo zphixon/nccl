@@ -1,4 +1,3 @@
-
 //! Nccl is an easy way to add minimal configuration to your crate without
 //! having to deal with complicated interfaces, obnoxious syntax, or outdated
 //! languages. Nccl makes it easy for a user to pick up your configuration.
@@ -10,25 +9,25 @@
 //! the data type is a great middle ground between user and developer comfort.
 
 mod error;
+mod macros;
 mod pair;
 mod parser;
-mod token;
 mod scanner;
+mod token;
 mod value;
-mod macros;
 
 pub use error::*;
+pub use macros::*;
 pub use pair::*;
 pub use value::*;
-pub use macros::*;
 
 use parser::*;
 use scanner::*;
 
-use std::path::Path;
+use std::error::Error;
 use std::fs::File;
 use std::io::Read;
-use std::error::Error;
+use std::path::Path;
 
 /// Parses a file using the given filename.
 ///
@@ -45,7 +44,11 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<dyn Error>>> {
         file.read_to_string(&mut data).unwrap();
         Parser::new(Scanner::new(data).scan_tokens()?).parse()
     } else {
-        Err(vec![Box::new(NcclError::new(ErrorKind::FileError, "Could not find file.", 0))])
+        Err(vec![Box::new(NcclError::new(
+            ErrorKind::FileError,
+            "Could not find file.",
+            0,
+        ))])
     }
 }
 
@@ -66,7 +69,11 @@ pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<dyn E
         file.read_to_string(&mut data).unwrap();
         Parser::new_with(Scanner::new(data).scan_tokens()?, pair).parse()
     } else {
-        Err(vec![Box::new(NcclError::new(ErrorKind::FileError, "Could not find file.", 0))])
+        Err(vec![Box::new(NcclError::new(
+            ErrorKind::FileError,
+            "Could not find file.",
+            0,
+        ))])
     }
 }
 
@@ -95,11 +102,13 @@ pub trait TryInto<T>: Sized {
 }
 
 /// Allows safe type conversions. Copied from nightly stdlib.
-impl<T, U> TryInto<U> for T where U: TryFrom<T> {
+impl<T, U> TryInto<U> for T
+where
+    U: TryFrom<T>,
+{
     type Error = U::Error;
 
     fn try_into(self) -> Result<U, U::Error> {
         U::try_from(self)
     }
 }
-

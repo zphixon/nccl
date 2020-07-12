@@ -1,4 +1,3 @@
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum TokenKind {
     Value,
@@ -16,9 +15,6 @@ pub struct Token {
 
 impl Token {
     pub fn new(kind: TokenKind, lexeme: String, line: u64) -> Self {
-        Token {
-            kind, lexeme, line,
-        }
+        Token { kind, lexeme, line }
     }
 }
-

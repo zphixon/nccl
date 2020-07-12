@@ -1,4 +1,3 @@
-
 #[macro_export]
 /// Calls .into() on every element added to a new vector.
 ///
@@ -43,4 +42,3 @@ macro_rules! vec_into {
         }
     }
 }
-

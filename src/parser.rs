@@ -1,8 +1,7 @@
-
+use error::{ErrorKind, NcclError};
 use pair::Pair;
 use token::{Token, TokenKind};
-use error::{NcclError, ErrorKind};
-use value::{Value, parse_into_value};
+use value::{parse_into_value, Value};
 
 use std::error::Error;
 
@@ -35,24 +34,26 @@ impl Parser {
             indent: 0,
             tokens,
             pair,
-            line: 1
+            line: 1,
         }
     }
 
     pub fn parse(mut self) -> Result<Pair, Vec<Box<dyn Error>>> {
-        let mut errors: Vec<Box<dyn  Error>> = vec![];
+        let mut errors: Vec<Box<dyn Error>> = vec![];
         let mut prev_indent = 0;
         let mut i = 0;
 
         while i < self.tokens.len() {
             match self.tokens[i].kind {
-                TokenKind::Value => { // add to path respective of self.index
+                TokenKind::Value => {
+                    // add to path respective of self.index
                     if self.indent <= self.path.len() {
                         let mut new = self.path[0..self.indent].to_owned();
                         new.push(parse_into_value(self.tokens[i].lexeme.clone()));
                         self.path = new;
                     } else {
-                        self.path.push(parse_into_value(self.tokens[i].lexeme.clone()));
+                        self.path
+                            .push(parse_into_value(self.tokens[i].lexeme.clone()));
                     }
 
                     self.pair.add_slice(&self.path);
@@ -61,9 +62,10 @@ impl Parser {
                         self.path.clear();
                         self.indent = 0;
                     }
-                },
+                }
 
-                TokenKind::Indent => { // set new self.index
+                TokenKind::Indent => {
+                    // set new self.index
                     let mut indent = 0;
 
                     while self.tokens[i].kind == TokenKind::Indent {
@@ -77,22 +79,31 @@ impl Parser {
                         if prev_indent - indent == 1 || prev_indent - indent == 0 {
                             self.indent = indent;
                         } else {
-                            errors.push(Box::new(NcclError::new(ErrorKind::IndentationError, "Incorrect level of indentation found", self.line)));
+                            errors.push(Box::new(NcclError::new(
+                                ErrorKind::IndentationError,
+                                "Incorrect level of indentation found",
+                                self.line,
+                            )));
                             self.indent = prev_indent;
                         }
                     } else if indent - prev_indent == 1 || indent - prev_indent == 0 {
                         self.indent = indent;
                     } else {
-                        errors.push(Box::new(NcclError::new(ErrorKind::IndentationError, "Incorrect level of indentation found", self.line)));
+                        errors.push(Box::new(NcclError::new(
+                            ErrorKind::IndentationError,
+                            "Incorrect level of indentation found",
+                            self.line,
+                        )));
                         self.indent = prev_indent;
                     }
-                },
+                }
 
-                TokenKind::Newline => { // reset self.index
+                TokenKind::Newline => {
+                    // reset self.index
                     prev_indent = self.indent;
                     self.indent = 0;
                     self.line += 1;
-                },
+                }
 
                 TokenKind::EOF => break,
             }
@@ -106,4 +117,3 @@ impl Parser {
         }
     }
 }
-

@@ -1,5 +1,4 @@
-
-use ::TryInto;
+use TryInto;
 
 use std::fmt;
 
@@ -47,7 +46,7 @@ impl TryInto<String> for Value {
     fn try_into(self) -> Result<String, Self::Error> {
         match self {
             Value::String(s) => Ok(s),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -57,7 +56,7 @@ impl TryInto<bool> for Value {
     fn try_into(self) -> Result<bool, Self::Error> {
         match self {
             Value::Bool(b) => Ok(b),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -67,7 +66,7 @@ impl TryInto<i64> for Value {
     fn try_into(self) -> Result<i64, Self::Error> {
         match self {
             Value::Integer(i) => Ok(i),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -77,7 +76,7 @@ impl TryInto<i32> for Value {
     fn try_into(self) -> Result<i32, Self::Error> {
         match self {
             Value::Integer(i) => Ok(i as i32),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -87,7 +86,7 @@ impl TryInto<u64> for Value {
     fn try_into(self) -> Result<u64, Self::Error> {
         match self {
             Value::Integer(i) => Ok(i as u64),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -97,7 +96,7 @@ impl TryInto<u32> for Value {
     fn try_into(self) -> Result<u32, Self::Error> {
         match self {
             Value::Integer(i) => Ok(i as u32),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -107,7 +106,7 @@ impl TryInto<f64> for Value {
     fn try_into(self) -> Result<f64, Self::Error> {
         match self {
             Value::Float(f) => Ok(f),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -117,7 +116,7 @@ impl TryInto<f32> for Value {
     fn try_into(self) -> Result<f32, Self::Error> {
         match self {
             Value::Float(f) => Ok(f as f32),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -198,4 +197,3 @@ impl fmt::Display for Value {
         }
     }
 }
-

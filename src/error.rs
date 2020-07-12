@@ -1,6 +1,5 @@
-
-use std::fmt;
 use std::error;
+use std::fmt;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 /// Kinds of nccl errors.
@@ -29,11 +28,14 @@ impl NcclError {
     pub fn new(kind: ErrorKind, message: &str, line: u64) -> Self {
         NcclError {
             message: match kind {
-                ErrorKind::ParseError | ErrorKind::IndentationError
-                    => format!("An error has ocurred: {:?} on line {}\n\t{}", kind, line, message),
-                _ => format!("An error has ocurred: {:?}\n\t{}", kind, message)
+                ErrorKind::ParseError | ErrorKind::IndentationError => format!(
+                    "An error has ocurred: {:?} on line {}\n\t{}",
+                    kind, line, message
+                ),
+                _ => format!("An error has ocurred: {:?}\n\t{}", kind, message),
             },
-            kind, line,
+            kind,
+            line,
         }
     }
 }
@@ -41,9 +43,16 @@ impl NcclError {
 impl fmt::Display for NcclError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
-            ErrorKind::ParseError | ErrorKind::IndentationError
-                => write!(f, "An error has ocurred: {:?} on line {}\n\t{}", self.kind, self.line, self.message),
-            _ => write!(f, "An error has ocurred: {:?}\n\t{}", self.kind, self.message)
+            ErrorKind::ParseError | ErrorKind::IndentationError => write!(
+                f,
+                "An error has ocurred: {:?} on line {}\n\t{}",
+                self.kind, self.line, self.message
+            ),
+            _ => write!(
+                f,
+                "An error has ocurred: {:?}\n\t{}",
+                self.kind, self.message
+            ),
         }
     }
 }
@@ -53,4 +62,3 @@ impl error::Error for NcclError {
         &self.message
     }
 }
-

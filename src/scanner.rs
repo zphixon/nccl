@@ -1,6 +1,5 @@
-
+use error::{ErrorKind, NcclError};
 use token::{Token, TokenKind};
-use error::{NcclError, ErrorKind};
 
 use std::error::Error;
 
@@ -43,7 +42,8 @@ impl Scanner {
             }
         }
 
-        self.tokens.push(Token::new(TokenKind::EOF, "".into(), self.line));
+        self.tokens
+            .push(Token::new(TokenKind::EOF, "".into(), self.line));
 
         if !err.is_empty() {
             Err(err)
@@ -59,50 +59,73 @@ impl Scanner {
                 while self.peek() != b'\n' && !self.is_at_end() {
                     self.advance();
                 }
-            },
+            }
 
-            b' ' => {
-                match self.indent {
-                    Indent::Neither => {
-                        let mut spaces = 0;
-                        while self.peek() == b' ' && !self.is_at_end() {
-                            self.advance();
-                            spaces += 1;
-                        }
-                        if self.is_at_end() {
-                            error = Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
-                        }
-                        self.indent = Indent::Spaces(spaces);
-                        self.add_token(TokenKind::Indent);
+            b' ' => match self.indent {
+                Indent::Neither => {
+                    let mut spaces = 0;
+                    while self.peek() == b' ' && !self.is_at_end() {
+                        self.advance();
+                        spaces += 1;
                     }
-                    Indent::Spaces(s) => {
-                        let mut spaces = 0;
-                        while spaces < s  && !self.is_at_end() {
-                            if self.peek() != b' ' {
-                                error = Err(NcclError::new(ErrorKind::IndentationError, &format!("Incorrect number of spaces: found {}, expected {}", spaces, s), self.line));
-                            }
-                            self.advance();
-                            spaces += 1;
+                    if self.is_at_end() {
+                        error = Err(NcclError::new(
+                            ErrorKind::ParseError,
+                            "Expected value, found EOF",
+                            self.line,
+                        ));
+                    }
+                    self.indent = Indent::Spaces(spaces);
+                    self.add_token(TokenKind::Indent);
+                }
+                Indent::Spaces(s) => {
+                    let mut spaces = 0;
+                    while spaces < s && !self.is_at_end() {
+                        if self.peek() != b' ' {
+                            error = Err(NcclError::new(
+                                ErrorKind::IndentationError,
+                                &format!(
+                                    "Incorrect number of spaces: found {}, expected {}",
+                                    spaces, s
+                                ),
+                                self.line,
+                            ));
                         }
-                        if self.is_at_end() {
-                            error = Err(NcclError::new(ErrorKind::ParseError, "Expected value, found EOF", self.line));
-                        }
-                        self.add_token(TokenKind::Indent);
-                    },
-                    Indent::Tabs => { error = Err(NcclError::new(ErrorKind::IndentationError, "Expected tabs, found spaces", self.line)); }
+                        self.advance();
+                        spaces += 1;
+                    }
+                    if self.is_at_end() {
+                        error = Err(NcclError::new(
+                            ErrorKind::ParseError,
+                            "Expected value, found EOF",
+                            self.line,
+                        ));
+                    }
+                    self.add_token(TokenKind::Indent);
+                }
+                Indent::Tabs => {
+                    error = Err(NcclError::new(
+                        ErrorKind::IndentationError,
+                        "Expected tabs, found spaces",
+                        self.line,
+                    ));
                 }
             },
 
-            b'\t' => {
-                match self.indent {
-                    Indent::Neither => {
-                        self.add_token(TokenKind::Indent);
-                        self.indent = Indent::Tabs;
-                    },
-                    Indent::Tabs => {
-                        self.add_token(TokenKind::Indent);
-                    },
-                    Indent::Spaces(_) => { error = Err(NcclError::new(ErrorKind::IndentationError, "Expected spaces, found tabs", self.line)); }
+            b'\t' => match self.indent {
+                Indent::Neither => {
+                    self.add_token(TokenKind::Indent);
+                    self.indent = Indent::Tabs;
+                }
+                Indent::Tabs => {
+                    self.add_token(TokenKind::Indent);
+                }
+                Indent::Spaces(_) => {
+                    error = Err(NcclError::new(
+                        ErrorKind::IndentationError,
+                        "Expected spaces, found tabs",
+                        self.line,
+                    ));
                 }
             },
 
@@ -112,13 +135,21 @@ impl Scanner {
                 if self.peek() != b' ' && self.peek() != b'\t' && self.peek() != b'#' {
                     self.indent = Indent::Neither;
                 }
-            },
+            }
 
-            b'\r' => {},
+            b'\r' => {}
 
-            b'"' => if let Err(e) = self.string() { error = Err(e); },
+            b'"' => {
+                if let Err(e) = self.string() {
+                    error = Err(e);
+                }
+            }
 
-            _ => if let Err(e) = self.identifier() { error = Err(e); },
+            _ => {
+                if let Err(e) = self.identifier() {
+                    error = Err(e);
+                }
+            }
         }
 
         error
@@ -129,11 +160,11 @@ impl Scanner {
             if self.peek() == b'\n' || self.peek() == b'\r' || self.is_at_end() {
                 break;
             } else if self.peek() == b'#' {
-                while (self.reverse() as char).is_whitespace() {
-                }
+                while (self.reverse() as char).is_whitespace() {}
                 self.advance();
 
-                let value = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
+                let value =
+                    String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
                 self.add_token_string(TokenKind::Value, value);
 
                 while self.advance() != b'\n' {}
@@ -162,24 +193,30 @@ impl Scanner {
                 match self.peek() {
                     b'n' => {
                         value.push('\n');
-                    },
+                    }
                     b'r' => {
                         value.push('\r');
                     }
                     b'\\' => {
                         value.push('\\');
-                    },
+                    }
                     b'"' => {
                         value.push('"');
-                    },
+                    }
                     b'\n' => {
                         self.advance();
                         while self.peek() == b' ' || self.peek() == b'\t' {
                             self.advance();
                         }
                         self.reverse();
-                    },
-                    _ => return Err(NcclError::new(ErrorKind::ParseError, &format!("Unknown format code: {}", self.peek()), self.line))
+                    }
+                    _ => {
+                        return Err(NcclError::new(
+                            ErrorKind::ParseError,
+                            &format!("Unknown format code: {}", self.peek()),
+                            self.line,
+                        ))
+                    }
                 }
             } else {
                 value.push(self.source[self.current] as char);
@@ -189,7 +226,11 @@ impl Scanner {
         }
 
         if self.is_at_end() {
-            return Err(NcclError::new(ErrorKind::ParseError, "Unterminated string", self.line));
+            return Err(NcclError::new(
+                ErrorKind::ParseError,
+                "Unterminated string",
+                self.line,
+            ));
         }
 
         self.advance();
@@ -234,4 +275,3 @@ impl Scanner {
         }
     }
 }
-

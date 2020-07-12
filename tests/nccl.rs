@@ -1,4 +1,3 @@
-
 #[macro_use]
 extern crate nccl;
 use nccl::*;
@@ -12,7 +11,10 @@ fn pair_keys() {
     p["numbers"].add("3");
     p["numbers"].add("4");
     p["numbers"].add("5");
-    assert_eq!(p["numbers"].keys_as::<String>().unwrap(), vec!["1", "2", "3", "4", "5"]);
+    assert_eq!(
+        p["numbers"].keys_as::<String>().unwrap(),
+        vec!["1", "2", "3", "4", "5"]
+    );
 }
 
 #[test]
@@ -65,7 +67,10 @@ fn traverse_path() {
     let mut p = ::Pair::new("top");
     p.add_slice(&["a".into(), "b".into(), "c".into()]);
     p.traverse_path(&["a".into(), "b".into()]).add("happy");
-    assert_eq!(p.traverse_path(&["a".into(), "b".into(), "happy".into()]), &mut ::Pair::new("happy"));
+    assert_eq!(
+        p.traverse_path(&["a".into(), "b".into(), "happy".into()]),
+        &mut ::Pair::new("happy")
+    );
 }
 
 #[test]
@@ -82,7 +87,10 @@ fn add_slice() {
     config["server"]["root"].add("/var/www/html");
 
     config.add_slice(&["server".into(), "port".into(), "22".into()]);
-    assert_eq!(config["server"]["port"].keys_as::<String>().unwrap(), vec!["80", "443", "22"]);
+    assert_eq!(
+        config["server"]["port"].keys_as::<String>().unwrap(),
+        vec!["80", "443", "22"]
+    );
 }
 
 #[test]
@@ -104,7 +112,10 @@ fn long() {
 fn inherit2() {
     let schemas = ::parse_file("examples/inherit.nccl").unwrap();
     let user = ::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-    assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
+    assert_eq!(
+        user["sandwich"]["meat"].keys_as::<String>().unwrap().len(),
+        3
+    );
     assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
 }
 
@@ -135,7 +146,10 @@ fn indent() {
 #[test]
 fn escapes() {
     let p = ::parse_file("examples/escapes.nccl").unwrap();
-    assert_eq!(p["hello"].value_as::<String>().unwrap(), "people of the earth\nhow's it doing?\"");
+    assert_eq!(
+        p["hello"].value_as::<String>().unwrap(),
+        "people of the earth\nhow's it doing?\""
+    );
 }
 
 #[test]
@@ -160,7 +174,10 @@ fn value() {
 #[test]
 fn duplicates() {
     let config = ::parse_file("examples/duplicates.nccl").unwrap();
-    assert_eq!(config["something"].keys_as::<String>().unwrap(), vec!["with", "duplicates", "duplicates"]);
+    assert_eq!(
+        config["something"].keys_as::<String>().unwrap(),
+        vec!["with", "duplicates", "duplicates"]
+    );
 }
 
 #[test]
