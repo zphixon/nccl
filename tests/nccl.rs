@@ -177,3 +177,26 @@ fn duplicates3() {
     assert_eq!(3, config2["something"].keys_as::<String>().unwrap().len());
 }
 
+#[test]
+fn comments2() {
+    let config = ::parse_string(
+        r#"x
+# comment
+    something
+    # comment again
+        bingo
+
+does this work?
+    who knows
+# I sure don't
+    is this a child?
+"#,
+    )
+    .unwrap();
+
+    assert!(config["x"]["something"].value().unwrap() == "bingo");
+    config["does this work?"].get_ref("who knows").unwrap();
+    config["does this work?"]
+        .get_ref("is this a child?")
+        .unwrap();
+}
