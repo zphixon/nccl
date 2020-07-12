@@ -1,7 +1,7 @@
-use error::{ErrorKind, NcclError};
-use pair::Pair;
-use token::{Token, TokenKind};
-use value::{parse_into_value, Value};
+use crate::error::{ErrorKind, NcclError};
+use crate::pair::Pair;
+use crate::token::{Token, TokenKind};
+use crate::value::{parse_into_value, Value};
 
 use std::error::Error;
 

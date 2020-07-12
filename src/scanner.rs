@@ -1,5 +1,5 @@
-use error::{ErrorKind, NcclError};
-use token::{Token, TokenKind};
+use crate::error::{ErrorKind, NcclError};
+use crate::token::{Token, TokenKind};
 
 use std::error::Error;
 

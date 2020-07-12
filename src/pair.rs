@@ -1,6 +1,6 @@
-use error::{ErrorKind, NcclError};
-use value::Value;
-use TryInto;
+use crate::error::{ErrorKind, NcclError};
+use crate::value::Value;
+use crate::TryInto;
 
 use std::error::Error;
 use std::ops::{Index, IndexMut};

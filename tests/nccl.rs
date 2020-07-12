@@ -1,10 +1,8 @@
-#[macro_use]
-extern crate nccl;
 use nccl::*;
 
 #[test]
 fn pair_keys() {
-    let mut p = ::Pair::new("top");
+    let mut p = Pair::new("top");
     p.add("numbers");
     p["numbers"].add("1");
     p["numbers"].add("2");
@@ -19,7 +17,7 @@ fn pair_keys() {
 
 #[test]
 fn pair_value_parse() {
-    let mut p = ::Pair::new("top");
+    let mut p = Pair::new("top");
     p.add("bools");
     p["bools"].add(true);
     assert!(p["bools"].value_as::<bool>().unwrap());
@@ -27,25 +25,25 @@ fn pair_value_parse() {
 
 #[test]
 fn error_key_not_found() {
-    let mut p = ::Pair::new("jjj");
+    let mut p = Pair::new("jjj");
     assert!(p.get("jwiofiojwaef jio").is_err());
 }
 
 #[test]
 fn scan_file() {
-    assert!(::parse_file("examples/config.nccl").is_ok());
+    assert!(parse_file("examples/config.nccl").is_ok());
 }
 
 #[test]
 fn dos_unix_lines() {
-    assert!(::parse_file("examples/config.nccl").is_ok());
-    assert!(::parse_file("examples/config_dos.nccl").is_ok());
+    assert!(parse_file("examples/config.nccl").is_ok());
+    assert!(parse_file("examples/config_dos.nccl").is_ok());
 }
 
 #[test]
 fn add_pair() {
     // create a new pair
-    let mut p1 = ::Pair::new("happy birthday");
+    let mut p1 = Pair::new("happy birthday");
 
     p1.add("Bobby");
     p1["Bobby"].add("Today!");
@@ -55,7 +53,7 @@ fn add_pair() {
     p1["Ron"].add("March 3rd");
 
     // whoops, we were wrong
-    let mut p2 = ::Pair::new("Ron");
+    let mut p2 = Pair::new("Ron");
     p2.add("March 2nd");
 
     // there you go Ron, happy belated birthday
@@ -64,18 +62,18 @@ fn add_pair() {
 
 #[test]
 fn traverse_path() {
-    let mut p = ::Pair::new("top");
+    let mut p = Pair::new("top");
     p.add_slice(&["a".into(), "b".into(), "c".into()]);
     p.traverse_path(&["a".into(), "b".into()]).add("happy");
     assert_eq!(
         p.traverse_path(&["a".into(), "b".into(), "happy".into()]),
-        &mut ::Pair::new("happy")
+        &mut Pair::new("happy")
     );
 }
 
 #[test]
 fn add_slice() {
-    let mut config = ::Pair::new("top_level");
+    let mut config = Pair::new("top_level");
     config.add("server");
     config["server"].add("domain");
     config["server"].add("port");
@@ -95,7 +93,7 @@ fn add_slice() {
 
 #[test]
 fn add_vec() {
-    let mut p = ::Pair::new("__top_level__");
+    let mut p = Pair::new("__top_level__");
     p.add("a");
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
     p.add_slice(&["a".into(), "hello".into(), "world".into()]);
@@ -104,14 +102,14 @@ fn add_vec() {
 
 #[test]
 fn long() {
-    let oh_dear = ::parse_file("examples/long.nccl").unwrap();
+    let oh_dear = parse_file("examples/long.nccl").unwrap();
     oh_dear.pretty_print();
 }
 
 #[test]
 fn inherit2() {
-    let schemas = ::parse_file("examples/inherit.nccl").unwrap();
-    let user = ::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
+    let schemas = parse_file("examples/inherit.nccl").unwrap();
+    let user = parse_file_with("examples/inherit2.nccl", schemas).unwrap();
     assert_eq!(
         user["sandwich"]["meat"].keys_as::<String>().unwrap().len(),
         3
@@ -121,17 +119,17 @@ fn inherit2() {
 
 #[test]
 fn tabs() {
-    assert!(::parse_file("examples/tabs.nccl").is_err());
+    assert!(parse_file("examples/tabs.nccl").is_err());
 }
 
 #[test]
 fn spaces() {
-    assert!(::parse_file("examples/spaces").is_err());
+    assert!(parse_file("examples/spaces").is_err());
 }
 
 #[test]
 fn comments() {
-    let z = ::parse_file("examples/comments.nccl").unwrap();
+    let z = parse_file("examples/comments.nccl").unwrap();
     z.pretty_print();
     assert_eq!("bone hurting juice", z["oof ouch owie"].value().unwrap());
     assert_eq!("another one!", z["no quotes as well"].value().unwrap());
@@ -140,12 +138,12 @@ fn comments() {
 
 #[test]
 fn indent() {
-    assert!(::parse_file("examples/indent.nccl").is_ok());
+    assert!(parse_file("examples/indent.nccl").is_ok());
 }
 
 #[test]
 fn escapes() {
-    let p = ::parse_file("examples/escapes.nccl").unwrap();
+    let p = parse_file("examples/escapes.nccl").unwrap();
     assert_eq!(
         p["hello"].value_as::<String>().unwrap(),
         "people of the earth\nhow's it doing?\""
@@ -154,26 +152,26 @@ fn escapes() {
 
 #[test]
 fn has_path() {
-    let p = ::parse_file("examples/inherit2.nccl").unwrap();
+    let p = parse_file("examples/inherit2.nccl").unwrap();
     assert!(p.has_path(vec_into!["hello", "world", "alaska"]));
 }
 
 #[test]
 fn readme() {
-    let config = ::parse_file("examples/config.nccl").unwrap();
+    let config = parse_file("examples/config.nccl").unwrap();
     let ports = config["server"]["port"].keys_as::<i64>().unwrap();
     assert_eq!(ports, vec![80, 443]);
 }
 
 #[test]
 fn value() {
-    let config = ::parse_file("examples/long.nccl").unwrap();
+    let config = parse_file("examples/long.nccl").unwrap();
     assert_eq!(config["bool too"].value().unwrap(), "false");
 }
 
 #[test]
 fn duplicates() {
-    let config = ::parse_file("examples/duplicates.nccl").unwrap();
+    let config = parse_file("examples/duplicates.nccl").unwrap();
     assert_eq!(
         config["something"].keys_as::<String>().unwrap(),
         vec!["with", "duplicates", "duplicates"]
@@ -182,21 +180,21 @@ fn duplicates() {
 
 #[test]
 fn duplicates2() {
-    let config = ::parse_file("examples/duplicates.nccl").unwrap();
-    let config2 = ::parse_file_with("examples/duplicates2.nccl", config).unwrap();
+    let config = parse_file("examples/duplicates.nccl").unwrap();
+    let config2 = parse_file_with("examples/duplicates2.nccl", config).unwrap();
     assert_eq!(3, config2["something"].keys_as::<String>().unwrap().len());
 }
 
 #[test]
 fn duplicates3() {
-    let config = ::parse_file("examples/duplicates2.nccl").unwrap();
-    let config2 = ::parse_file_with("examples/duplicates.nccl", config).unwrap();
+    let config = parse_file("examples/duplicates2.nccl").unwrap();
+    let config2 = parse_file_with("examples/duplicates.nccl", config).unwrap();
     assert_eq!(3, config2["something"].keys_as::<String>().unwrap().len());
 }
 
 #[test]
 fn comments2() {
-    let config = ::parse_string(
+    let config = parse_string(
         r#"x
 # comment
     something
