@@ -66,7 +66,8 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<NcclError>> {
 pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<NcclError>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
         let mut data = String::new();
-        file.read_to_string(&mut data).unwrap();
+        file.read_to_string(&mut data)
+            .map_err(|_| vec![NcclError::new(ErrorKind::Io, "IO error", 0)])?;
         Parser::new_with(Scanner::new(data).scan_tokens()?, pair).parse()
     } else {
         Err(vec![NcclError::new(
