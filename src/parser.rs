@@ -3,8 +3,6 @@ use crate::pair::Pair;
 use crate::token::{Token, TokenKind};
 use crate::value::{parse_into_value, Value};
 
-use std::error::Error;
-
 #[derive(Debug)]
 pub struct Parser {
     current: usize,
@@ -38,8 +36,8 @@ impl Parser {
         }
     }
 
-    pub fn parse(mut self) -> Result<Pair, Vec<Box<dyn Error>>> {
-        let mut errors: Vec<Box<dyn Error>> = vec![];
+    pub fn parse(mut self) -> Result<Pair, Vec<NcclError>> {
+        let mut errors = vec![];
         let mut prev_indent = 0;
         let mut i = 0;
 
@@ -79,21 +77,21 @@ impl Parser {
                         if prev_indent - indent == 1 || prev_indent - indent == 0 {
                             self.indent = indent;
                         } else {
-                            errors.push(Box::new(NcclError::new(
-                                ErrorKind::IndentationError,
+                            errors.push(NcclError::new(
+                                ErrorKind::Indentation,
                                 "Incorrect level of indentation found",
                                 self.line,
-                            )));
+                            ));
                             self.indent = prev_indent;
                         }
                     } else if indent - prev_indent == 1 || indent - prev_indent == 0 {
                         self.indent = indent;
                     } else {
-                        errors.push(Box::new(NcclError::new(
-                            ErrorKind::IndentationError,
+                        errors.push(NcclError::new(
+                            ErrorKind::Indentation,
                             "Incorrect level of indentation found",
                             self.line,
-                        )));
+                        ));
                         self.indent = prev_indent;
                     }
                 }

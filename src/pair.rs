@@ -1,8 +1,7 @@
 use crate::error::{ErrorKind, NcclError};
 use crate::value::Value;
-use crate::TryInto;
 
-use std::error::Error;
+use std::convert::TryInto;
 use std::ops::{Index, IndexMut};
 
 /// Struct that contains configuration information.
@@ -129,18 +128,18 @@ impl Pair {
     /// p.add("hello!");
     /// p.get("hello!").unwrap();
     /// ```
-    pub fn get<T>(&mut self, value: T) -> Result<&mut Pair, Box<dyn Error>>
+    pub fn get<T>(&mut self, value: T) -> Result<&mut Pair, NcclError>
     where
         Value: From<T>,
     {
         let v = value.into();
 
         if self.value.is_empty() {
-            return Err(Box::new(NcclError::new(
+            return Err(NcclError::new(
                 ErrorKind::KeyNotFound,
                 &format!("Pair does not have key: {}", v),
                 0,
-            )));
+            ));
         } else {
             for item in &mut self.value {
                 if item.key == v {
@@ -149,11 +148,11 @@ impl Pair {
             }
         }
 
-        Err(Box::new(NcclError::new(
+        Err(NcclError::new(
             ErrorKind::KeyNotFound,
             &format!("Could not find key: {}", v),
             0,
-        )))
+        ))
     }
 
     /// Gets a mutable child Pair from a Pair. Used by Pair's implementation of
@@ -164,7 +163,7 @@ impl Pair {
     /// p.add(32);
     /// p.get(32).unwrap();
     /// ```
-    pub fn get_ref<T>(&self, value: T) -> Result<&Pair, Box<dyn Error>>
+    pub fn get_ref<T>(&self, value: T) -> Result<&Pair, NcclError>
     where
         Value: From<T>,
     {
@@ -180,11 +179,11 @@ impl Pair {
             }
         }
 
-        Err(Box::new(NcclError::new(
+        Err(NcclError::new(
             ErrorKind::KeyNotFound,
             &format!("Could not find key: {}", v),
             0,
-        )))
+        ))
     }
 
     /// Returns the value of a pair as a string. Returns `None` if the pair
@@ -222,24 +221,20 @@ impl Pair {
     /// let p = nccl::parse_file("examples/long.nccl").unwrap();
     /// assert!(!p["bool too"].value_as::<bool>().unwrap());
     /// ```
-    pub fn value_as<T>(&self) -> Result<T, Box<dyn Error>>
+    pub fn value_as<T>(&self) -> Result<T, NcclError>
     where
         Value: TryInto<T>,
     {
         match self.value_raw() {
             Some(v) => match v.try_into() {
                 Ok(t) => Ok(t),
-                Err(_) => Err(Box::new(NcclError::new(
-                    ErrorKind::IntoError,
-                    "Could not convert to T",
-                    0,
-                ))),
+                Err(_) => Err(NcclError::new(ErrorKind::Into, "Could not convert to T", 0)),
             },
-            None => Err(Box::new(NcclError::new(
+            None => Err(NcclError::new(
                 ErrorKind::MultipleValues,
                 "Could not convert value: multiple values. Use keys() or keys_as()",
                 0,
-            ))),
+            )),
         }
     }
 
@@ -264,7 +259,7 @@ impl Pair {
     /// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
     /// assert_eq!(ports, vec![80, 443]);
     /// ```
-    pub fn keys_as<T>(&self) -> Result<Vec<T>, Box<dyn Error>>
+    pub fn keys_as<T>(&self) -> Result<Vec<T>, NcclError>
     where
         Value: TryInto<T>,
     {
@@ -272,13 +267,7 @@ impl Pair {
         for key in self.keys() {
             match key.try_into() {
                 Ok(k) => v.push(k),
-                Err(_) => {
-                    return Err(Box::new(NcclError::new(
-                        ErrorKind::IntoError,
-                        "Could not convert to T",
-                        0,
-                    )))
-                }
+                Err(_) => return Err(NcclError::new(ErrorKind::Into, "Could not convert to T", 0)),
             }
         }
         Ok(v)

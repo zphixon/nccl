@@ -24,7 +24,6 @@ pub use value::*;
 use parser::*;
 use scanner::*;
 
-use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -38,17 +37,18 @@ use std::path::Path;
 /// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
 /// assert_eq!(ports, vec![80, 443]);
 /// ```
-pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<dyn Error>>> {
+pub fn parse_file(filename: &str) -> Result<Pair, Vec<NcclError>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
         let mut data = String::new();
-        file.read_to_string(&mut data).unwrap();
+        file.read_to_string(&mut data)
+            .map_err(|_| vec![NcclError::new(ErrorKind::Io, "IO error", 0)])?;
         Parser::new(Scanner::new(data).scan_tokens()?).parse()
     } else {
-        Err(vec![Box::new(NcclError::new(
-            ErrorKind::FileError,
+        Err(vec![NcclError::new(
+            ErrorKind::File,
             "Could not find file.",
             0,
-        ))])
+        )])
     }
 }
 
@@ -63,17 +63,17 @@ pub fn parse_file(filename: &str) -> Result<Pair, Vec<Box<dyn Error>>> {
 /// assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
 /// assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
 /// ```
-pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<dyn Error>>> {
+pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<NcclError>> {
     if let Ok(mut file) = File::open(Path::new(filename)) {
         let mut data = String::new();
         file.read_to_string(&mut data).unwrap();
         Parser::new_with(Scanner::new(data).scan_tokens()?, pair).parse()
     } else {
-        Err(vec![Box::new(NcclError::new(
-            ErrorKind::FileError,
+        Err(vec![NcclError::new(
+            ErrorKind::File,
             "Could not find file.",
             0,
-        ))])
+        )])
     }
 }
 
@@ -85,30 +85,6 @@ pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<Box<dyn E
 /// let raw = nccl::parse_string("hello\n\tworld!").unwrap();
 /// assert_eq!(raw["hello"].value_as::<String>().unwrap(), "world!");
 /// ```
-pub fn parse_string(data: &str) -> Result<Pair, Vec<Box<dyn Error>>> {
+pub fn parse_string(data: &str) -> Result<Pair, Vec<NcclError>> {
     Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
-}
-
-/// Allows safe type conversions. Copied from nightly stdlib.
-pub trait TryFrom<T>: Sized {
-    type Error;
-    fn try_from(value: T) -> Result<Self, Self::Error>;
-}
-
-/// Allows safe type conversions. Copied from nightly stdlib.
-pub trait TryInto<T>: Sized {
-    type Error;
-    fn try_into(self) -> Result<T, Self::Error>;
-}
-
-/// Allows safe type conversions. Copied from nightly stdlib.
-impl<T, U> TryInto<U> for T
-where
-    U: TryFrom<T>,
-{
-    type Error = U::Error;
-
-    fn try_into(self) -> Result<U, U::Error> {
-        U::try_from(self)
-    }
 }

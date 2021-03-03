@@ -1,8 +1,6 @@
 use crate::error::{ErrorKind, NcclError};
 use crate::token::{Token, TokenKind};
 
-use std::error::Error;
-
 // ranked worst to best
 enum Indent {
     Neither,
@@ -31,14 +29,14 @@ impl Scanner {
         }
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<Box<dyn Error>>> {
-        let mut err: Vec<Box<dyn Error>> = vec![];
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<NcclError>> {
+        let mut err: Vec<NcclError> = vec![];
 
         while !self.is_at_end() {
             self.start = self.current;
             let e = self.scan_token();
             if e.is_err() {
-                err.push(Box::new(e.err().unwrap()));
+                err.push(e.err().unwrap());
             }
         }
 
@@ -70,20 +68,20 @@ impl Scanner {
                     }
                     if self.is_at_end() {
                         error = Err(NcclError::new(
-                            ErrorKind::ParseError,
+                            ErrorKind::Parse,
                             "Expected value, found EOF",
                             self.line,
                         ));
                     }
                     self.indent = Indent::Spaces(spaces);
-                    self.add_token(TokenKind::Indent);
+                    self.add_token(TokenKind::Indent)?;
                 }
                 Indent::Spaces(s) => {
                     let mut spaces = 0;
                     while spaces < s && !self.is_at_end() {
                         if self.peek() != b' ' {
                             error = Err(NcclError::new(
-                                ErrorKind::IndentationError,
+                                ErrorKind::Indentation,
                                 &format!(
                                     "Incorrect number of spaces: found {}, expected {}",
                                     spaces, s
@@ -96,16 +94,16 @@ impl Scanner {
                     }
                     if self.is_at_end() {
                         error = Err(NcclError::new(
-                            ErrorKind::ParseError,
+                            ErrorKind::Parse,
                             "Expected value, found EOF",
                             self.line,
                         ));
                     }
-                    self.add_token(TokenKind::Indent);
+                    self.add_token(TokenKind::Indent)?;
                 }
                 Indent::Tabs => {
                     error = Err(NcclError::new(
-                        ErrorKind::IndentationError,
+                        ErrorKind::Indentation,
                         "Expected tabs, found spaces",
                         self.line,
                     ));
@@ -114,15 +112,15 @@ impl Scanner {
 
             b'\t' => match self.indent {
                 Indent::Neither => {
-                    self.add_token(TokenKind::Indent);
+                    self.add_token(TokenKind::Indent)?;
                     self.indent = Indent::Tabs;
                 }
                 Indent::Tabs => {
-                    self.add_token(TokenKind::Indent);
+                    self.add_token(TokenKind::Indent)?;
                 }
                 Indent::Spaces(_) => {
                     error = Err(NcclError::new(
-                        ErrorKind::IndentationError,
+                        ErrorKind::Indentation,
                         "Expected spaces, found tabs",
                         self.line,
                     ));
@@ -130,7 +128,7 @@ impl Scanner {
             },
 
             b'\n' => {
-                self.add_token(TokenKind::Newline);
+                self.add_token(TokenKind::Newline)?;
                 self.line += 1;
                 if self.peek() != b' ' && self.peek() != b'\t' && self.peek() != b'#' {
                     self.indent = Indent::Neither;
@@ -163,8 +161,10 @@ impl Scanner {
                 while (self.reverse() as char).is_whitespace() {}
                 self.advance();
 
-                let value =
-                    String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
+                let value = String::from_utf8(self.source[self.start..self.current].to_vec())
+                    .map_err(|err| {
+                        NcclError::new(ErrorKind::Utf8 { err }, "invalid UTF-8", self.line)
+                    })?;
                 self.add_token_string(TokenKind::Value, value);
 
                 while self.advance() != b'\n' {}
@@ -175,7 +175,8 @@ impl Scanner {
             }
         }
 
-        let value = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
+        let value = String::from_utf8(self.source[self.start..self.current].to_vec())
+            .map_err(|err| NcclError::new(ErrorKind::Utf8 { err }, "invalid UTF-8", self.line))?;
         self.add_token_string(TokenKind::Value, value);
 
         Ok(())
@@ -203,7 +204,7 @@ impl Scanner {
                     b'"' => {
                         value.push('"');
                     }
-                    b'\n' => {
+                    b'\r' | b'\n' => {
                         self.advance();
                         while self.peek() == b' ' || self.peek() == b'\t' {
                             self.advance();
@@ -212,7 +213,7 @@ impl Scanner {
                     }
                     _ => {
                         return Err(NcclError::new(
-                            ErrorKind::ParseError,
+                            ErrorKind::Parse,
                             &format!("Unknown format code: {}", self.peek()),
                             self.line,
                         ))
@@ -227,7 +228,7 @@ impl Scanner {
 
         if self.is_at_end() {
             return Err(NcclError::new(
-                ErrorKind::ParseError,
+                ErrorKind::Parse,
                 "Unterminated string",
                 self.line,
             ));
@@ -244,9 +245,11 @@ impl Scanner {
         Ok(())
     }
 
-    fn add_token(&mut self, kind: TokenKind) {
-        let text = String::from_utf8(self.source[self.start..self.current].to_vec()).unwrap();
+    fn add_token(&mut self, kind: TokenKind) -> Result<(), NcclError> {
+        let text = String::from_utf8(self.source[self.start..self.current].to_vec())
+            .map_err(|err| NcclError::new(ErrorKind::Utf8 { err }, "invalid UTF-8", self.line))?;
         self.tokens.push(Token::new(kind, text, self.line));
+        Ok(())
     }
 
     fn add_token_string(&mut self, kind: TokenKind, value: String) {

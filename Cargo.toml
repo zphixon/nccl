@@ -1,11 +1,11 @@
 [package]
 name = "nccl"
-version = "0.6.0"
+version = "1.0.0"
 authors = ["Zack <zphixon@gmail.com>"]
 description = "Minimal configuration file format and library."
 documentation = "https://docs.rs/nccl"
-homepage = "https://github.com/cheezgi/nccl"
-repository = "https://github.com/cheezgi/nccl"
+homepage = "https://github.com/zphixon/nccl"
+repository = "https://github.com/zphixon/nccl"
 keywords = ["nccl", "configuration", "config"]
 categories = ["config"]
 license = "MIT"
@@ -13,6 +13,6 @@ readme = "README.md"
 edition = "2018"
 
 [badges]
-travis-ci = { repository = "cheezgi/nccl" }
+travis-ci = { repository = "zphixon/nccl" }
 
 [dependencies]

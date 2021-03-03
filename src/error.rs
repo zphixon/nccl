@@ -1,18 +1,19 @@
-use std::error;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 /// Kinds of nccl errors.
 pub enum ErrorKind {
     KeyNotFound,
-    IndentationError,
-    IntoError,
-    NameError,
+    Indentation,
+    Into,
+    Name,
     NoValue,
     MultipleValues,
-    ParseError,
-    FromStrError,
-    FileError,
+    Parse,
+    FromStr,
+    File,
+    Utf8 { err: std::string::FromUtf8Error },
+    Io,
 }
 
 #[derive(Debug, PartialEq)]
@@ -28,7 +29,7 @@ impl NcclError {
     pub fn new(kind: ErrorKind, message: &str, line: u64) -> Self {
         NcclError {
             message: match kind {
-                ErrorKind::ParseError | ErrorKind::IndentationError => format!(
+                ErrorKind::Parse | ErrorKind::Indentation => format!(
                     "An error has ocurred: {:?} on line {}\n\t{}",
                     kind, line, message
                 ),
@@ -43,7 +44,7 @@ impl NcclError {
 impl fmt::Display for NcclError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
-            ErrorKind::ParseError | ErrorKind::IndentationError => write!(
+            ErrorKind::Parse | ErrorKind::Indentation => write!(
                 f,
                 "An error has ocurred: {:?} on line {}\n\t{}",
                 self.kind, self.line, self.message
@@ -54,11 +55,5 @@ impl fmt::Display for NcclError {
                 self.kind, self.message
             ),
         }
-    }
-}
-
-impl error::Error for NcclError {
-    fn description(&self) -> &str {
-        &self.message
     }
 }
