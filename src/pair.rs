@@ -4,6 +4,70 @@ use crate::value::Value;
 use std::convert::TryInto;
 use std::ops::{Index, IndexMut};
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct Config<'key, 'value>
+where
+    'key: 'value,
+{
+    key: &'key str,
+    value: Vec<Config<'value, 'value>>,
+}
+
+impl<'key, 'value> Config<'key, 'value> {
+    pub fn new(key: &'key str) -> Self {
+        Config {
+            key,
+            value: Vec::new(),
+        }
+    }
+
+    pub fn add_value(&mut self, other: &'value str) {
+        self.value.push(Config::new(other));
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn single_file() {
+        let s = std::fs::read_to_string("examples/config.nccl").unwrap();
+        let mut c = Config::new(&s[0..3]);
+        c.add_value(&s[3..6]);
+        assert_eq!(
+            c,
+            Config {
+                key: "ser",
+                value: vec![Config {
+                    key: "ver",
+                    value: Vec::new(),
+                }]
+            }
+        )
+    }
+
+    #[test]
+    fn multi_file() {
+        let s1 = std::fs::read_to_string("examples/config.nccl").unwrap();
+        let mut c = Config::new(&s1[0..3]);
+
+        let s2 = std::fs::read_to_string("examples/config_dos.nccl").unwrap();
+        c.add_value(&s2[3..6]);
+
+        assert_eq!(
+            c,
+            Config {
+                key: "ser",
+                value: vec![Config {
+                    key: "ver",
+                    value: Vec::new(),
+                }]
+            }
+        )
+    }
+}
+
 /// Struct that contains configuration information.
 ///
 /// Examples:
