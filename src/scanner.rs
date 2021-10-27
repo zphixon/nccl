@@ -16,7 +16,6 @@ struct Scanner2<'a> {
     current: usize,
     line: usize,
     column: usize,
-    indent: Indent,
 }
 
 pub(crate) fn scan(source: &str) -> Result<Vec<Token2<'_>>, NcclError> {
@@ -27,12 +26,18 @@ pub(crate) fn scan(source: &str) -> Result<Vec<Token2<'_>>, NcclError> {
         current: 0,
         line: 1,
         column: 0,
-        indent: Indent::Neither,
     };
 
     while !is_at_end(&scanner) {
         scanner.column += 1;
+        scanner.start = scanner.current;
         match advance(&mut scanner) {
+            b'\0' => {
+                add_token(&mut scanner, TokenKind::EOF)?;
+                break;
+            }
+
+            b'\r' => {}
             b'\n' => {
                 scanner.column = 0;
                 scanner.line += 1;
@@ -46,21 +51,80 @@ pub(crate) fn scan(source: &str) -> Result<Vec<Token2<'_>>, NcclError> {
             }
 
             b'\t' => {
-                // lowest level indent
-                if scanner.indent == Indent::Neither {
-                    scanner.indent = Indent::Tabs;
-                }
-
-                if matches!(scanner.indent, Indent::Spaces(_)) {}
-
-                add_token(&mut scanner, TokenKind::Indent)?;
+                add_token(&mut scanner, TokenKind::Tab)?;
             }
 
-            _ => {}
+            b' ' => {
+                let mut spaces = 1;
+                while peek(&scanner) == b' ' {
+                    advance(&mut scanner);
+                    spaces += 1;
+                }
+
+                add_token(&mut scanner, TokenKind::Space(spaces))?;
+            }
+
+            quote @ (b'"' | b'\'') => string(&mut scanner, quote)?,
+
+            _ => value(&mut scanner)?,
         }
     }
 
-    Ok(vec![])
+    Ok(scanner.tokens)
+}
+
+fn string(scanner: &mut Scanner2, quote: u8) -> Result<(), NcclError> {
+    // TODO escapes...
+    advance(scanner);
+    while peek(scanner) != quote && !is_at_end(scanner) {
+        scanner.column += 1;
+        if peek(scanner) == b'\n' {
+            scanner.line += 1;
+        }
+
+        if peek(scanner) == b'\\' {
+            advance(scanner);
+            match peek(scanner) {
+                b'n' | b'r' | b'\\' | b'"' => {}
+
+                b'\r' | b'\n' => {
+                    advance(scanner);
+                    while peek(scanner) == b' ' || peek(scanner) == b'\t' {
+                        advance(scanner);
+                    }
+                    reverse(scanner);
+                }
+
+                _ => {
+                    return Err(NcclError::new(
+                        ErrorKind::Parse,
+                        &format!("Unknown format code: {}", peek(scanner)),
+                        scanner.line as u64,
+                    ))
+                }
+            }
+        }
+
+        advance(scanner);
+    }
+    advance(scanner);
+
+    add_token(scanner, TokenKind::Value)?;
+
+    Ok(())
+}
+
+fn value(scanner: &mut Scanner2) -> Result<(), NcclError> {
+    loop {
+        if peek(scanner) == b'\n' || peek(scanner) == b'\r' || is_at_end(scanner) {
+            break;
+        }
+        advance(scanner);
+    }
+
+    add_token(scanner, TokenKind::Value)?;
+
+    Ok(())
 }
 
 fn is_at_end(scanner: &Scanner2) -> bool {
@@ -70,6 +134,11 @@ fn is_at_end(scanner: &Scanner2) -> bool {
 fn advance(scanner: &mut Scanner2) -> u8 {
     scanner.current += 1;
     scanner.source[scanner.current - 1]
+}
+
+fn reverse(scanner: &mut Scanner2) -> u8 {
+    scanner.current -= 1;
+    scanner.source[scanner.current]
 }
 
 fn peek(scanner: &Scanner2) -> u8 {
@@ -85,9 +154,6 @@ fn add_token(scanner: &mut Scanner2, kind: TokenKind) -> Result<(), NcclError> {
     let lexeme = std::str::from_utf8(&scanner.source[scanner.start..scanner.current])
         .map_err(|err| NcclError::new(ErrorKind::Io, "invalid UTF-8", scanner.line as u64))?;
 
-    //let text = String::from_utf8(scanner.source[scanner.start..scanner.current].to_vec())
-    //    .map_err(|err| NcclError::new(ErrorKind::Utf8 { err }, "invalid UTF-8", scanner.line))?;
-
     scanner.tokens.push(Token2 {
         kind,
         lexeme,
@@ -97,6 +163,47 @@ fn add_token(scanner: &mut Scanner2, kind: TokenKind) -> Result<(), NcclError> {
         },
     });
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use crate::scanner::scan;
+
+    #[test]
+    fn new_scan() {
+        use super::TokenKind::*;
+
+        let file = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
+        let tokens = scan(&file)
+            .unwrap()
+            .into_iter()
+            .map(|token| (token.kind, token.lexeme))
+            .collect::<Vec<_>>();
+
+        #[rustfmt::skip]
+        assert_eq!(
+            tokens,
+            vec![
+                (Value, "a"), (Newline, "\n"),
+                (Space(4), "    "), (Value, "b"), (Newline, "\n"),
+                (Space(4), "    "), (Value, "c"), (Newline, "\n"),
+                (Newline, "\n"),
+                (Value, "d"), (Newline, "\n"),
+                (Space(2), "  "), (Value, "e"), (Newline, "\n"),
+                (Space(2), "  "), (Value, "f"), (Newline, "\n"),
+                (Newline, "\n"),
+                (Newline, "\n"),
+                (Value, "h"), (Newline, "\n"),
+                (Tab, "\t"), (Value, "i # j"), (Newline, "\n"),
+                (Tab, "\t"), (Value, "\"k\""), (Space(1), " "), (Newline, "\n"),
+                (Tab, "\t"), (Value, "'m'"), (Newline, "\n"),
+                (Tab, "\t"), (Newline, "\n"),
+                (Newline, "\n"),
+                (Value, "o"), (Newline, "\n"),
+                (Space(4), "    "), (Newline, "\n"),
+            ]
+        );
+    }
 }
 
 pub struct Scanner {

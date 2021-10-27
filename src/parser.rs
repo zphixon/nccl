@@ -43,6 +43,8 @@ impl Parser {
 
         while i < self.tokens.len() {
             match self.tokens[i].kind {
+                TokenKind::Tab | TokenKind::Space(_) => unimplemented!(),
+
                 TokenKind::Value => {
                     // add to path respective of self.index
                     if self.indent <= self.path.len() {

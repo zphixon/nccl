@@ -15,7 +15,7 @@ oof ouch owie
     "bone hurting juice"   # should not be a part
 
 no quotes as well
-   another one!     # should not be part
+   another one!     # SHOULD be part
    this should work afterward
       truly
 
