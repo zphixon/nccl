@@ -1,11 +1,102 @@
 use crate::error::{ErrorKind, NcclError};
-use crate::token::{Token, TokenKind};
+use crate::token::{Span, Token, Token2, TokenKind};
 
 // ranked worst to best
+#[derive(PartialEq)]
 enum Indent {
     Neither,
     Tabs,
     Spaces(u8),
+}
+
+struct Scanner2<'a> {
+    source: &'a [u8],
+    tokens: Vec<Token2<'a>>,
+    start: usize,
+    current: usize,
+    line: usize,
+    column: usize,
+    indent: Indent,
+}
+
+pub(crate) fn scan(source: &str) -> Result<Vec<Token2<'_>>, NcclError> {
+    let mut scanner = Scanner2 {
+        source: source.as_bytes(),
+        tokens: Vec::new(),
+        start: 0,
+        current: 0,
+        line: 1,
+        column: 0,
+        indent: Indent::Neither,
+    };
+
+    while !is_at_end(&scanner) {
+        scanner.column += 1;
+        match advance(&mut scanner) {
+            b'\n' => {
+                scanner.column = 0;
+                scanner.line += 1;
+                add_token(&mut scanner, TokenKind::Newline)?;
+            }
+
+            b'#' => {
+                while peek(&scanner) != b'\n' && !is_at_end(&scanner) {
+                    advance(&mut scanner);
+                }
+            }
+
+            b'\t' => {
+                // lowest level indent
+                if scanner.indent == Indent::Neither {
+                    scanner.indent = Indent::Tabs;
+                }
+
+                if matches!(scanner.indent, Indent::Spaces(_)) {}
+
+                add_token(&mut scanner, TokenKind::Indent)?;
+            }
+
+            _ => {}
+        }
+    }
+
+    Ok(vec![])
+}
+
+fn is_at_end(scanner: &Scanner2) -> bool {
+    scanner.current >= scanner.source.len()
+}
+
+fn advance(scanner: &mut Scanner2) -> u8 {
+    scanner.current += 1;
+    scanner.source[scanner.current - 1]
+}
+
+fn peek(scanner: &Scanner2) -> u8 {
+    if is_at_end(scanner) {
+        b'\0'
+    } else {
+        scanner.source[scanner.current]
+    }
+}
+
+fn add_token(scanner: &mut Scanner2, kind: TokenKind) -> Result<(), NcclError> {
+    // TODO str::from_utf8 returns a different error than String::from_utf8?? why????????
+    let lexeme = std::str::from_utf8(&scanner.source[scanner.start..scanner.current])
+        .map_err(|err| NcclError::new(ErrorKind::Io, "invalid UTF-8", scanner.line as u64))?;
+
+    //let text = String::from_utf8(scanner.source[scanner.start..scanner.current].to_vec())
+    //    .map_err(|err| NcclError::new(ErrorKind::Utf8 { err }, "invalid UTF-8", scanner.line))?;
+
+    scanner.tokens.push(Token2 {
+        kind,
+        lexeme,
+        span: Span {
+            line: scanner.line,
+            column: scanner.column,
+        },
+    });
+    Ok(())
 }
 
 pub struct Scanner {
