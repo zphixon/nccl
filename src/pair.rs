@@ -21,7 +21,7 @@ impl<'key, 'value> Config<'key, 'value> {
         }
     }
 
-    pub fn add_value(&mut self, other: &'value str) {
+    pub(crate) fn add_value(&mut self, other: &'value str) {
         self.value.push(Config::new(other));
     }
 
@@ -32,11 +32,92 @@ impl<'key, 'value> Config<'key, 'value> {
     pub fn values(&self) -> &[Config] {
         &self.value
     }
+
+    pub fn parse_quoted(&self) -> Result<String, NcclError> {
+        if self.key.starts_with('"') || self.key.starts_with('\'') {
+            let mut value = Vec::with_capacity(self.key.len() - 2);
+
+            let bytes = self.key.as_bytes();
+            let mut i = 1;
+
+            while i < bytes.len() - 1 {
+                if bytes[i] == b'\\' {
+                    i += 1;
+                    match bytes[i] {
+                        // \n
+                        b'n' => {
+                            value.push(b'\n');
+                            i += 1;
+                        }
+
+                        // \r
+                        b'r' => {
+                            value.push(b'\r');
+                            i += 1;
+                        }
+
+                        // \\
+                        b'\\' => {
+                            value.push(b'\\');
+                            i += 1;
+                        }
+
+                        // \" or \'
+                        code @ (b'"' | b'\'') => {
+                            value.push(code);
+                            i += 1;
+                        }
+
+                        // something \
+                        //       more stuff
+                        b'\r' | b'\n' => {
+                            i += 1;
+                            while bytes[i] == b' ' || bytes[i] == b'\t' {
+                                i += 1;
+                            }
+                            value.push(b' ');
+                        }
+
+                        _ => {
+                            return Err(NcclError::new(
+                                ErrorKind::Parse,
+                                &format!("Unknown format code: {:?}", bytes[i] as char),
+                                0,
+                            ))
+                        }
+                    }
+                } else {
+                    value.push(bytes[i]);
+                    i += 1;
+                }
+            }
+
+            String::from_utf8(value)
+                .map_err(|err| NcclError::new(ErrorKind::Utf8 { err }, "invalid utf8", 0))
+        } else {
+            Ok(self.key.to_string())
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn quoted() {
+        let s = "'hello\\nworld\\\n            what\\'s up'";
+        assert_eq!(
+            Config::new(s).parse_quoted().unwrap(),
+            "hello\nworld what's up",
+        );
+
+        let s = "'hello\\nworld\\\n\t\twhat\\'s up'";
+        assert_eq!(
+            Config::new(s).parse_quoted().unwrap(),
+            "hello\nworld what's up",
+        );
+    }
 
     #[test]
     fn single_file() {
