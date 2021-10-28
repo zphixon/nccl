@@ -12,7 +12,7 @@ enum Indent {
 
 pub(crate) struct Scanner2<'a> {
     source: &'a [u8],
-    tokens: VecDeque<Token2<'a>>,
+    pub(crate) tokens: VecDeque<Token2<'a>>,
     start: usize,
     current: usize,
     pub(crate) line: usize,
@@ -91,7 +91,7 @@ impl<'a> Scanner2<'a> {
                 if self.peek_char() == b'#' || self.peek_char() == b'\n' {
                     self.until_newline();
                 } else {
-                    self.add_token(TokenKind::Tab(tabs))?;
+                    self.add_token(TokenKind::Tabs(tabs))?;
                 }
             }
 
@@ -105,7 +105,7 @@ impl<'a> Scanner2<'a> {
                 if self.peek_char() == b'#' || self.peek_char() == b'\n' {
                     self.until_newline();
                 } else {
-                    self.add_token(TokenKind::Space(spaces))?;
+                    self.add_token(TokenKind::Spaces(spaces))?;
                 }
             }
 
@@ -280,11 +280,11 @@ mod test {
             tokens,
             vec![
                 (Value, "jackson"),
-                (Tab(1), "\t"), (Value, "easy"),
-                (Tab(2), "\t\t"), (Value, "abc"),
-                (Tab(2), "\t\t"), (Value, "123"),
-                (Tab(1), "\t"), (Value, "hopefully"),
-                (Tab(2), "\t\t"), (Value, "tabs work"),
+                (Tabs(1), "\t"), (Value, "easy"),
+                (Tabs(2), "\t\t"), (Value, "abc"),
+                (Tabs(2), "\t\t"), (Value, "123"),
+                (Tabs(1), "\t"), (Value, "hopefully"),
+                (Tabs(2), "\t\t"), (Value, "tabs work"),
                 (EOF, ""),
             ]
         );
@@ -302,15 +302,15 @@ mod test {
             tokens,
             vec![
                 (Value, "a"),
-                (Space(4), "    "), (Value, "b"),
-                (Space(4), "    "), (Value, "c"),
+                (Spaces(4), "    "), (Value, "b"),
+                (Spaces(4), "    "), (Value, "c"),
                 (Value, "d"),
-                (Space(2), "  "), (Value, "e"),
-                (Space(2), "  "), (Value, "f"),
+                (Spaces(2), "  "), (Value, "e"),
+                (Spaces(2), "  "), (Value, "f"),
                 (Value, "h"),
-                (Tab(1), "\t"), (Value, "i # j"),
-                (Tab(1), "\t"), (Value, "\"k\""),
-                (Tab(1), "\t"), (Value, "'m'"),
+                (Tabs(1), "\t"), (Value, "i # j"),
+                (Tabs(1), "\t"), (Value, "\"k\""),
+                (Tabs(1), "\t"), (Value, "'m'"),
                 (Value, "o"),
                 (EOF, ""),
             ]

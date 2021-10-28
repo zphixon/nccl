@@ -3,7 +3,62 @@ use crate::pair::Pair;
 use crate::scanner::Scanner2;
 use crate::token::{Token, Token2, TokenKind};
 use crate::value::{parse_into_value, Value};
-use crate::{parse_config, Config};
+use crate::Config;
+
+#[derive(Clone, Copy)]
+enum Indent {
+    TopLevel,
+    Tabs { level: u8 },
+    Spaces { width: u8, level: u8 },
+}
+
+impl Indent {
+    fn level_tabs(&self) -> u8 {
+        match self {
+            Indent::TopLevel => 0,
+            &Indent::Tabs { level } => level,
+            Indent::Spaces { .. } => unreachable!(),
+        }
+    }
+
+    fn level_spaces(&self) -> u8 {
+        match self {
+            Indent::TopLevel => 0,
+            Indent::Tabs { .. } => unreachable!(),
+            Indent::Spaces { width, level } => width * level,
+        }
+    }
+
+    fn width(&self) -> Option<u8> {
+        match self {
+            Indent::TopLevel => None,
+            Indent::Tabs { .. } => unreachable!(),
+            &Indent::Spaces { width, .. } => Some(width),
+        }
+    }
+
+    fn increase_tabs(&self) -> Indent {
+        match self {
+            Indent::TopLevel => Indent::Tabs { level: 1 },
+            Indent::Tabs { level } => Indent::Tabs { level: level + 1 },
+            &Indent::Spaces { width, level } => Indent::Spaces {
+                width,
+                level: level + 1,
+            },
+        }
+    }
+
+    fn increase_spaces(&self, width: u8) -> Indent {
+        match self {
+            Indent::TopLevel => Indent::Spaces { width, level: 1 },
+            Indent::Tabs { level } => Indent::Tabs { level: level + 1 },
+            &Indent::Spaces { width, level } => Indent::Spaces {
+                width,
+                level: level + 1,
+            },
+        }
+    }
+}
 
 pub(crate) fn parse<'a>(scanner: &mut Scanner2<'a>) -> Result<Config<'a, 'a>, NcclError> {
     parse_with(scanner, &Config::new("__top_level__"))
@@ -16,7 +71,7 @@ pub(crate) fn parse_with<'orig, 'new>(
     let mut config = original.clone();
 
     while scanner.peek_token(0)?.kind != TokenKind::EOF {
-        parse_kv(scanner, 0, &mut config)?;
+        parse_kv(scanner, Indent::TopLevel, &mut config)?;
     }
 
     Ok(config)
@@ -24,15 +79,35 @@ pub(crate) fn parse_with<'orig, 'new>(
 
 fn parse_kv<'a>(
     scanner: &mut Scanner2<'a>,
-    indent: u8,
+    indent: Indent,
     parent: &mut Config<'a, 'a>,
 ) -> Result<(), NcclError> {
-    // TODO spaces
     let mut node = Config::new(consume(scanner, TokenKind::Value)?.lexeme);
-    while scanner.peek_token(0)?.kind == TokenKind::Tab(indent + 1) {
-        consume(scanner, TokenKind::Tab(indent + 1)).unwrap();
-        parse_kv(scanner, indent + 1, &mut node)?;
+
+    match scanner.peek_token(0)?.kind {
+        TokenKind::Tabs(tabs) => {
+            let next_indent = indent.increase_tabs();
+            if tabs == next_indent.level_tabs() {
+                while scanner.peek_token(0)?.kind == TokenKind::Tabs(next_indent.level_tabs()) {
+                    consume(scanner, TokenKind::Tabs(next_indent.level_tabs())).unwrap();
+                    parse_kv(scanner, next_indent, &mut node)?;
+                }
+            }
+        }
+
+        TokenKind::Spaces(spaces) if matches!(indent, Indent::Spaces { .. } | Indent::TopLevel) => {
+            let next_indent = indent.increase_spaces(indent.width().unwrap_or(spaces));
+            if spaces == next_indent.level_spaces() {
+                while scanner.peek_token(0)?.kind == TokenKind::Spaces(next_indent.level_spaces()) {
+                    consume(scanner, TokenKind::Spaces(next_indent.level_spaces())).unwrap();
+                    parse_kv(scanner, next_indent, &mut node)?;
+                }
+            }
+        }
+
+        _ => {}
     }
+
     parent.add_child(node);
     Ok(())
 }
@@ -47,6 +122,119 @@ fn consume<'a>(scanner: &mut Scanner2<'a>, kind: TokenKind) -> Result<Token2<'a>
             &format!("expected {:?}, got {:?}", kind, tok),
             scanner.line as u64,
         ))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn tab_config() {
+        let source = std::fs::read_to_string("examples/good-tabs.nccl").unwrap();
+        let mut scanner = Scanner2::new(&source);
+        let config = parse(&mut scanner).unwrap();
+        assert_eq!(
+            config,
+            Config {
+                key: "__top_level__",
+                value: vec![Config {
+                    key: "jackson",
+                    value: vec![
+                        Config {
+                            key: "easy",
+                            value: vec![
+                                Config {
+                                    key: "abc",
+                                    value: vec![]
+                                },
+                                Config {
+                                    key: "123",
+                                    value: vec![]
+                                }
+                            ]
+                        },
+                        Config {
+                            key: "hopefully",
+                            value: vec![Config {
+                                key: "tabs work",
+                                value: vec![]
+                            },]
+                        }
+                    ],
+                }]
+            }
+        );
+    }
+
+    #[test]
+    fn pconfig() {
+        let source = std::fs::read_to_string("examples/config.nccl").unwrap();
+        let mut scanner = Scanner2::new(&source);
+        let config = parse(&mut scanner).unwrap();
+        assert_eq!(
+            config,
+            Config {
+                key: "__top_level__",
+                value: vec![Config {
+                    key: "server",
+                    value: vec![
+                        Config {
+                            key: "domain",
+                            value: vec![
+                                Config {
+                                    key: "example.com",
+                                    value: vec![]
+                                },
+                                Config {
+                                    key: "www.example.com",
+                                    value: vec![]
+                                }
+                            ]
+                        },
+                        Config {
+                            key: "port",
+                            value: vec![
+                                Config {
+                                    key: "80",
+                                    value: vec![]
+                                },
+                                Config {
+                                    key: "443",
+                                    value: vec![]
+                                }
+                            ]
+                        },
+                        Config {
+                            key: "root",
+                            value: vec![Config {
+                                key: "/var/www/html",
+                                value: vec![]
+                            }]
+                        },
+                    ],
+                }]
+            }
+        );
+    }
+
+    #[test]
+    fn all_of_em() {
+        let source = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
+        let mut scanner = Scanner2::new(&source);
+        let config = parse(&mut scanner).unwrap();
+    }
+
+    #[test]
+    fn broke() {
+        let dir = std::fs::read_dir("examples/bad").unwrap();
+        for entry in dir {
+            let entry = entry.unwrap();
+            println!("check is bad: {}", entry.path().display());
+            let source = std::fs::read_to_string(entry.path()).unwrap();
+            let mut scanner = Scanner2::new(&source);
+            assert!(parse(&mut scanner).is_err());
+        }
     }
 }
 
@@ -90,7 +278,7 @@ impl Parser {
 
         while i < self.tokens.len() {
             match self.tokens[i].kind {
-                TokenKind::Tab(_) | TokenKind::Space(_) => unimplemented!(),
+                TokenKind::Tabs(_) | TokenKind::Spaces(_) => unimplemented!(),
 
                 TokenKind::Value => {
                     // add to path respective of self.index

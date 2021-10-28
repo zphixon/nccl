@@ -1,9 +1,9 @@
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenKind {
     Value,
     Indent, // TODO kill
-    Tab(u8),
-    Space(u8),
+    Tabs(u8),
+    Spaces(u8),
     Newline,
     EOF,
 }
@@ -24,7 +24,7 @@ pub(crate) struct Token2<'a> {
 impl Token2<'_> {
     pub(crate) fn is_indent(&self) -> bool {
         match self.kind {
-            TokenKind::Tab(_) | TokenKind::Space(_) => true,
+            TokenKind::Tabs(_) | TokenKind::Spaces(_) => true,
             _ => false,
         }
     }

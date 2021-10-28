@@ -44,34 +44,6 @@ where
     parse_with(&mut scanner, config)
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn tab_config() {
-        let s = std::fs::read_to_string("examples/good-tabs.nccl").unwrap();
-        let config = parse_config(&s).unwrap();
-        panic!("{:#?}", config);
-    }
-
-    #[test]
-    fn pconfig() {
-        let s = std::fs::read_to_string("examples/config.nccl").unwrap();
-        let config = parse_config(&s).unwrap();
-        panic!("{:#?}", config);
-    }
-
-    #[test]
-    fn pconfig_with() {
-        let s1 = std::fs::read_to_string("examples/inherit.nccl").unwrap();
-        let s2 = std::fs::read_to_string("examples/inherit2.nccl").unwrap();
-        let config = parse_config(&s1).unwrap();
-        let config2 = parse_config_with(&config, &s2).unwrap();
-        panic!("{:#?}", config2);
-    }
-}
-
 /// Parses a file using the given filename.
 ///
 /// Examples:
