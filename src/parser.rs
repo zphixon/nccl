@@ -226,6 +226,20 @@ mod test {
     }
 
     #[test]
+    fn woke() {
+        let dir = std::fs::read_dir("examples").unwrap();
+        for entry in dir {
+            let entry = entry.unwrap();
+            if entry.metadata().unwrap().is_file() {
+                println!("check good: {}", entry.path().display());
+                let source = std::fs::read_to_string(entry.path()).unwrap();
+                let mut scanner = Scanner2::new(&source);
+                parse(&mut scanner).unwrap();
+            }
+        }
+    }
+
+    #[test]
     fn broke() {
         let dir = std::fs::read_dir("examples/bad").unwrap();
         for entry in dir {
@@ -233,7 +247,7 @@ mod test {
             println!("check is bad: {}", entry.path().display());
             let source = std::fs::read_to_string(entry.path()).unwrap();
             let mut scanner = Scanner2::new(&source);
-            assert!(parse(&mut scanner).is_err());
+            parse(&mut scanner).unwrap_err();
         }
     }
 }
