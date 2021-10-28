@@ -51,23 +51,35 @@ fn do_parse_indent<'a>(
     indent: Indent,
 ) -> Result<(), NcclError> {
     for (i, token) in tokens.iter().enumerate() {
-        println!("{:?}", indent);
+        println!("{} {:?}", i, token);
         match token.kind {
             TokenKind::Value => config.add_value(token.lexeme),
 
-            TokenKind::Tab => {
+            TokenKind::Tab(num_tabs) => {
                 do_parse_indent(
                     &tokens[i + 1..],
                     config,
                     match indent {
                         Indent::TopLevel => Indent::Tabs { level: 0 },
-                        Indent::Tabs { level } => Indent::Tabs { level: level + 1 },
+
+                        Indent::Tabs { level } => {
+                            if num_tabs as usize == level + 1 {
+                                Indent::Tabs { level: level + 1 }
+                            } else {
+                                return Err(NcclError::new(
+                                    ErrorKind::Indentation,
+                                    &format!("expected {} tabs, got {}", level + 1, num_tabs),
+                                    token.span.line as u64,
+                                ));
+                            }
+                        }
+
                         Indent::Spaces { .. } => {
                             return Err(NcclError::new(
                                 ErrorKind::Indentation,
                                 "expected tabs, found spaces",
                                 token.span.line as u64,
-                            ))
+                            ));
                         }
                     },
                 )?;
@@ -138,7 +150,7 @@ impl Parser {
 
         while i < self.tokens.len() {
             match self.tokens[i].kind {
-                TokenKind::Tab | TokenKind::Space(_) => unimplemented!(),
+                TokenKind::Tab(_) | TokenKind::Space(_) => unimplemented!(),
 
                 TokenKind::Value => {
                     // add to path respective of self.index

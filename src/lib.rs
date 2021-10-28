@@ -49,6 +49,13 @@ mod test {
     use super::*;
 
     #[test]
+    fn tab_config() {
+        let s = std::fs::read_to_string("examples/good-tabs.nccl").unwrap();
+        let config = parse_config(&s).unwrap();
+        panic!("{:#?}", config);
+    }
+
+    #[test]
     fn pconfig() {
         let s = std::fs::read_to_string("examples/config.nccl").unwrap();
         let config = parse_config(&s).unwrap();

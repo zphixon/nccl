@@ -2,7 +2,7 @@
 pub enum TokenKind {
     Value,
     Indent, // TODO kill
-    Tab,
+    Tab(u8),
     Space(u8),
     Newline,
     EOF,

@@ -51,7 +51,13 @@ pub(crate) fn scan(source: &str) -> Result<Vec<Token2<'_>>, NcclError> {
             }
 
             b'\t' => {
-                add_token(&mut scanner, TokenKind::Tab)?;
+                let mut tabs = 1;
+                while peek(&scanner) == b'\t' {
+                    advance(&mut scanner);
+                    tabs += 1;
+                }
+
+                add_token(&mut scanner, TokenKind::Tab(tabs))?;
             }
 
             b' ' => {
@@ -194,10 +200,10 @@ mod test {
                 (Newline, "\n"),
                 (Newline, "\n"),
                 (Value, "h"), (Newline, "\n"),
-                (Tab, "\t"), (Value, "i # j"), (Newline, "\n"),
-                (Tab, "\t"), (Value, "\"k\""), (Space(1), " "), (Newline, "\n"),
-                (Tab, "\t"), (Value, "'m'"), (Newline, "\n"),
-                (Tab, "\t"), (Newline, "\n"),
+                (Tab(1), "\t"), (Value, "i # j"), (Newline, "\n"),
+                (Tab(1), "\t"), (Value, "\"k\""), (Space(1), " "), (Newline, "\n"),
+                (Tab(1), "\t"), (Value, "'m'"), (Newline, "\n"),
+                (Tab(1), "\t"), (Newline, "\n"),
                 (Newline, "\n"),
                 (Value, "o"), (Newline, "\n"),
                 (Space(4), "    "), (Newline, "\n"),
