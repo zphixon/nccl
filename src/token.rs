@@ -21,6 +21,15 @@ pub(crate) struct Token2<'a> {
     pub(crate) span: Span,
 }
 
+impl Token2<'_> {
+    pub(crate) fn is_indent(&self) -> bool {
+        match self.kind {
+            TokenKind::Tab(_) | TokenKind::Space(_) => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub kind: TokenKind,

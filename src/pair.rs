@@ -25,6 +25,10 @@ impl<'key, 'value> Config<'key, 'value> {
         self.value.push(Config::new(other));
     }
 
+    pub(crate) fn add_child(&mut self, child: Config<'key, 'value>) {
+        self.value.push(child);
+    }
+
     pub fn values(&self) -> &[Config] {
         &self.value
     }

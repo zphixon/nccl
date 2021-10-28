@@ -5,25 +5,8 @@ use crate::token::{Token, Token2, TokenKind};
 use crate::value::{parse_into_value, Value};
 use crate::{parse_config, Config};
 
-/* __top_level__
- *      hello
- *          world
- *              panama
- *          friends
- *              doggos
- *      sandwich
- *          meat
- *              bologne
- *              ham
- *          cheese
- *              provolone
- *              cheddar
- */
-
 pub(crate) fn parse<'a>(scanner: &mut Scanner2<'a>) -> Result<Config<'a, 'a>, NcclError> {
-    let mut config = Config::new("__top_level__");
-    do_parse(scanner, &mut config)?;
-    Ok(config)
+    parse_with(scanner, &Config::new("__top_level__"))
 }
 
 pub(crate) fn parse_with<'orig, 'new>(
@@ -31,27 +14,40 @@ pub(crate) fn parse_with<'orig, 'new>(
     original: &Config<'orig, 'new>,
 ) -> Result<Config<'new, 'new>, NcclError> {
     let mut config = original.clone();
-    do_parse(scanner, &mut config)?;
+
+    while scanner.peek_token(0)?.kind != TokenKind::EOF {
+        parse_kv(scanner, 0, &mut config)?;
+    }
+
     Ok(config)
 }
 
-#[derive(PartialEq, Clone, Copy, Debug)]
-enum Indent {
-    TopLevel,
-    Tabs { level: usize },
-    Spaces { number: u8, level: usize },
-}
-
-fn do_parse<'a>(scanner: &mut Scanner2<'a>, config: &mut Config<'a, 'a>) -> Result<(), NcclError> {
-    do_parse_indent(scanner, config, Indent::TopLevel)
-}
-
-fn do_parse_indent<'a>(
+fn parse_kv<'a>(
     scanner: &mut Scanner2<'a>,
-    config: &mut Config<'a, 'a>,
-    indent: Indent,
+    indent: u8,
+    parent: &mut Config<'a, 'a>,
 ) -> Result<(), NcclError> {
+    // TODO spaces
+    let mut node = Config::new(consume(scanner, TokenKind::Value)?.lexeme);
+    while scanner.peek_token(0)?.kind == TokenKind::Tab(indent + 1) {
+        consume(scanner, TokenKind::Tab(indent + 1)).unwrap();
+        parse_kv(scanner, indent + 1, &mut node)?;
+    }
+    parent.add_child(node);
     Ok(())
+}
+
+fn consume<'a>(scanner: &mut Scanner2<'a>, kind: TokenKind) -> Result<Token2<'a>, NcclError> {
+    let tok = scanner.next_token()?;
+    if tok.kind == kind {
+        Ok(tok)
+    } else {
+        Err(NcclError::new(
+            ErrorKind::Parse,
+            &format!("expected {:?}, got {:?}", kind, tok),
+            scanner.line as u64,
+        ))
+    }
 }
 
 #[derive(Debug)]
