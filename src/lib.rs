@@ -28,6 +28,43 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
+pub fn parse_config<'a>(content: &'a str) -> Result<Config<'a, 'a>, NcclError> {
+    let tokens = scan(content)?;
+    parse(&tokens)
+}
+
+pub fn parse_config_with<'orig, 'new>(
+    config: &Config<'orig, 'orig>,
+    content: &'new str,
+) -> Result<Config<'new, 'new>, NcclError>
+where
+    'orig: 'new,
+{
+    let tokens = scan(content)?;
+    parse_with(&tokens, config)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn pconfig() {
+        let s = std::fs::read_to_string("examples/config.nccl").unwrap();
+        let config = parse_config(&s).unwrap();
+        panic!("{:#?}", config);
+    }
+
+    #[test]
+    fn pconfig_with() {
+        let s1 = std::fs::read_to_string("examples/inherit.nccl").unwrap();
+        let s2 = std::fs::read_to_string("examples/inherit2.nccl").unwrap();
+        let config = parse_config(&s1).unwrap();
+        let config2 = parse_config_with(&config, &s2).unwrap();
+        panic!("{:#?}", config2);
+    }
+}
+
 /// Parses a file using the given filename.
 ///
 /// Examples:

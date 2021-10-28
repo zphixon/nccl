@@ -9,8 +9,8 @@ pub struct Config<'key, 'value>
 where
     'key: 'value,
 {
-    key: &'key str,
-    value: Vec<Config<'value, 'value>>,
+    pub(crate) key: &'key str,
+    pub(crate) value: Vec<Config<'value, 'value>>,
 }
 
 impl<'key, 'value> Config<'key, 'value> {
@@ -23,6 +23,10 @@ impl<'key, 'value> Config<'key, 'value> {
 
     pub fn add_value(&mut self, other: &'value str) {
         self.value.push(Config::new(other));
+    }
+
+    pub fn values(&self) -> &[Config] {
+        &self.value
     }
 }
 
