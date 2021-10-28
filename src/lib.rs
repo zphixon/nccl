@@ -28,7 +28,7 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-pub fn parse_config<'a>(content: &'a str) -> Result<Config<'a, 'a>, NcclError> {
+pub fn parse_config(content: &str) -> Result<Config, NcclError> {
     let mut scanner = scanner::Scanner2::new(content);
     parse(&mut scanner)
 }

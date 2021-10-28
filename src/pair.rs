@@ -2,31 +2,51 @@ use crate::error::{ErrorKind, NcclError};
 use crate::value::Value;
 
 use std::convert::TryInto;
+use std::hash::{Hash, Hasher};
 use std::ops::{Index, IndexMut};
 
-#[derive(Clone, Debug, PartialEq)]
+use indexmap::IndexMap;
+
+pub type HashMap<K, V> = IndexMap<K, V, fnv::FnvBuildHasher>;
+
+pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
+    HashMap::with_hasher(fnv::FnvBuildHasher::default())
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Config<'key, 'value>
 where
     'key: 'value,
 {
     pub(crate) key: &'key str,
-    pub(crate) value: Vec<Config<'value, 'value>>,
+    pub(crate) value: HashMap<&'value str, Config<'value, 'value>>,
+}
+
+impl Hash for Config<'_, '_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.key.hash(state);
+    }
 }
 
 impl<'key, 'value> Config<'key, 'value> {
     pub fn new(key: &'key str) -> Self {
         Config {
             key,
-            value: Vec::new(),
+            value: make_map(),
         }
     }
 
     pub(crate) fn add_child(&mut self, child: Config<'key, 'value>) {
-        self.value.push(child);
+        self.value.insert(child.key, child);
     }
 
-    pub fn values(&self) -> &[Config] {
-        &self.value
+    pub fn values(&self) -> impl Iterator<Item = &str> {
+        //&HashMap<&'value str, Config<'value, 'value>> {
+        self.value.keys().map(|s| *s)
+    }
+
+    pub fn value(&self) -> Option<&'value str> {
+        self.value.iter().nth(0).map(|opt| *opt.0)
     }
 
     pub fn parse_quoted(&self) -> Result<String, NcclError> {
@@ -96,9 +116,39 @@ impl<'key, 'value> Config<'key, 'value> {
     }
 }
 
+impl<'a> Index<&str> for Config<'a, 'a> {
+    type Output = Config<'a, 'a>;
+
+    fn index(&self, index: &str) -> &Self::Output {
+        &self.value[index]
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::parse_config;
+
+    #[test]
+    fn index() {
+        let content = std::fs::read_to_string("examples/config.nccl").unwrap();
+        let config = parse_config(&content).unwrap();
+        assert_eq!(config["server"]["root"].value(), Some("/var/www/html"));
+    }
+
+    #[test]
+    fn values() {
+        let content = std::fs::read_to_string("examples/config.nccl").unwrap();
+        let config = parse_config(&content).unwrap();
+        assert_eq!(
+            vec![80, 443],
+            config["server"]["port"]
+                .values()
+                .map(|port| port.parse::<u16>())
+                .collect::<Result<Vec<u16>, _>>()
+                .unwrap()
+        );
+    }
 
     #[test]
     fn quoted() {
@@ -121,16 +171,18 @@ mod test {
         let mut c = Config::new(&s[0..3]);
         c.add_child(Config {
             key: &s[3..6],
-            value: Vec::new(),
+            value: make_map(),
         });
+
         assert_eq!(
             c,
             Config {
                 key: "ser",
-                value: vec![Config {
-                    key: "ver",
-                    value: Vec::new(),
-                }]
+                value: {
+                    let mut map = make_map();
+                    map.insert("ver", Config::new("ver"));
+                    map
+                }
             }
         )
     }
@@ -143,17 +195,18 @@ mod test {
         let s2 = std::fs::read_to_string("examples/config_dos.nccl").unwrap();
         c.add_child(Config {
             key: &s2[3..6],
-            value: Vec::new(),
+            value: make_map(),
         });
 
         assert_eq!(
             c,
             Config {
                 key: "ser",
-                value: vec![Config {
-                    key: "ver",
-                    value: Vec::new(),
-                }]
+                value: {
+                    let mut map = make_map();
+                    map.insert("ver", Config::new("ver"));
+                    map
+                }
             }
         )
     }

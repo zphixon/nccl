@@ -16,3 +16,5 @@ edition = '2021'
 travis-ci = { repository = 'zphixon/nccl' }
 
 [dependencies]
+indexmap = '1.7.0'
+fnv = '1.0.7'

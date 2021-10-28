@@ -129,6 +129,19 @@ fn consume<'a>(scanner: &mut Scanner2<'a>, kind: TokenKind) -> Result<Token2<'a>
 mod test {
     use super::*;
 
+    macro_rules! map {
+        ($($key:expr => $item:expr),*) => {
+            {
+                #[allow(unused_mut)]
+                let mut set = crate::pair::make_map();
+                $(
+                    set.insert($key, $item);
+                )*
+                set
+            }
+        }
+    }
+
     #[test]
     fn tab_config() {
         let source = std::fs::read_to_string("examples/good-tabs.nccl").unwrap();
@@ -138,31 +151,35 @@ mod test {
             config,
             Config {
                 key: "__top_level__",
-                value: vec![Config {
-                    key: "jackson",
-                    value: vec![
-                        Config {
-                            key: "easy",
-                            value: vec![
-                                Config {
-                                    key: "abc",
-                                    value: vec![]
-                                },
-                                Config {
-                                    key: "123",
-                                    value: vec![]
-                                }
-                            ]
-                        },
-                        Config {
-                            key: "hopefully",
-                            value: vec![Config {
-                                key: "tabs work",
-                                value: vec![]
-                            },]
-                        }
-                    ],
-                }]
+                value: map![
+                    "jackson" => Config {
+                        key: "jackson",
+                        value: map![
+                            "easy" => Config {
+                                key: "easy",
+                                value: map![
+                                    "abc" => Config {
+                                        key: "abc",
+                                        value: map![]
+                                    },
+                                    "123" => Config {
+                                        key: "123",
+                                        value: map![]
+                                    }
+                                ]
+                            },
+                            "hopefully" => Config {
+                                key: "hopefully",
+                                value: map![
+                                    "tabs work" => Config {
+                                        key: "tabs work",
+                                        value: map![]
+                                    }
+                                ]
+                            }
+                        ],
+                    }
+                ]
             }
         );
     }
@@ -176,44 +193,48 @@ mod test {
             config,
             Config {
                 key: "__top_level__",
-                value: vec![Config {
-                    key: "server",
-                    value: vec![
-                        Config {
-                            key: "domain",
-                            value: vec![
-                                Config {
-                                    key: "example.com",
-                                    value: vec![]
-                                },
-                                Config {
-                                    key: "www.example.com",
-                                    value: vec![]
-                                }
-                            ]
-                        },
-                        Config {
-                            key: "port",
-                            value: vec![
-                                Config {
-                                    key: "80",
-                                    value: vec![]
-                                },
-                                Config {
-                                    key: "443",
-                                    value: vec![]
-                                }
-                            ]
-                        },
-                        Config {
-                            key: "root",
-                            value: vec![Config {
-                                key: "/var/www/html",
-                                value: vec![]
-                            }]
-                        },
-                    ],
-                }]
+                value: map![
+                    "server" => Config {
+                        key: "server",
+                        value: map![
+                            "domain" => Config {
+                                key: "domain",
+                                value: map![
+                                    "example.com" => Config {
+                                        key: "example.com",
+                                        value: map![]
+                                    },
+                                    "www.example.com" => Config {
+                                        key: "www.example.com",
+                                        value: map![]
+                                    }
+                                ]
+                            },
+                            "port" => Config {
+                                key: "port",
+                                value: map![
+                                    "80" => Config {
+                                        key: "80",
+                                        value: map![]
+                                    },
+                                    "443" => Config {
+                                        key: "443",
+                                        value: map![]
+                                    }
+                                ]
+                            },
+                            "root" => Config {
+                                key: "root",
+                                value: map![
+                                    "/var/www/html" => Config {
+                                        key: "/var/www/html",
+                                        value: map![]
+                                    }
+                                ]
+                            }
+                        ],
+                    }
+                ]
             }
         );
     }
