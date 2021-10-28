@@ -57,62 +57,75 @@ impl<'a> Scanner2<'a> {
         Ok(&self.tokens[idx])
     }
 
-    pub(crate) fn next(&mut self) -> Result<&Token2<'a>, NcclError> {
-        while self.peek_char() == b'\n' || self.peek_char() == b'\r' {
-            self.advance_char();
-        }
+    fn next(&mut self) -> Result<&Token2<'a>, NcclError> {
+        self.start = self.current;
+        loop {
+            match self.peek_char() {
+                b'\0' => {
+                    self.start = 0;
+                    self.current = 0;
+                    self.add_token(TokenKind::EOF)?;
+                    return Ok(&self.tokens[self.tokens.len() - 1]);
+                }
 
-        if self.is_at_end() {
-            if self.source.len() != 0 {
-                self.start = self.source.len() - 1;
-                self.current = self.source.len() - 1;
+                b'\n' | b'\r' => {
+                    self.advance_char();
+                    self.start = self.current;
+                }
+
+                b'\t' => {
+                    let mut tabs = 0;
+                    while self.peek_char() == b'\t' {
+                        self.advance_char();
+                        tabs += 1;
+                    }
+
+                    if self.peek_char() == b'#'
+                        || self.peek_char() == b'\n'
+                        || self.peek_char() == b'\r'
+                    {
+                        self.until_newline();
+                    } else {
+                        self.add_token(TokenKind::Tabs(tabs))?;
+                        break;
+                    }
+                }
+
+                b' ' => {
+                    let mut spaces = 0;
+                    while self.peek_char() == b' ' {
+                        self.advance_char();
+                        spaces += 1;
+                    }
+
+                    if self.peek_char() == b'#'
+                        || self.peek_char() == b'\n'
+                        || self.peek_char() == b'\r'
+                    {
+                        self.until_newline();
+                    } else {
+                        self.add_token(TokenKind::Spaces(spaces))?;
+                        break;
+                    }
+                }
+
+                b'#' => {
+                    self.until_newline();
+                }
+
+                _ => break,
             }
-            self.add_token(TokenKind::EOF)?;
-            return Ok(&self.tokens[self.tokens.len() - 1]);
         }
 
         self.start = self.current;
 
-        match self.advance_char() {
-            b'\r' => {}
-            b'\n' => {
-                self.column = 0;
-                self.line += 1;
-            }
-
-            b'#' => self.until_newline(),
-
-            b'\t' => {
-                let mut tabs = 1;
-                while self.peek_char() == b'\t' {
-                    self.advance_char();
-                    tabs += 1;
-                }
-
-                if self.peek_char() == b'#' || self.peek_char() == b'\n' {
-                    self.until_newline();
-                } else {
-                    self.add_token(TokenKind::Tabs(tabs))?;
-                }
-            }
-
-            b' ' => {
-                let mut spaces = 1;
-                while self.peek_char() == b' ' {
-                    self.advance_char();
-                    spaces += 1;
-                }
-
-                if self.peek_char() == b'#' || self.peek_char() == b'\n' {
-                    self.until_newline();
-                } else {
-                    self.add_token(TokenKind::Spaces(spaces))?;
-                }
-            }
-
+        match self.peek_char() {
             quote @ (b'"' | b'\'') => self.string(quote)?,
 
-            _ => self.value()?,
+            _ => {
+                self.until_newline();
+                self.add_token(TokenKind::Value)?;
+            }
         }
 
         Ok(&self.tokens[self.tokens.len() - 1])
@@ -123,7 +136,6 @@ impl<'a> Scanner2<'a> {
         self.advance_char();
 
         while self.peek_char() != quote && !self.is_at_end() {
-            self.column += 1;
             if self.peek_char() == b'\n' {
                 self.line += 1;
             }
@@ -160,11 +172,15 @@ impl<'a> Scanner2<'a> {
         self.add_token(TokenKind::Value)?;
 
         // go to the end of the line
+        // prevent stuff like
+        //     "hello" raw stuff out here
+        // maybe it's fine? TODO
+
         while self.peek_char() == b' ' || self.peek_char() == b'\t' {
             self.advance_char();
         }
 
-        if self.peek_char() == b'\n' {
+        if self.peek_char() == b'\n' || self.peek_char() == b'\r' {
             self.advance_char();
         } else if self.peek_char() == b'#' {
             self.until_newline();
@@ -179,21 +195,8 @@ impl<'a> Scanner2<'a> {
         Ok(())
     }
 
-    fn value(&mut self) -> Result<(), NcclError> {
-        loop {
-            if self.peek_char() == b'\n' || self.peek_char() == b'\r' || self.is_at_end() {
-                break;
-            }
-            self.advance_char();
-        }
-
-        self.add_token(TokenKind::Value)?;
-
-        Ok(())
-    }
-
     fn until_newline(&mut self) {
-        while self.peek_char() != b'\n' && !self.is_at_end() {
+        while self.peek_char() != b'\n' && self.peek_char() != b'\r' && !self.is_at_end() {
             self.advance_char();
         }
     }
