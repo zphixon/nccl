@@ -21,10 +21,6 @@ impl<'key, 'value> Config<'key, 'value> {
         }
     }
 
-    pub(crate) fn add_value(&mut self, other: &'value str) {
-        self.value.push(Config::new(other));
-    }
-
     pub(crate) fn add_child(&mut self, child: Config<'key, 'value>) {
         self.value.push(child);
     }
@@ -123,7 +119,10 @@ mod test {
     fn single_file() {
         let s = std::fs::read_to_string("examples/config.nccl").unwrap();
         let mut c = Config::new(&s[0..3]);
-        c.add_value(&s[3..6]);
+        c.add_child(Config {
+            key: &s[3..6],
+            value: Vec::new(),
+        });
         assert_eq!(
             c,
             Config {
@@ -142,7 +141,10 @@ mod test {
         let mut c = Config::new(&s1[0..3]);
 
         let s2 = std::fs::read_to_string("examples/config_dos.nccl").unwrap();
-        c.add_value(&s2[3..6]);
+        c.add_child(Config {
+            key: &s2[3..6],
+            value: Vec::new(),
+        });
 
         assert_eq!(
             c,

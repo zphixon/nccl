@@ -31,6 +31,7 @@ impl<'a> Scanner2<'a> {
         }
     }
 
+    #[cfg(test)]
     pub(crate) fn scan_all(mut self) -> Result<Vec<Token2<'a>>, NcclError> {
         while self.next()?.kind != TokenKind::EOF {}
         Ok(self.tokens.drain(0..).collect())
@@ -118,7 +119,6 @@ impl<'a> Scanner2<'a> {
     }
 
     fn string(&mut self, quote: u8) -> Result<(), NcclError> {
-        // TODO escapes...
         // go past the first quote
         self.advance_char();
 
@@ -224,7 +224,7 @@ impl<'a> Scanner2<'a> {
     fn add_token(&mut self, kind: TokenKind) -> Result<(), NcclError> {
         // TODO str::from_utf8 returns a different error than String::from_utf8?? why????????
         let lexeme = std::str::from_utf8(&self.source[self.start..self.current])
-            .map_err(|err| NcclError::new(ErrorKind::Io, "invalid UTF-8", self.line as u64))?;
+            .map_err(|_err| NcclError::new(ErrorKind::Io, "invalid UTF-8", self.line as u64))?;
 
         self.tokens.push_back(Token2 {
             kind,

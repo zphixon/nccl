@@ -222,7 +222,7 @@ mod test {
     fn all_of_em() {
         let source = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
         let mut scanner = Scanner2::new(&source);
-        let config = parse(&mut scanner).unwrap();
+        let _config = parse(&mut scanner).unwrap();
     }
 
     #[test]
