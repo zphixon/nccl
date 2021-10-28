@@ -15,8 +15,8 @@ pub(crate) struct Scanner2<'a> {
     tokens: VecDeque<Token2<'a>>,
     start: usize,
     current: usize,
-    line: usize,
-    column: usize,
+    pub(crate) line: usize,
+    pub(crate) column: usize,
 }
 
 impl<'a> Scanner2<'a> {
@@ -57,7 +57,15 @@ impl<'a> Scanner2<'a> {
     }
 
     pub(crate) fn next(&mut self) -> Result<&Token2<'a>, NcclError> {
+        while self.peek_char() == b'\n' || self.peek_char() == b'\r' {
+            self.advance_char();
+        }
+
         if self.is_at_end() {
+            if self.source.len() != 0 {
+                self.start = self.source.len() - 1;
+                self.current = self.source.len() - 1;
+            }
             self.add_token(TokenKind::EOF)?;
             return Ok(&self.tokens[self.tokens.len() - 1]);
         }
@@ -80,7 +88,7 @@ impl<'a> Scanner2<'a> {
                     tabs += 1;
                 }
 
-                if self.peek_char() == b'#' {
+                if self.peek_char() == b'#' || self.peek_char() == b'\n' {
                     self.until_newline();
                 } else {
                     self.add_token(TokenKind::Tab(tabs))?;
@@ -94,7 +102,7 @@ impl<'a> Scanner2<'a> {
                     spaces += 1;
                 }
 
-                if self.peek_char() == b'#' {
+                if self.peek_char() == b'#' || self.peek_char() == b'\n' {
                     self.until_newline();
                 } else {
                     self.add_token(TokenKind::Space(spaces))?;
@@ -235,17 +243,59 @@ impl<'a> Scanner2<'a> {
 mod test {
     use super::*;
 
+    fn get_all(source: &str) -> Vec<(TokenKind, &str)> {
+        Scanner2::new(source)
+            .scan_all()
+            .unwrap()
+            .into_iter()
+            .map(|token| (token.kind, token.lexeme))
+            .collect::<Vec<_>>()
+    }
+
+    #[test]
+    fn empty() {
+        use super::TokenKind::*;
+        let file = std::fs::read_to_string("examples/empty.nccl").unwrap();
+        let tokens = get_all(&file);
+        assert_eq!(tokens, vec![(EOF, "")]);
+    }
+
+    #[test]
+    fn oh_lord() {
+        use super::TokenKind::*;
+        let file = std::fs::read_to_string("examples/funky-indent.nccl").unwrap();
+        let tokens = get_all(&file);
+        assert_eq!(tokens, vec![(Value, "a"), (Value, "b"), (EOF, "")]);
+    }
+
+    #[test]
+    fn tabbies() {
+        use super::TokenKind::*;
+
+        let file = std::fs::read_to_string("examples/good-tabs.nccl").unwrap();
+        let tokens = get_all(&file);
+
+        #[rustfmt::skip]
+        assert_eq!(
+            tokens,
+            vec![
+                (Value, "jackson"),
+                (Tab(1), "\t"), (Value, "easy"),
+                (Tab(2), "\t\t"), (Value, "abc"),
+                (Tab(2), "\t\t"), (Value, "123"),
+                (Tab(1), "\t"), (Value, "hopefully"),
+                (Tab(2), "\t\t"), (Value, "tabs work"),
+                (EOF, ""),
+            ]
+        );
+    }
+
     #[test]
     fn new_scan() {
         use super::TokenKind::*;
 
         let file = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
-        let tokens = Scanner2::new(&file)
-            .scan_all()
-            .unwrap()
-            .into_iter()
-            .map(|token| (token.kind, token.lexeme))
-            .collect::<Vec<_>>();
+        let tokens = get_all(&file);
 
         #[rustfmt::skip]
         assert_eq!(
@@ -262,7 +312,7 @@ mod test {
                 (Tab(1), "\t"), (Value, "\"k\""),
                 (Tab(1), "\t"), (Value, "'m'"),
                 (Value, "o"),
-                (EOF, "\n"),
+                (EOF, ""),
             ]
         );
     }
