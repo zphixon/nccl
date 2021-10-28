@@ -1,5 +1,6 @@
 use crate::error::{ErrorKind, NcclError};
 use crate::token::{Span, Token, Token2, TokenKind};
+use std::collections::VecDeque;
 
 // ranked worst to best
 #[derive(PartialEq)]
@@ -9,178 +10,208 @@ enum Indent {
     Spaces(u8),
 }
 
-struct Scanner2<'a> {
+pub(crate) struct Scanner2<'a> {
     source: &'a [u8],
-    tokens: Vec<Token2<'a>>,
+    tokens: VecDeque<Token2<'a>>,
     start: usize,
     current: usize,
     line: usize,
     column: usize,
 }
 
-pub(crate) fn scan(source: &str) -> Result<Vec<Token2<'_>>, NcclError> {
-    let mut scanner = Scanner2 {
-        source: source.as_bytes(),
-        tokens: Vec::new(),
-        start: 0,
-        current: 0,
-        line: 1,
-        column: 0,
-    };
+impl<'a> Scanner2<'a> {
+    pub(crate) fn new(source: &'a str) -> Scanner2<'a> {
+        Scanner2 {
+            source: source.as_bytes(),
+            tokens: VecDeque::new(),
+            start: 0,
+            current: 0,
+            line: 1,
+            column: 0,
+        }
+    }
 
-    while !is_at_end(&scanner) {
-        scanner.column += 1;
-        scanner.start = scanner.current;
-        match advance(&mut scanner) {
-            b'\0' => {
-                add_token(&mut scanner, TokenKind::EOF)?;
-                break;
-            }
+    pub(crate) fn scan_all(mut self) -> Result<Vec<Token2<'a>>, NcclError> {
+        while self.next()?.kind != TokenKind::EOF {}
+        Ok(self.tokens.drain(0..).collect())
+    }
 
+    pub(crate) fn next_token(&mut self) -> Result<Token2<'a>, NcclError> {
+        if self.tokens.is_empty() {
+            self.next()?;
+        }
+
+        Ok(self.tokens.pop_front().unwrap())
+    }
+
+    pub(crate) fn peek_token(&mut self, idx: usize) -> Result<&Token2<'a>, NcclError> {
+        if self.tokens.is_empty() {
+            self.next()?;
+        }
+
+        while self.tokens.len() <= idx {
+            self.next()?;
+        }
+
+        Ok(&self.tokens[idx])
+    }
+
+    pub(crate) fn next(&mut self) -> Result<&Token2<'a>, NcclError> {
+        if self.is_at_end() {
+            self.add_token(TokenKind::EOF)?;
+            return Ok(&self.tokens[self.tokens.len() - 1]);
+        }
+
+        self.start = self.current;
+        self.column += 1;
+
+        match self.advance_char() {
             b'\r' => {}
             b'\n' => {
-                scanner.column = 0;
-                scanner.line += 1;
-                add_token(&mut scanner, TokenKind::Newline)?;
+                self.column = 0;
+                self.line += 1;
             }
 
             b'#' => {
-                while peek(&scanner) != b'\n' && !is_at_end(&scanner) {
-                    advance(&mut scanner);
+                while self.peek_char() != b'\n' && !self.is_at_end() {
+                    self.advance_char();
                 }
             }
 
             b'\t' => {
                 let mut tabs = 1;
-                while peek(&scanner) == b'\t' {
-                    advance(&mut scanner);
+                while self.peek_char() == b'\t' {
+                    self.advance_char();
                     tabs += 1;
                 }
 
-                add_token(&mut scanner, TokenKind::Tab(tabs))?;
+                self.add_token(TokenKind::Tab(tabs))?;
             }
 
             b' ' => {
                 let mut spaces = 1;
-                while peek(&scanner) == b' ' {
-                    advance(&mut scanner);
+                while self.peek_char() == b' ' {
+                    self.advance_char();
                     spaces += 1;
                 }
 
-                add_token(&mut scanner, TokenKind::Space(spaces))?;
+                self.add_token(TokenKind::Space(spaces))?;
             }
 
-            quote @ (b'"' | b'\'') => string(&mut scanner, quote)?,
+            quote @ (b'"' | b'\'') => self.string(quote)?,
 
-            _ => value(&mut scanner)?,
+            _ => self.value()?,
         }
+
+        Ok(&self.tokens[self.tokens.len() - 1])
     }
 
-    Ok(scanner.tokens)
-}
+    fn string(&mut self, quote: u8) -> Result<(), NcclError> {
+        // TODO escapes...
+        self.advance_char();
+        while self.peek_char() != quote && !self.is_at_end() {
+            self.column += 1;
+            if self.peek_char() == b'\n' {
+                self.line += 1;
+            }
 
-fn string(scanner: &mut Scanner2, quote: u8) -> Result<(), NcclError> {
-    // TODO escapes...
-    advance(scanner);
-    while peek(scanner) != quote && !is_at_end(scanner) {
-        scanner.column += 1;
-        if peek(scanner) == b'\n' {
-            scanner.line += 1;
-        }
+            if self.peek_char() == b'\\' {
+                self.advance_char();
+                match self.peek_char() {
+                    b'n' | b'r' | b'\\' | b'"' => {}
 
-        if peek(scanner) == b'\\' {
-            advance(scanner);
-            match peek(scanner) {
-                b'n' | b'r' | b'\\' | b'"' => {}
-
-                b'\r' | b'\n' => {
-                    advance(scanner);
-                    while peek(scanner) == b' ' || peek(scanner) == b'\t' {
-                        advance(scanner);
+                    b'\r' | b'\n' => {
+                        self.advance_char();
+                        while self.peek_char() == b' ' || self.peek_char() == b'\t' {
+                            self.advance_char();
+                        }
+                        self.reverse_char();
                     }
-                    reverse(scanner);
-                }
 
-                _ => {
-                    return Err(NcclError::new(
-                        ErrorKind::Parse,
-                        &format!("Unknown format code: {}", peek(scanner)),
-                        scanner.line as u64,
-                    ))
+                    _ => {
+                        return Err(NcclError::new(
+                            ErrorKind::Parse,
+                            &format!("Unknown format code: {}", self.peek_char()),
+                            self.line as u64,
+                        ))
+                    }
                 }
             }
+
+            self.advance_char();
         }
 
-        advance(scanner);
+        self.advance_char();
+
+        self.add_token(TokenKind::Value)?;
+
+        Ok(())
     }
-    advance(scanner);
 
-    add_token(scanner, TokenKind::Value)?;
-
-    Ok(())
-}
-
-fn value(scanner: &mut Scanner2) -> Result<(), NcclError> {
-    loop {
-        if peek(scanner) == b'\n' || peek(scanner) == b'\r' || is_at_end(scanner) {
-            break;
+    fn value(&mut self) -> Result<(), NcclError> {
+        loop {
+            if self.peek_char() == b'\n' || self.peek_char() == b'\r' || self.is_at_end() {
+                break;
+            }
+            self.advance_char();
         }
-        advance(scanner);
+
+        self.add_token(TokenKind::Value)?;
+
+        Ok(())
     }
 
-    add_token(scanner, TokenKind::Value)?;
-
-    Ok(())
-}
-
-fn is_at_end(scanner: &Scanner2) -> bool {
-    scanner.current >= scanner.source.len()
-}
-
-fn advance(scanner: &mut Scanner2) -> u8 {
-    scanner.current += 1;
-    scanner.source[scanner.current - 1]
-}
-
-fn reverse(scanner: &mut Scanner2) -> u8 {
-    scanner.current -= 1;
-    scanner.source[scanner.current]
-}
-
-fn peek(scanner: &Scanner2) -> u8 {
-    if is_at_end(scanner) {
-        b'\0'
-    } else {
-        scanner.source[scanner.current]
+    fn is_at_end(&self) -> bool {
+        self.current >= self.source.len()
     }
-}
 
-fn add_token(scanner: &mut Scanner2, kind: TokenKind) -> Result<(), NcclError> {
-    // TODO str::from_utf8 returns a different error than String::from_utf8?? why????????
-    let lexeme = std::str::from_utf8(&scanner.source[scanner.start..scanner.current])
-        .map_err(|err| NcclError::new(ErrorKind::Io, "invalid UTF-8", scanner.line as u64))?;
+    fn advance_char(&mut self) -> u8 {
+        self.current += 1;
+        self.source[self.current - 1]
+    }
 
-    scanner.tokens.push(Token2 {
-        kind,
-        lexeme,
-        span: Span {
-            line: scanner.line,
-            column: scanner.column,
-        },
-    });
-    Ok(())
+    fn reverse_char(&mut self) -> u8 {
+        self.current -= 1;
+        self.source[self.current]
+    }
+
+    fn peek_char(&self) -> u8 {
+        if self.is_at_end() {
+            b'\0'
+        } else {
+            self.source[self.current]
+        }
+    }
+
+    fn add_token(&mut self, kind: TokenKind) -> Result<(), NcclError> {
+        // TODO str::from_utf8 returns a different error than String::from_utf8?? why????????
+        let lexeme = std::str::from_utf8(&self.source[self.start..self.current])
+            .map_err(|err| NcclError::new(ErrorKind::Io, "invalid UTF-8", self.line as u64))?;
+
+        self.tokens.push_back(Token2 {
+            kind,
+            lexeme,
+            span: Span {
+                line: self.line,
+                column: self.column,
+            },
+        });
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::scanner::scan;
+    use super::*;
 
     #[test]
     fn new_scan() {
         use super::TokenKind::*;
 
         let file = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
-        let tokens = scan(&file)
+        let tokens = Scanner2::new(&file)
+            .scan_all()
             .unwrap()
             .into_iter()
             .map(|token| (token.kind, token.lexeme))
@@ -190,23 +221,20 @@ mod test {
         assert_eq!(
             tokens,
             vec![
-                (Value, "a"), (Newline, "\n"),
-                (Space(4), "    "), (Value, "b"), (Newline, "\n"),
-                (Space(4), "    "), (Value, "c"), (Newline, "\n"),
-                (Newline, "\n"),
-                (Value, "d"), (Newline, "\n"),
-                (Space(2), "  "), (Value, "e"), (Newline, "\n"),
-                (Space(2), "  "), (Value, "f"), (Newline, "\n"),
-                (Newline, "\n"),
-                (Newline, "\n"),
-                (Value, "h"), (Newline, "\n"),
-                (Tab(1), "\t"), (Value, "i # j"), (Newline, "\n"),
-                (Tab(1), "\t"), (Value, "\"k\""), (Space(1), " "), (Newline, "\n"),
-                (Tab(1), "\t"), (Value, "'m'"), (Newline, "\n"),
-                (Tab(1), "\t"), (Newline, "\n"),
-                (Newline, "\n"),
-                (Value, "o"), (Newline, "\n"),
-                (Space(4), "    "), (Newline, "\n"),
+                (Value, "a"),
+                (Space(4), "    "), (Value, "b"),
+                (Space(4), "    "), (Value, "c"),
+                (Value, "d"),
+                (Space(2), "  "), (Value, "e"),
+                (Space(2), "  "), (Value, "f"),
+                (Value, "h"),
+                (Tab(1), "\t"), (Value, "i # j"),
+                (Tab(1), "\t"), (Value, "\"k\""), (Space(1), " "),
+                (Tab(1), "\t"), (Value, "'m'"),
+                (Tab(1), "\t"),
+                (Value, "o"),
+                (Space(4), "    "),
+                (EOF, "\n"),
             ]
         );
     }

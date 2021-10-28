@@ -1,5 +1,6 @@
 use crate::error::{ErrorKind, NcclError};
 use crate::pair::Pair;
+use crate::scanner::Scanner2;
 use crate::token::{Token, Token2, TokenKind};
 use crate::value::{parse_into_value, Value};
 use crate::{parse_config, Config};
@@ -19,18 +20,18 @@ use crate::{parse_config, Config};
  *              cheddar
  */
 
-pub(crate) fn parse<'a>(tokens: &[Token2<'a>]) -> Result<Config<'a, 'a>, NcclError> {
+pub(crate) fn parse<'a>(scanner: &mut Scanner2<'a>) -> Result<Config<'a, 'a>, NcclError> {
     let mut config = Config::new("__top_level__");
-    do_parse(tokens, &mut config);
+    do_parse(scanner, &mut config)?;
     Ok(config)
 }
 
 pub(crate) fn parse_with<'orig, 'new>(
-    tokens: &[Token2<'new>],
+    scanner: &mut Scanner2<'new>,
     original: &Config<'orig, 'new>,
 ) -> Result<Config<'new, 'new>, NcclError> {
     let mut config = original.clone();
-    do_parse(tokens, &mut config)?;
+    do_parse(scanner, &mut config)?;
     Ok(config)
 }
 
@@ -41,72 +42,15 @@ enum Indent {
     Spaces { number: u8, level: usize },
 }
 
-fn do_parse<'a>(tokens: &[Token2<'a>], config: &mut Config<'a, 'a>) -> Result<(), NcclError> {
-    do_parse_indent(tokens, config, Indent::TopLevel)
+fn do_parse<'a>(scanner: &mut Scanner2<'a>, config: &mut Config<'a, 'a>) -> Result<(), NcclError> {
+    do_parse_indent(scanner, config, Indent::TopLevel)
 }
 
 fn do_parse_indent<'a>(
-    tokens: &[Token2<'a>],
+    scanner: &mut Scanner2<'a>,
     config: &mut Config<'a, 'a>,
     indent: Indent,
 ) -> Result<(), NcclError> {
-    for (i, token) in tokens.iter().enumerate() {
-        println!("{} {:?}", i, token);
-        match token.kind {
-            TokenKind::Value => config.add_value(token.lexeme),
-
-            TokenKind::Tab(num_tabs) => {
-                do_parse_indent(
-                    &tokens[i + 1..],
-                    config,
-                    match indent {
-                        Indent::TopLevel => Indent::Tabs { level: 0 },
-
-                        Indent::Tabs { level } => {
-                            if num_tabs as usize == level + 1 {
-                                Indent::Tabs { level: level + 1 }
-                            } else {
-                                return Err(NcclError::new(
-                                    ErrorKind::Indentation,
-                                    &format!("expected {} tabs, got {}", level + 1, num_tabs),
-                                    token.span.line as u64,
-                                ));
-                            }
-                        }
-
-                        Indent::Spaces { .. } => {
-                            return Err(NcclError::new(
-                                ErrorKind::Indentation,
-                                "expected tabs, found spaces",
-                                token.span.line as u64,
-                            ));
-                        }
-                    },
-                )?;
-            }
-
-            TokenKind::Space(number) => {
-                todo!();
-                //if indent == Indent::TopLevel {
-                //    indent = Indent::Spaces { number, level: 0 };
-                //}
-                //
-                //if matches!(indent, Indent::Tabs { .. }) {
-                //    return Err(NcclError::new(
-                //        ErrorKind::Indentation,
-                //        "expected spaces, found tabs",
-                //        token.span.line as u64,
-                //    ));
-                //}
-            }
-
-            TokenKind::Newline => {}
-
-            _ => panic!(),
-            //TokenKind::Tab
-        }
-    }
-
     Ok(())
 }
 

@@ -29,8 +29,8 @@ use std::io::Read;
 use std::path::Path;
 
 pub fn parse_config<'a>(content: &'a str) -> Result<Config<'a, 'a>, NcclError> {
-    let tokens = scan(content)?;
-    parse(&tokens)
+    let mut scanner = scanner::Scanner2::new(content);
+    parse(&mut scanner)
 }
 
 pub fn parse_config_with<'orig, 'new>(
@@ -40,8 +40,8 @@ pub fn parse_config_with<'orig, 'new>(
 where
     'orig: 'new,
 {
-    let tokens = scan(content)?;
-    parse_with(&tokens, config)
+    let mut scanner = scanner::Scanner2::new(content);
+    parse_with(&mut scanner, config)
 }
 
 #[cfg(test)]
