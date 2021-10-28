@@ -63,7 +63,6 @@ impl<'a> Scanner2<'a> {
         }
 
         self.start = self.current;
-        self.column += 1;
 
         match self.advance_char() {
             b'\r' => {}
@@ -72,11 +71,7 @@ impl<'a> Scanner2<'a> {
                 self.line += 1;
             }
 
-            b'#' => {
-                while self.peek_char() != b'\n' && !self.is_at_end() {
-                    self.advance_char();
-                }
-            }
+            b'#' => self.until_newline(),
 
             b'\t' => {
                 let mut tabs = 1;
@@ -85,7 +80,11 @@ impl<'a> Scanner2<'a> {
                     tabs += 1;
                 }
 
-                self.add_token(TokenKind::Tab(tabs))?;
+                if self.peek_char() == b'#' {
+                    self.until_newline();
+                } else {
+                    self.add_token(TokenKind::Tab(tabs))?;
+                }
             }
 
             b' ' => {
@@ -95,7 +94,11 @@ impl<'a> Scanner2<'a> {
                     spaces += 1;
                 }
 
-                self.add_token(TokenKind::Space(spaces))?;
+                if self.peek_char() == b'#' {
+                    self.until_newline();
+                } else {
+                    self.add_token(TokenKind::Space(spaces))?;
+                }
             }
 
             quote @ (b'"' | b'\'') => self.string(quote)?,
@@ -108,7 +111,9 @@ impl<'a> Scanner2<'a> {
 
     fn string(&mut self, quote: u8) -> Result<(), NcclError> {
         // TODO escapes...
+        // go past the first quote
         self.advance_char();
+
         while self.peek_char() != quote && !self.is_at_end() {
             self.column += 1;
             if self.peek_char() == b'\n' {
@@ -141,9 +146,27 @@ impl<'a> Scanner2<'a> {
             self.advance_char();
         }
 
+        // go past the last quote
         self.advance_char();
 
         self.add_token(TokenKind::Value)?;
+
+        // go to the end of the line
+        while self.peek_char() == b' ' || self.peek_char() == b'\t' {
+            self.advance_char();
+        }
+
+        if self.peek_char() == b'\n' {
+            self.advance_char();
+        } else if self.peek_char() == b'#' {
+            self.until_newline();
+        } else {
+            return Err(NcclError::new(
+                ErrorKind::Parse,
+                "expected whitespace then comment or newline after string",
+                self.line as u64,
+            ));
+        }
 
         Ok(())
     }
@@ -161,11 +184,18 @@ impl<'a> Scanner2<'a> {
         Ok(())
     }
 
+    fn until_newline(&mut self) {
+        while self.peek_char() != b'\n' && !self.is_at_end() {
+            self.advance_char();
+        }
+    }
+
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
 
     fn advance_char(&mut self) -> u8 {
+        self.column += 1;
         self.current += 1;
         self.source[self.current - 1]
     }
@@ -229,11 +259,9 @@ mod test {
                 (Space(2), "  "), (Value, "f"),
                 (Value, "h"),
                 (Tab(1), "\t"), (Value, "i # j"),
-                (Tab(1), "\t"), (Value, "\"k\""), (Space(1), " "),
+                (Tab(1), "\t"), (Value, "\"k\""),
                 (Tab(1), "\t"), (Value, "'m'"),
-                (Tab(1), "\t"),
                 (Value, "o"),
-                (Space(4), "    "),
                 (EOF, "\n"),
             ]
         );
