@@ -8,12 +8,12 @@ pub(crate) const TOP_LEVEL_KEY: &'static str = "__top_level__";
 #[derive(Clone, Copy)]
 enum Indent {
     TopLevel,
-    Tabs { level: u8 },
-    Spaces { width: u8, level: u8 },
+    Tabs { level: usize },
+    Spaces { width: usize, level: usize },
 }
 
 impl Indent {
-    fn level_tabs(&self) -> u8 {
+    fn level_tabs(&self) -> usize {
         match self {
             Indent::TopLevel => 0,
             &Indent::Tabs { level } => level,
@@ -21,7 +21,7 @@ impl Indent {
         }
     }
 
-    fn level_spaces(&self) -> u8 {
+    fn level_spaces(&self) -> usize {
         match self {
             Indent::TopLevel => 0,
             Indent::Tabs { .. } => unreachable!(),
@@ -29,7 +29,7 @@ impl Indent {
         }
     }
 
-    fn width(&self) -> Option<u8> {
+    fn width(&self) -> Option<usize> {
         match self {
             Indent::TopLevel => None,
             Indent::Tabs { .. } => unreachable!(),
@@ -48,7 +48,7 @@ impl Indent {
         }
     }
 
-    fn increase_spaces(&self, width: u8) -> Indent {
+    fn increase_spaces(&self, width: usize) -> Indent {
         match self {
             Indent::TopLevel => Indent::Spaces { width, level: 1 },
             Indent::Tabs { level } => Indent::Tabs { level: level + 1 },
@@ -57,6 +57,14 @@ impl Indent {
                 level: level + 1,
             },
         }
+    }
+
+    fn is_tabs_or_top_level(&self) -> bool {
+        matches!(self, Indent::Tabs { .. }) || matches!(self, Indent::TopLevel)
+    }
+
+    fn is_spaces_or_top_level(&self) -> bool {
+        matches!(self, Indent::Spaces { .. }) || matches!(self, Indent::TopLevel)
     }
 }
 
@@ -92,7 +100,7 @@ fn parse_kv<'a>(
     };
 
     match scanner.peek_token(0)?.kind {
-        TokenKind::Tabs(tabs) => {
+        TokenKind::Tabs(tabs) if indent.is_tabs_or_top_level() => {
             let next_indent = indent.increase_tabs();
             if tabs == next_indent.level_tabs() {
                 while scanner.peek_token(0)?.kind == TokenKind::Tabs(next_indent.level_tabs()) {
@@ -102,7 +110,8 @@ fn parse_kv<'a>(
             }
         }
 
-        TokenKind::Spaces(spaces) if matches!(indent, Indent::Spaces { .. } | Indent::TopLevel) => {
+        //TokenKind::Spaces(spaces) if matches!(indent, Indent::Spaces { .. } | Indent::TopLevel) => {
+        TokenKind::Spaces(spaces) if indent.is_spaces_or_top_level() => {
             let next_indent = indent.increase_spaces(indent.width().unwrap_or(spaces));
             if spaces == next_indent.level_spaces() {
                 while scanner.peek_token(0)?.kind == TokenKind::Spaces(next_indent.level_spaces()) {

@@ -2,8 +2,8 @@
 pub enum TokenKind {
     Value,
     QuotedValue,
-    Tabs(u8),
-    Spaces(u8),
+    Tabs(usize),
+    Spaces(usize),
     EOF,
 }
 

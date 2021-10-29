@@ -456,4 +456,56 @@ does this work?
         let config = parse_config(&config).unwrap();
         assert_eq!(config["howdy"].values().collect::<Vec<_>>(), vec!["hello"]);
     }
+
+    #[test]
+    fn fuzz() {
+        let dir = std::fs::read_dir("examples/fuzz/scan").unwrap();
+        for entry in dir {
+            let entry = entry.unwrap();
+            if entry
+                .path()
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("err")
+            {
+                println!("check scan bad: {}", entry.path().display());
+                let source = std::fs::read_to_string(entry.path()).unwrap();
+                let result = scanner::Scanner::new(&source).scan_all();
+                println!("    {:?}", result);
+                result.unwrap_err();
+            } else {
+                println!("check scan good: {}", entry.path().display());
+                let source = std::fs::read_to_string(entry.path()).unwrap();
+                let result = scanner::Scanner::new(&source).scan_all();
+                result.unwrap();
+            }
+        }
+
+        let dir = std::fs::read_dir("examples/fuzz/parse").unwrap();
+        for entry in dir {
+            let entry = entry.unwrap();
+            if entry
+                .path()
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .starts_with("err")
+            {
+                println!("check parse bad: {}", entry.path().display());
+                let source = std::fs::read_to_string(entry.path()).unwrap();
+                let result = parse_config(&source);
+                println!("    {:#?}", result);
+                result.unwrap_err();
+            } else {
+                println!("check parse good: {}", entry.path().display());
+                let source = std::fs::read_to_string(entry.path()).unwrap();
+                let result = parse_config(&source);
+                println!("    {:#?}", result);
+                result.unwrap();
+            }
+        }
+    }
 }
