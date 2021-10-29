@@ -11,6 +11,9 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 [Crates.io](https://crates.io/crates/nccl) - [Docs](https://docs.rs/nccl/2.0.2/nccl/)
 
+No relation to [nickel](https://github.com/tweag/nickel) which another very
+cool project.
+
 ## Demo
 
 *(more comprehensive examples in the docs)*
