@@ -13,6 +13,8 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 ## Demo
 
+*(more comprehensive examples in the docs)*
+
 ### Simple
 
 In rust:
