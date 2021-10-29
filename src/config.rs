@@ -1,6 +1,6 @@
 //! Contains the configuration struct
 
-use crate::error::NcclError;
+use crate::NcclError;
 
 use std::hash::{Hash, Hasher};
 use std::ops::Index;

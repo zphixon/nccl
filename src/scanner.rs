@@ -1,5 +1,5 @@
-use crate::error::NcclError;
 use crate::token::{Span, Token, TokenKind};
+use crate::NcclError;
 use std::collections::VecDeque;
 
 pub(crate) struct Scanner<'a> {

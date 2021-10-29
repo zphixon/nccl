@@ -1,7 +1,7 @@
-use crate::error::NcclError;
 use crate::scanner::Scanner;
 use crate::token::{Token, TokenKind};
 use crate::Config;
+use crate::NcclError;
 
 pub(crate) const TOP_LEVEL_KEY: &'static str = "__top_level__";
 
