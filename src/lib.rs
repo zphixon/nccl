@@ -8,29 +8,18 @@
 //! people who just want stuff to do things. In nccl's case, simply inferring
 //! the data type is a great middle ground between user and developer comfort.
 
-mod error;
-mod macros;
-mod pair;
-mod parser;
-mod scanner;
-mod token;
-mod value;
+pub mod error;
+pub mod pair;
+pub mod parser;
+pub mod scanner;
+pub mod token;
 
-pub use error::*;
-pub use macros::*;
-pub use pair::*;
-pub use value::*;
-
-use parser::*;
-use scanner::*;
-
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
+pub use error::NcclError;
+pub use pair::Config;
 
 pub fn parse_config(content: &str) -> Result<Config, NcclError> {
     let mut scanner = scanner::Scanner2::new(content);
-    parse(&mut scanner)
+    parser::parse(&mut scanner)
 }
 
 pub fn parse_config_with<'orig, 'new>(
@@ -41,7 +30,7 @@ where
     'orig: 'new,
 {
     let mut scanner = scanner::Scanner2::new(content);
-    parse_with(&mut scanner, config)
+    parser::parse_with(&mut scanner, config)
 }
 
 #[cfg(test)]
@@ -136,8 +125,8 @@ does this work?
     #[test]
     fn all_of_em() {
         let source = read_to_string("examples/all-of-em.nccl").unwrap();
-        let mut scanner = Scanner2::new(&source);
-        let config = parse(&mut scanner).unwrap();
+        let mut scanner = scanner::Scanner2::new(&source);
+        let config = parser::parse(&mut scanner).unwrap();
         assert_eq!(
             Ok(vec![
                 String::from("i # j"),
@@ -160,66 +149,4 @@ does this work?
             "people of the earth\nhow's it doing?\""
         );
     }
-}
-
-/// Parses a file using the given filename.
-///
-/// Examples:
-///
-/// ```
-/// let config = nccl::parse_file("examples/config.nccl").unwrap();
-/// let ports = config["server"]["port"].keys_as::<i64>().unwrap();
-/// assert_eq!(ports, vec![80, 443]);
-/// ```
-pub fn parse_file(filename: &str) -> Result<Pair, Vec<NcclError>> {
-    if let Ok(mut file) = File::open(Path::new(filename)) {
-        let mut data = String::new();
-        file.read_to_string(&mut data)
-            .map_err(|_| vec![NcclError::new(ErrorKind::Io, "IO error", 0)])?;
-        Parser::new(Scanner::new(data).scan_tokens()?).parse()
-    } else {
-        Err(vec![NcclError::new(
-            ErrorKind::File,
-            "Could not find file.",
-            0,
-        )])
-    }
-}
-
-/// Parses a file, merging the results with the supplied pair. Allows for a
-/// kind of inheritance of configuration.
-///
-/// Examples:
-///
-/// ```
-/// let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
-/// let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-/// assert_eq!(user["sandwich"]["meat"].keys_as::<String>().unwrap().len(), 3);
-/// assert_eq!(user["hello"]["world"].keys_as::<String>().unwrap().len(), 3);
-/// ```
-pub fn parse_file_with(filename: &str, pair: Pair) -> Result<Pair, Vec<NcclError>> {
-    if let Ok(mut file) = File::open(Path::new(filename)) {
-        let mut data = String::new();
-        file.read_to_string(&mut data)
-            .map_err(|_| vec![NcclError::new(ErrorKind::Io, "IO error", 0)])?;
-        Parser::new_with(Scanner::new(data).scan_tokens()?, pair).parse()
-    } else {
-        Err(vec![NcclError::new(
-            ErrorKind::File,
-            "Could not find file.",
-            0,
-        )])
-    }
-}
-
-/// Parses raw string data.
-///
-/// Examples:
-///
-/// ```
-/// let raw = nccl::parse_string("hello\n\tworld!").unwrap();
-/// assert_eq!(raw["hello"].value_as::<String>().unwrap(), "world!");
-/// ```
-pub fn parse_string(data: &str) -> Result<Pair, Vec<NcclError>> {
-    Parser::new(Scanner::new(data.to_owned()).scan_tokens()?).parse()
 }
