@@ -306,6 +306,17 @@ mod test {
     }
 
     #[test]
+    fn duplicates3() {
+        let content1 = read_to_string("examples/dup3.nccl").unwrap();
+        let config1 = parse_config(&content1).unwrap();
+
+        assert_eq!(
+            vec!["oh christmas tree", "o tannenbaum", "five golden rings"],
+            config1["oh christmas tree"].values().collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
     fn inherit() {
         let sc = read_to_string("examples/inherit.nccl").unwrap();
         let uc = read_to_string("examples/inherit2.nccl").unwrap();
