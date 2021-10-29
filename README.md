@@ -7,20 +7,29 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 
 * key/value bindings
 * flexible indentation (eat it, python!)
-* inheritance from existing keys
+* merging configurations together
 
 [Crates.io](https://crates.io/crates/nccl) - [Docs](https://docs.rs/crate/nccl)
 
 ## Demo
+
+*(more comprehensive examples in the docs)*
 
 ### Simple
 
 In rust:
 
 ```rust
-let config = nccl::parse_file("config.nccl").unwrap();
-let ports = config["server"]["port"].keys_as::<i64>().unwrap();
-assert_eq!(ports, vec![80, 443]);
+fn main() {
+    let source = std::fs::read_to_string("examples/config.nccl").unwrap();
+    let config = nccl::parse_config(&source).unwrap();
+    let ports = config["server"]["port"]
+        .values()
+        .map(|port| port.parse::<u16>())
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+    assert_eq!(ports, vec![80, 443]);
+}
 ```
 
 config.nccl:
@@ -37,19 +46,13 @@ server
         /var/www/html
 ```
 
-`nccl` stores your configuration internally as a tree. Leaf nodes are referred
-to as "values," and branch nodes are referred to as "keys." So in this example,
-`root` is a key, and `/var/www/html` is its value.
+Internally, your configuration is a tree. There is no real distinction between
+keys and values, everything is a node. 
 
 ### Inheritance
 
-Nccl lets you define your own configuration to inherit from. Just use
-`nccl::parse_file_with` with the result from the configuration you would like
-to inherit from.
-
-Note, if a key is present in both the parent configuration and the child
-configuration, the key will not be duplicated. Values that are present in both
-configurations with the same path will be duplicated.
+Nccl lets you define your own configuration to inherit from. If a node is
+present in both, it will be merged.
 
 inherit.nccl:
 
@@ -87,13 +90,27 @@ sandwich
         muenster
 ```
 
-In rust:
+Result from `parse_config_with`:
 
-```rust
-let schemas = nccl::parse_file("examples/inherit.nccl").unwrap();
-let user = nccl::parse_file_with("examples/inherit2.nccl", schemas).unwrap();
-assert_eq!(user["sandwich"]["meat"].keys().len(), 3);
-assert_eq!(user["hello"]["world"].keys().len(), 3);
+```text
+hello
+    world
+        panama
+        alaska
+        neighbor
+    friends
+        doggos
+        John
+        Alex
+sandwich
+    meat
+        bologne
+        ham
+        turkey
+    cheese
+        provolone
+        cheddar
+        muenster
 ```
 
 ## Example config
@@ -146,4 +163,3 @@ indentation?
     eg 2 or 4 spaces for one key
     or tabs for one key
 ```
-

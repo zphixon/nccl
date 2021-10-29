@@ -1,18 +1,20 @@
 [package]
-name = "nccl"
-version = "1.0.0"
-authors = ["Zack <zphixon@gmail.com>"]
-description = "Minimal configuration file format and library."
-documentation = "https://docs.rs/nccl"
-homepage = "https://github.com/zphixon/nccl"
-repository = "https://github.com/zphixon/nccl"
-keywords = ["nccl", "configuration", "config"]
-categories = ["config"]
-license = "MIT"
-readme = "README.md"
-edition = "2018"
+name = 'nccl'
+version = '2.0.0'
+authors = ['Zack <zphixon@gmail.com>']
+description = 'Minimal configuration file format and library.'
+documentation = 'https://docs.rs/nccl'
+homepage = 'https://github.com/zphixon/nccl'
+repository = 'https://github.com/zphixon/nccl'
+keywords = ['nccl', 'configuration', 'config']
+categories = ['config']
+license = 'MIT'
+readme = 'README.md'
+edition = '2021'
 
 [badges]
-travis-ci = { repository = "zphixon/nccl" }
+travis-ci = { repository = 'zphixon/nccl' }
 
 [dependencies]
+indexmap = '1.7.0'
+fnv = '1.0.7'

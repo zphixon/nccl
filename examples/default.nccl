@@ -1,0 +1,8 @@
+# default values for some thing
+# override them in user.nccl
+
+frog
+    yes
+
+beans
+    none
