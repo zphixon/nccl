@@ -1,5 +1,5 @@
 
-# nccl [![Freaking travis](https://travis-ci.org/zphixon/nccl.svg?branch=master)](https://travis-ci.org/zphixon/nccl)
+# nccl [![Rust](https://github.com/zphixon/nccl/actions/workflows/rust.yml/badge.svg)](https://github.com/zphixon/nccl/actions/workflows/rust.yml)
 
 **non-crap config language**
 
