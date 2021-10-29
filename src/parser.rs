@@ -82,7 +82,14 @@ fn parse_kv<'a>(
     indent: Indent,
     parent: &mut Config<'a, 'a>,
 ) -> Result<(), NcclError> {
-    let mut node = Config::new(consume(scanner, TokenKind::Value)?.lexeme);
+    let value = consume(scanner, TokenKind::Value)?.lexeme;
+    let mut node = {
+        if parent.has_value(value) {
+            parent[value].clone()
+        } else {
+            Config::new(value)
+        }
+    };
 
     match scanner.peek_token(0)?.kind {
         TokenKind::Tabs(tabs) => {

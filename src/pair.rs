@@ -40,13 +40,33 @@ impl<'key, 'value> Config<'key, 'value> {
         self.value.insert(child.key, child);
     }
 
+    pub fn has_value(&self, value: &str) -> bool {
+        self.value.contains_key(value)
+    }
+
     pub fn values(&self) -> impl Iterator<Item = &str> {
-        //&HashMap<&'value str, Config<'value, 'value>> {
         self.value.keys().map(|s| *s)
     }
 
     pub fn value(&self) -> Option<&'value str> {
         self.value.iter().nth(0).map(|opt| *opt.0)
+    }
+
+    pub fn pretty_print(&self) -> String {
+        self.pp(0)
+    }
+
+    fn pp(&self, indent: usize) -> String {
+        let mut s = String::new();
+        for _ in 0..indent {
+            s.push_str("    ");
+        }
+        s.push_str(self.key);
+        s.push('\n');
+        for (_, v) in self.value.iter() {
+            s.push_str(&v.pp(indent + 1));
+        }
+        s
     }
 
     pub fn parse_quoted(&self) -> Result<String, NcclError> {
@@ -124,31 +144,15 @@ impl<'a> Index<&str> for Config<'a, 'a> {
     }
 }
 
+//impl<'a> IndexMut<&str> for Config<'a, 'a> {
+//    fn index_mut(&mut self, index: &str) -> &mut Self::Output {
+//        &mut self.value[index]
+//    }
+//}
+
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::parse_config;
-
-    #[test]
-    fn index() {
-        let content = std::fs::read_to_string("examples/config.nccl").unwrap();
-        let config = parse_config(&content).unwrap();
-        assert_eq!(config["server"]["root"].value(), Some("/var/www/html"));
-    }
-
-    #[test]
-    fn values() {
-        let content = std::fs::read_to_string("examples/config.nccl").unwrap();
-        let config = parse_config(&content).unwrap();
-        assert_eq!(
-            vec![80, 443],
-            config["server"]["port"]
-                .values()
-                .map(|port| port.parse::<u16>())
-                .collect::<Result<Vec<u16>, _>>()
-                .unwrap()
-        );
-    }
 
     #[test]
     fn quoted() {

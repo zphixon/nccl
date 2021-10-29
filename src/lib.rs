@@ -44,6 +44,96 @@ where
     parse_with(&mut scanner, config)
 }
 
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::fs::read_to_string;
+
+    #[test]
+    fn index() {
+        let content = read_to_string("examples/config.nccl").unwrap();
+        let config = parse_config(&content).unwrap();
+        assert_eq!(config["server"]["root"].value(), Some("/var/www/html"));
+    }
+
+    #[test]
+    fn values() {
+        let content = read_to_string("examples/config.nccl").unwrap();
+        let config = parse_config(&content).unwrap();
+        assert_eq!(
+            vec![80, 443],
+            config["server"]["port"]
+                .values()
+                .map(|port| port.parse::<u16>())
+                .collect::<Result<Vec<u16>, _>>()
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn value() {
+        let content = read_to_string("examples/long.nccl").unwrap();
+        let config = parse_config(&content).unwrap();
+        assert_eq!(config["bool too"].value().unwrap(), "false");
+    }
+
+    #[test]
+    fn duplicates() {
+        let content = read_to_string("examples/duplicates.nccl").unwrap();
+        let config = parse_config(&content).unwrap();
+        assert_eq!(
+            config["something"].values().collect::<Vec<_>>(),
+            vec!["with", "duplicates"]
+        );
+    }
+
+    #[test]
+    fn duplicates2() {
+        let content1 = read_to_string("examples/duplicates.nccl").unwrap();
+        let config1 = parse_config(&content1).unwrap();
+
+        let content2 = read_to_string("examples/duplicates2.nccl").unwrap();
+        let config2 = parse_config_with(&config1, &content2).unwrap();
+
+        assert_eq!(2, config2["something"].values().collect::<Vec<_>>().len());
+    }
+
+    #[test]
+    fn inherit() {
+        let sc = read_to_string("examples/inherit.nccl").unwrap();
+        let uc = read_to_string("examples/inherit2.nccl").unwrap();
+
+        let schema = parse_config(&sc).unwrap();
+        let user = parse_config_with(&schema, &uc).unwrap();
+
+        assert_eq!(3, user["hello"]["world"].values().collect::<Vec<_>>().len());
+        assert_eq!(
+            3,
+            user["sandwich"]["meat"].values().collect::<Vec<_>>().len()
+        );
+    }
+
+    #[test]
+    fn comments() {
+        let config = r#"x
+# comment
+    something
+    # comment again
+        bingo
+
+does this work?
+    who knows
+# I sure don't
+    is this a child?
+"#;
+        let config = parse_config(config).unwrap();
+
+        assert_eq!(config["x"]["something"].value().unwrap(), "bingo");
+        assert!(config["does this work?"].has_value("who knows"));
+        assert!(config["does this work?"].has_value("is this a child?"));
+    }
+}
+
 /// Parses a file using the given filename.
 ///
 /// Examples:
