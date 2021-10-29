@@ -3,6 +3,8 @@ use crate::scanner::Scanner;
 use crate::token::{Token, TokenKind};
 use crate::Config;
 
+pub const TOP_LEVEL_KEY: &'static str = "__top_level__";
+
 #[derive(Clone, Copy)]
 enum Indent {
     TopLevel,
@@ -59,7 +61,7 @@ impl Indent {
 }
 
 pub(crate) fn parse<'a>(scanner: &mut Scanner<'a>) -> Result<Config<'a, 'a>, NcclError> {
-    parse_with(scanner, &Config::new("__top_level__"))
+    parse_with(scanner, &Config::new(TOP_LEVEL_KEY))
 }
 
 pub(crate) fn parse_with<'orig, 'new>(
@@ -155,7 +157,7 @@ mod test {
         assert_eq!(
             config,
             Config {
-                key: "__top_level__",
+                key: TOP_LEVEL_KEY,
                 value: map![
                     "jackson" => Config {
                         key: "jackson",
@@ -197,7 +199,7 @@ mod test {
         assert_eq!(
             config,
             Config {
-                key: "__top_level__",
+                key: TOP_LEVEL_KEY,
                 value: map![
                     "server" => Config {
                         key: "server",
