@@ -3,7 +3,6 @@ pub enum TokenKind {
     Value,
     Tabs(u8),
     Spaces(u8),
-    Newline,
     EOF,
 }
 
@@ -14,7 +13,7 @@ pub(crate) struct Span {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) struct Token2<'a> {
+pub(crate) struct Token<'a> {
     pub(crate) kind: TokenKind,
     pub(crate) lexeme: &'a str,
     pub(crate) span: Span,

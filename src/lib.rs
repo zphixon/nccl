@@ -8,17 +8,17 @@
 //! people who just want stuff to do things. In nccl's case, simply inferring
 //! the data type is a great middle ground between user and developer comfort.
 
+pub mod config;
 pub mod error;
-pub mod pair;
 pub mod parser;
 pub mod scanner;
 pub mod token;
 
+pub use config::Config;
 pub use error::NcclError;
-pub use pair::Config;
 
 pub fn parse_config(content: &str) -> Result<Config, NcclError> {
-    let mut scanner = scanner::Scanner2::new(content);
+    let mut scanner = scanner::Scanner::new(content);
     parser::parse(&mut scanner)
 }
 
@@ -29,7 +29,7 @@ pub fn parse_config_with<'orig, 'new>(
 where
     'orig: 'new,
 {
-    let mut scanner = scanner::Scanner2::new(content);
+    let mut scanner = scanner::Scanner::new(content);
     parser::parse_with(&mut scanner, config)
 }
 
@@ -125,7 +125,7 @@ does this work?
     #[test]
     fn all_of_em() {
         let source = read_to_string("examples/all-of-em.nccl").unwrap();
-        let mut scanner = scanner::Scanner2::new(&source);
+        let mut scanner = scanner::Scanner::new(&source);
         let config = parser::parse(&mut scanner).unwrap();
         assert_eq!(
             Ok(vec![

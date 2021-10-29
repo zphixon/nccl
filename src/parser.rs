@@ -1,6 +1,6 @@
 use crate::error::{ErrorKind, NcclError};
-use crate::scanner::Scanner2;
-use crate::token::{Token2, TokenKind};
+use crate::scanner::Scanner;
+use crate::token::{Token, TokenKind};
 use crate::Config;
 
 #[derive(Clone, Copy)]
@@ -58,12 +58,12 @@ impl Indent {
     }
 }
 
-pub(crate) fn parse<'a>(scanner: &mut Scanner2<'a>) -> Result<Config<'a, 'a>, NcclError> {
+pub(crate) fn parse<'a>(scanner: &mut Scanner<'a>) -> Result<Config<'a, 'a>, NcclError> {
     parse_with(scanner, &Config::new("__top_level__"))
 }
 
 pub(crate) fn parse_with<'orig, 'new>(
-    scanner: &mut Scanner2<'new>,
+    scanner: &mut Scanner<'new>,
     original: &Config<'orig, 'new>,
 ) -> Result<Config<'new, 'new>, NcclError> {
     let mut config = original.clone();
@@ -76,7 +76,7 @@ pub(crate) fn parse_with<'orig, 'new>(
 }
 
 fn parse_kv<'a>(
-    scanner: &mut Scanner2<'a>,
+    scanner: &mut Scanner<'a>,
     indent: Indent,
     parent: &mut Config<'a, 'a>,
 ) -> Result<(), NcclError> {
@@ -117,7 +117,7 @@ fn parse_kv<'a>(
     Ok(())
 }
 
-fn consume<'a>(scanner: &mut Scanner2<'a>, kind: TokenKind) -> Result<Token2<'a>, NcclError> {
+fn consume<'a>(scanner: &mut Scanner<'a>, kind: TokenKind) -> Result<Token<'a>, NcclError> {
     let tok = scanner.next_token()?;
     if tok.kind == kind {
         Ok(tok)
@@ -138,7 +138,7 @@ mod test {
         ($($key:expr => $item:expr),*) => {
             {
                 #[allow(unused_mut)]
-                let mut set = crate::pair::make_map();
+                let mut set = crate::config::make_map();
                 $(
                     set.insert($key, $item);
                 )*
@@ -150,7 +150,7 @@ mod test {
     #[test]
     fn tab_config() {
         let source = std::fs::read_to_string("examples/good-tabs.nccl").unwrap();
-        let mut scanner = Scanner2::new(&source);
+        let mut scanner = Scanner::new(&source);
         let config = parse(&mut scanner).unwrap();
         assert_eq!(
             config,
@@ -192,7 +192,7 @@ mod test {
     #[test]
     fn pconfig() {
         let source = std::fs::read_to_string("examples/config.nccl").unwrap();
-        let mut scanner = Scanner2::new(&source);
+        let mut scanner = Scanner::new(&source);
         let config = parse(&mut scanner).unwrap();
         assert_eq!(
             config,
@@ -252,7 +252,7 @@ mod test {
             if entry.metadata().unwrap().is_file() {
                 println!("check good: {}", entry.path().display());
                 let source = std::fs::read_to_string(entry.path()).unwrap();
-                let mut scanner = Scanner2::new(&source);
+                let mut scanner = Scanner::new(&source);
                 parse(&mut scanner).unwrap();
             }
         }
@@ -265,7 +265,7 @@ mod test {
             let entry = entry.unwrap();
             println!("check is bad: {}", entry.path().display());
             let source = std::fs::read_to_string(entry.path()).unwrap();
-            let mut scanner = Scanner2::new(&source);
+            let mut scanner = Scanner::new(&source);
             parse(&mut scanner).unwrap_err();
         }
     }

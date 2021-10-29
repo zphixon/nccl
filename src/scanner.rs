@@ -1,19 +1,19 @@
 use crate::error::{ErrorKind, NcclError};
-use crate::token::{Span, Token2, TokenKind};
+use crate::token::{Span, Token, TokenKind};
 use std::collections::VecDeque;
 
-pub(crate) struct Scanner2<'a> {
+pub(crate) struct Scanner<'a> {
     source: &'a [u8],
-    pub(crate) tokens: VecDeque<Token2<'a>>,
+    pub(crate) tokens: VecDeque<Token<'a>>,
     start: usize,
     current: usize,
     pub(crate) line: usize,
     pub(crate) column: usize,
 }
 
-impl<'a> Scanner2<'a> {
-    pub(crate) fn new(source: &'a str) -> Scanner2<'a> {
-        Scanner2 {
+impl<'a> Scanner<'a> {
+    pub(crate) fn new(source: &'a str) -> Scanner<'a> {
+        Scanner {
             source: source.as_bytes(),
             tokens: VecDeque::new(),
             start: 0,
@@ -24,12 +24,12 @@ impl<'a> Scanner2<'a> {
     }
 
     #[cfg(test)]
-    pub(crate) fn scan_all(mut self) -> Result<Vec<Token2<'a>>, NcclError> {
+    pub(crate) fn scan_all(mut self) -> Result<Vec<Token<'a>>, NcclError> {
         while self.next()?.kind != TokenKind::EOF {}
         Ok(self.tokens.drain(0..).collect())
     }
 
-    pub(crate) fn next_token(&mut self) -> Result<Token2<'a>, NcclError> {
+    pub(crate) fn next_token(&mut self) -> Result<Token<'a>, NcclError> {
         if self.tokens.is_empty() {
             self.next()?;
         }
@@ -37,7 +37,7 @@ impl<'a> Scanner2<'a> {
         Ok(self.tokens.pop_front().unwrap())
     }
 
-    pub(crate) fn peek_token(&mut self, idx: usize) -> Result<&Token2<'a>, NcclError> {
+    pub(crate) fn peek_token(&mut self, idx: usize) -> Result<&Token<'a>, NcclError> {
         if self.tokens.is_empty() {
             self.next()?;
         }
@@ -49,7 +49,7 @@ impl<'a> Scanner2<'a> {
         Ok(&self.tokens[idx])
     }
 
-    fn next(&mut self) -> Result<&Token2<'a>, NcclError> {
+    fn next(&mut self) -> Result<&Token<'a>, NcclError> {
         self.start = self.current;
         loop {
             match self.peek_char() {
@@ -221,7 +221,7 @@ impl<'a> Scanner2<'a> {
         let lexeme = std::str::from_utf8(&self.source[self.start..self.current])
             .map_err(|_err| NcclError::new(ErrorKind::Io, "invalid UTF-8", self.line as u64))?;
 
-        self.tokens.push_back(Token2 {
+        self.tokens.push_back(Token {
             kind,
             lexeme,
             span: Span {
@@ -239,7 +239,7 @@ mod test {
     use super::*;
 
     fn get_all(source: &str) -> Vec<(TokenKind, &str)> {
-        Scanner2::new(source)
+        Scanner::new(source)
             .scan_all()
             .unwrap()
             .into_iter()
