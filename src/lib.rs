@@ -161,13 +161,10 @@ pub fn parse_config(content: &str) -> Result<Config, NcclError> {
 /// // and the unmodified key remains
 /// assert_eq!(combined_config["frog"].value(), Some("yes"));
 /// ```
-pub fn parse_config_with<'orig, 'new>(
-    config: &Config<'orig, 'orig>,
-    content: &'new str,
-) -> Result<Config<'new, 'new>, NcclError>
-where
-    'orig: 'new,
-{
+pub fn parse_config_with<'a>(
+    config: &Config<'a>,
+    content: &'a str,
+) -> Result<Config<'a>, NcclError> {
     let mut scanner = scanner::Scanner::new(content);
     parser::parse_with(&mut scanner, config)
 }

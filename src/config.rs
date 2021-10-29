@@ -57,29 +57,26 @@ pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
 /// );
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Config<'key, 'value>
-where
-    'key: 'value,
-{
-    pub(crate) key: &'key str,
-    pub(crate) value: HashMap<&'value str, Config<'value, 'value>>,
+pub struct Config<'a> {
+    pub(crate) key: &'a str,
+    pub(crate) value: HashMap<&'a str, Config<'a>>,
 }
 
-impl Hash for Config<'_, '_> {
+impl Hash for Config<'_> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.key.hash(state);
     }
 }
 
-impl<'key, 'value> Config<'key, 'value> {
-    pub(crate) fn new(key: &'key str) -> Self {
+impl<'a> Config<'a> {
+    pub(crate) fn new(key: &'a str) -> Self {
         Config {
             key,
             value: make_map(),
         }
     }
 
-    pub(crate) fn add_child(&mut self, child: Config<'key, 'value>) {
+    pub(crate) fn add_child(&mut self, child: Config<'a>) {
         self.value.insert(child.key, child);
     }
 
@@ -89,7 +86,7 @@ impl<'key, 'value> Config<'key, 'value> {
     }
 
     /// Iterator for the children of a node.
-    pub fn children(&self) -> impl Iterator<Item = &Config<'value, 'value>> {
+    pub fn children(&self) -> impl Iterator<Item = &Config<'a>> {
         self.value.values()
     }
 
@@ -112,7 +109,7 @@ impl<'key, 'value> Config<'key, 'value> {
     ///         .unwrap()
     /// );
     /// ```
-    pub fn child(&self) -> Option<&Config<'value, 'value>> {
+    pub fn child(&self) -> Option<&Config<'a>> {
         self.children().nth(0)
     }
 
@@ -122,7 +119,7 @@ impl<'key, 'value> Config<'key, 'value> {
     }
 
     /// The first child value of a node.
-    pub fn value(&self) -> Option<&'value str> {
+    pub fn value(&self) -> Option<&'a str> {
         self.value.iter().nth(0).map(|opt| *opt.0)
     }
 
@@ -209,15 +206,15 @@ impl<'key, 'value> Config<'key, 'value> {
     }
 }
 
-impl<'a> Index<&str> for Config<'a, 'a> {
-    type Output = Config<'a, 'a>;
+impl<'a> Index<&str> for Config<'a> {
+    type Output = Config<'a>;
 
     fn index(&self, index: &str) -> &Self::Output {
         &self.value[index]
     }
 }
 
-impl ToString for Config<'_, '_> {
+impl ToString for Config<'_> {
     fn to_string(&self) -> String {
         self.pretty_print()
     }

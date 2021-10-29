@@ -60,14 +60,14 @@ impl Indent {
     }
 }
 
-pub(crate) fn parse<'a>(scanner: &mut Scanner<'a>) -> Result<Config<'a, 'a>, NcclError> {
+pub(crate) fn parse<'a>(scanner: &mut Scanner<'a>) -> Result<Config<'a>, NcclError> {
     parse_with(scanner, &Config::new(TOP_LEVEL_KEY))
 }
 
-pub(crate) fn parse_with<'orig, 'new>(
-    scanner: &mut Scanner<'new>,
-    original: &Config<'orig, 'new>,
-) -> Result<Config<'new, 'new>, NcclError> {
+pub(crate) fn parse_with<'a>(
+    scanner: &mut Scanner<'a>,
+    original: &Config<'a>,
+) -> Result<Config<'a>, NcclError> {
     let mut config = original.clone();
 
     while scanner.peek_token(0)?.kind != TokenKind::EOF {
@@ -80,7 +80,7 @@ pub(crate) fn parse_with<'orig, 'new>(
 fn parse_kv<'a>(
     scanner: &mut Scanner<'a>,
     indent: Indent,
-    parent: &mut Config<'a, 'a>,
+    parent: &mut Config<'a>,
 ) -> Result<(), NcclError> {
     let value = consume(scanner, TokenKind::Value)?.lexeme;
     let mut node = {
