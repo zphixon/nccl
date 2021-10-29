@@ -137,6 +137,13 @@ pub fn parse_config(content: &str) -> Result<Config, NcclError> {
 /// // beans
 /// //     none
 ///
+/// // result:
+/// // frog
+/// //     yes
+/// // beans
+/// //     four
+/// //     none
+///
 /// // first get the user config
 /// let user = std::fs::read_to_string("examples/user.nccl").unwrap();
 /// let user_config = parse_config(&user).unwrap();

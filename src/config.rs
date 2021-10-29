@@ -35,10 +35,10 @@ pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
 /// let content = std::fs::read_to_string("examples/config.nccl").unwrap();
 /// let config = parse_config(&content).unwrap();
 ///
-/// // get a single value
+/// // get the value of a single node
 /// assert_eq!(Some("/var/www/html"), config["server"]["root"].value());
 ///
-/// // value always returns the first value
+/// // value always returns the value of the first child node
 /// assert_eq!(Some("example.com"), config["server"]["domain"].value());
 ///
 /// // get multiple values
@@ -83,17 +83,17 @@ impl<'key, 'value> Config<'key, 'value> {
         self.value.insert(child.key, child);
     }
 
-    /// Check whether the config has the value.
+    /// Check whether the config has the node.
     pub fn has_value(&self, value: &str) -> bool {
         self.value.contains_key(value)
     }
 
-    /// Iterator for the children of a value.
+    /// Iterator for the children of a node.
     pub fn children(&self) -> impl Iterator<Item = &Config<'value, 'value>> {
         self.value.values()
     }
 
-    /// The first value of the key.
+    /// The first child of the node.
     ///
     /// ```
     /// # use nccl::*;
@@ -116,12 +116,12 @@ impl<'key, 'value> Config<'key, 'value> {
         self.children().nth(0)
     }
 
-    /// Iterator for the values of a key.
+    /// Iterator for the child values of a node.
     pub fn values(&self) -> impl Iterator<Item = &str> {
         self.value.keys().map(|s| *s)
     }
 
-    /// The first value of a key.
+    /// The first child value of a node.
     pub fn value(&self) -> Option<&'value str> {
         self.value.iter().nth(0).map(|opt| *opt.0)
     }
