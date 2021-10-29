@@ -247,13 +247,6 @@ mod test {
     }
 
     #[test]
-    fn all_of_em() {
-        let source = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
-        let mut scanner = Scanner2::new(&source);
-        let _config = parse(&mut scanner).unwrap();
-    }
-
-    #[test]
     fn woke() {
         let dir = std::fs::read_dir("examples").unwrap();
         for entry in dir {

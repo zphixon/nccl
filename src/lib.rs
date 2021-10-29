@@ -132,6 +132,34 @@ does this work?
         assert!(config["does this work?"].has_value("who knows"));
         assert!(config["does this work?"].has_value("is this a child?"));
     }
+
+    #[test]
+    fn all_of_em() {
+        let source = read_to_string("examples/all-of-em.nccl").unwrap();
+        let mut scanner = Scanner2::new(&source);
+        let config = parse(&mut scanner).unwrap();
+        assert_eq!(
+            Ok(vec![
+                String::from("i # j"),
+                String::from("k"),
+                String::from("m")
+            ]),
+            config["h"]
+                .children()
+                .map(|config| config.parse_quoted())
+                .collect::<Result<Vec<_>, _>>()
+        );
+    }
+
+    #[test]
+    fn escapes() {
+        let config = read_to_string("examples/escapes.nccl").unwrap();
+        let config = parse_config(&config).unwrap();
+        assert_eq!(
+            config["hello"].child().unwrap().parse_quoted().unwrap(),
+            "people of the earth\nhow's it doing?\""
+        );
+    }
 }
 
 /// Parses a file using the given filename.

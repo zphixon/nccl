@@ -44,6 +44,14 @@ impl<'key, 'value> Config<'key, 'value> {
         self.value.contains_key(value)
     }
 
+    pub fn children(&self) -> impl Iterator<Item = &Config<'value, 'value>> {
+        self.value.values()
+    }
+
+    pub fn child(&self) -> Option<&Config<'value, 'value>> {
+        self.children().nth(0)
+    }
+
     pub fn values(&self) -> impl Iterator<Item = &str> {
         self.value.keys().map(|s| *s)
     }
@@ -111,7 +119,6 @@ impl<'key, 'value> Config<'key, 'value> {
                             while bytes[i] == b' ' || bytes[i] == b'\t' {
                                 i += 1;
                             }
-                            value.push(b' ');
                         }
 
                         _ => {
@@ -144,29 +151,30 @@ impl<'a> Index<&str> for Config<'a, 'a> {
     }
 }
 
-//impl<'a> IndexMut<&str> for Config<'a, 'a> {
-//    fn index_mut(&mut self, index: &str) -> &mut Self::Output {
-//        &mut self.value[index]
-//    }
-//}
-
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn quoted() {
-        let s = "'hello\\nworld\\\n            what\\'s up'";
-        assert_eq!(
-            Config::new(s).parse_quoted().unwrap(),
-            "hello\nworld what's up",
-        );
+        let s = "'hello\\\n   world'";
 
-        let s = "'hello\\nworld\\\n\t\twhat\\'s up'";
-        assert_eq!(
-            Config::new(s).parse_quoted().unwrap(),
-            "hello\nworld what's up",
-        );
+        assert_eq!(Config::new(s).parse_quoted().unwrap(), "helloworld");
+
+        let s = "'hello \\\n  world'";
+        assert_eq!(Config::new(s).parse_quoted().unwrap(), "hello world");
+
+        let s = "'hello\\\n\tworld'";
+        assert_eq!(Config::new(s).parse_quoted().unwrap(), "helloworld");
+
+        let s = "'hello \\\n\tworld'";
+        assert_eq!(Config::new(s).parse_quoted().unwrap(), "hello world");
+
+        let s = r#"'""""'"#;
+        assert_eq!(Config::new(s).parse_quoted().unwrap(), "\"\"\"\"");
+
+        let s = r#""''''""#;
+        assert_eq!(Config::new(s).parse_quoted().unwrap(), "''''");
     }
 
     #[test]
