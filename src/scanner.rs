@@ -127,6 +127,8 @@ impl<'a> Scanner<'a> {
         let start = self.line;
 
         self.advance_char();
+        self.start = self.current;
+
         while self.peek_char() != quote && !self.is_at_end() {
             if self.peek_char() == b'\n' {
                 self.line += 1;
@@ -162,10 +164,10 @@ impl<'a> Scanner<'a> {
             return Err(NcclError::UnterminatedString { start });
         }
 
+        self.add_token(TokenKind::QuotedValue)?;
+
         // go past the last quote
         self.advance_char();
-
-        self.add_token(TokenKind::Value)?;
 
         // go to the end of the line
         // prevent stuff like
@@ -217,7 +219,6 @@ impl<'a> Scanner<'a> {
     }
 
     fn add_token(&mut self, kind: TokenKind) -> Result<(), NcclError> {
-        // TODO str::from_utf8 returns a different error than String::from_utf8?? why????????
         let lexeme = std::str::from_utf8(&self.source[self.start..self.current])?;
 
         self.tokens.push_back(Token {
@@ -303,8 +304,8 @@ mod test {
                 (Spaces(2), "  "), (Value, "f"),
                 (Value, "h"),
                 (Tabs(1), "\t"), (Value, "i # j"),
-                (Tabs(1), "\t"), (Value, "\"k\""),
-                (Tabs(1), "\t"), (Value, "'m'"),
+                (Tabs(1), "\t"), (QuotedValue, "k"),
+                (Tabs(1), "\t"), (QuotedValue, "m"),
                 (Value, "o"),
                 (EOF, ""),
             ]

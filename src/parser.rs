@@ -61,7 +61,7 @@ impl Indent {
 }
 
 pub(crate) fn parse<'a>(scanner: &mut Scanner<'a>) -> Result<Config<'a>, NcclError> {
-    parse_with(scanner, &Config::new(TOP_LEVEL_KEY))
+    parse_with(scanner, &Config::new(TOP_LEVEL_KEY, false))
 }
 
 pub(crate) fn parse_with<'a>(
@@ -82,12 +82,12 @@ fn parse_kv<'a>(
     indent: Indent,
     parent: &mut Config<'a>,
 ) -> Result<(), NcclError> {
-    let value = consume(scanner, TokenKind::Value)?.lexeme;
+    let value = consume_value(scanner)?;
     let mut node = {
-        if parent.has_value(value) {
-            parent[value].clone()
+        if parent.has_value(value.lexeme) {
+            parent[value.lexeme].clone()
         } else {
-            Config::new(value)
+            Config::new(value.lexeme, value.kind == TokenKind::QuotedValue)
         }
     };
 
@@ -117,6 +117,18 @@ fn parse_kv<'a>(
 
     parent.add_child(node);
     Ok(())
+}
+
+fn consume_value<'a>(scanner: &mut Scanner<'a>) -> Result<Token<'a>, NcclError> {
+    let tok = scanner.next_token()?;
+    match tok.kind {
+        TokenKind::Value | TokenKind::QuotedValue => Ok(tok),
+        _ => Err(NcclError::UnexpectedToken {
+            span: tok.span,
+            expected: TokenKind::Value,
+            got: tok.kind,
+        }),
+    }
 }
 
 fn consume<'a>(scanner: &mut Scanner<'a>, kind: TokenKind) -> Result<Token<'a>, NcclError> {
@@ -157,28 +169,35 @@ mod test {
         assert_eq!(
             config,
             Config {
+                quoted: false,
                 key: TOP_LEVEL_KEY,
                 value: map![
                     "jackson" => Config {
+                        quoted: false,
                         key: "jackson",
                         value: map![
                             "easy" => Config {
+                                quoted: false,
                                 key: "easy",
                                 value: map![
                                     "abc" => Config {
+                                        quoted: false,
                                         key: "abc",
                                         value: map![]
                                     },
                                     "123" => Config {
+                                        quoted: false,
                                         key: "123",
                                         value: map![]
                                     }
                                 ]
                             },
                             "hopefully" => Config {
+                                quoted: false,
                                 key: "hopefully",
                                 value: map![
                                     "tabs work" => Config {
+                                        quoted: false,
                                         key: "tabs work",
                                         value: map![]
                                     }
@@ -199,41 +218,51 @@ mod test {
         assert_eq!(
             config,
             Config {
+                quoted: false,
                 key: TOP_LEVEL_KEY,
                 value: map![
                     "server" => Config {
+                        quoted: false,
                         key: "server",
                         value: map![
                             "domain" => Config {
+                                quoted: false,
                                 key: "domain",
                                 value: map![
                                     "example.com" => Config {
+                                        quoted: false,
                                         key: "example.com",
                                         value: map![]
                                     },
                                     "www.example.com" => Config {
+                                        quoted: false,
                                         key: "www.example.com",
                                         value: map![]
                                     }
                                 ]
                             },
                             "port" => Config {
+                                quoted: false,
                                 key: "port",
                                 value: map![
                                     "80" => Config {
+                                        quoted: false,
                                         key: "80",
                                         value: map![]
                                     },
                                     "443" => Config {
+                                        quoted: false,
                                         key: "443",
                                         value: map![]
                                     }
                                 ]
                             },
                             "root" => Config {
+                                quoted: false,
                                 key: "root",
                                 value: map![
                                     "/var/www/html" => Config {
+                                        quoted: false,
                                         key: "/var/www/html",
                                         value: map![]
                                     }

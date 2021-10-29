@@ -1,3 +1,5 @@
+//! A simple configuration language.
+//!
 //! Nccl is an easy way to add minimal configuration to your crate without
 //! having to deal with complicated interfaces, obnoxious syntax, or outdated
 //! languages. Nccl makes it easy for a user to pick up your configuration.
@@ -23,6 +25,15 @@
 //!     value
 //! ```
 //!
+//! ```rust
+//! let source = r#"
+//! key
+//!     value
+//! "#;
+//! let config = nccl::parse_config(&source).unwrap();
+//! assert_eq!(config["key"].value(), Some("value"));
+//! ```
+//!
 //! Results in `config["key"].value() == Some("value")`. Note that there is no
 //! semantic difference between a key and a value, so `config.value() == Some("key")`.
 //! For most of this document and the library source code, the words key, value, and
@@ -30,13 +41,16 @@
 //!
 //! There are no types:
 //!
-//! ```text
+//! ```rust
+//! let source = r#"
 //! threads
 //!     16
 //! is this a problem?
 //!     no 🇳🇴
 //! end of the world
-//!     2012-12-21
+//!     2012-12-21"#;
+//! let config = nccl::parse_config(&source).unwrap();
+//! assert_eq!(config["is this a problem?"].value(), Some("no 🇳🇴"));
 //! ```
 //!
 //! Interpret the data however you want.
@@ -44,26 +58,41 @@
 //! Indentation is significant. Each top-level key-value pair must use the same
 //! type of indentation for each sub-value. You may mix indentation per-file.
 //!
-//! ```text
+//! ```rust
+//! let source = r#"
+//! ## tab
 //! a
-//!     1
+//! 	1
+//!
+//! ## single space
 //! b
 //!  2
+//! "#;
+//! let config = nccl::parse_config(&source).unwrap();
+//! assert_eq!(config["a"].value(), Some("1"));
+//! assert_eq!(config["b"].value(), Some("2"));
 //! ```
 //!
 //! Comments exist on their own line or after a quoted value, otherwise they
 //! become part of the value.
 //!
-//! ```text
-//! hello # this part of the key!
+//! ```rust
+//! let source = r#"
+//! hello # this is part of the key!
 //!     ## this is not
 //!     world
 //!     "y'all" # this isn't either
+//! "#;
+//! let config = nccl::parse_config(&source).unwrap();
+//! assert!(config.has_value("hello # this is part of the key!"));
+//! assert!(!config["hello # this is part of the key!"].has_value("# this is not"));
+//! assert!(config["hello # this is part of the key!"].has_value("y'all"));
 //! ```
 //!
 //! Duplicate keys have their values merged.
 //!
-//! ```text
+//! ```rust
+//! let source = r#"
 //! oh christmas tree
 //!     o tannenbaum
 //!
@@ -71,6 +100,12 @@
 //!     o tannenbaum
 //!     five golden rings
 //!     wait wrong song
+//! "#;
+//! let config = nccl::parse_config(&source).unwrap();
+//! assert_eq!(
+//!     vec!["o tannenbaum", "five golden rings", "wait wrong song"],
+//!     config["oh christmas tree"].values().collect::<Vec<_>>()
+//! );
 //! ```
 //!
 //! Results in one key "oh christmas tree" with three values. This property
@@ -79,6 +114,38 @@
 //! first you would parse the user's configuration, and then parse the default
 //! on top of that. [`config::Config::value`] always returns the first value,
 //! which would be the user's value.
+//!
+//! Values can have quotes if you want escape codes or multiple lines.
+//! Supported escape sequences are newlines, carriage returns, both quotes, and
+//! line breaks.
+//!
+//! ```rust
+//! let source = r#"
+//! ## both single and double quotes work
+//! i can
+//!     ## with parse_quoted(), expands to the rust string "show\nyou"
+//!     'show\nyou'
+//!     ## backslash followed by newline replaces all following whitespace
+//!     ## except newlines with one space character. expands to "the world"
+//!     "the \
+//!     world"
+//!
+//! ## results in a single value for jingle = jangle
+//! jingle
+//!     jangle
+//!     "jangle"
+//!     'jangle'
+//! "#;
+//! let config = nccl::parse_config(&source).unwrap();
+//! assert_eq!(1, config["jingle"].values().count());
+//! assert_eq!(
+//!     Ok(vec![String::from("show\nyou"), String::from("the world")]),
+//!     config["i can"]
+//!         .children()
+//!         .map(|value| value.parse_quoted())
+//!         .collect::<Result<Vec<_>, _>>()
+//! );
+//! ```
 
 pub mod config;
 mod parser;
@@ -381,5 +448,12 @@ does this work?
             config["hello"].child().unwrap().parse_quoted().unwrap(),
             "people of the earth\nhow's it doing?\""
         );
+    }
+
+    #[test]
+    fn quote() {
+        let config = read_to_string("examples/quote.nccl").unwrap();
+        let config = parse_config(&config).unwrap();
+        assert_eq!(config["howdy"].values().collect::<Vec<_>>(), vec!["hello"]);
     }
 }

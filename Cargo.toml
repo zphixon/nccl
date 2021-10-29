@@ -1,6 +1,6 @@
 [package]
 name = 'nccl'
-version = '3.0.0'
+version = '4.0.0'
 authors = ['Zack <zphixon@gmail.com>']
 description = 'Minimal configuration file format and library.'
 documentation = 'https://docs.rs/nccl'

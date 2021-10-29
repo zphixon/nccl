@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenKind {
     Value,
+    QuotedValue,
     Tabs(u8),
     Spaces(u8),
     EOF,
