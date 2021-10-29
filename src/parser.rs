@@ -3,7 +3,7 @@ use crate::token::{Token, TokenKind};
 use crate::Config;
 use crate::NcclError;
 
-pub(crate) const TOP_LEVEL_KEY: &'static str = "__top_level__";
+pub(crate) const TOP_LEVEL_KEY: &str = "__top_level__";
 
 #[derive(Clone, Copy)]
 enum Indent {
@@ -78,7 +78,7 @@ pub(crate) fn parse_with<'a>(
 ) -> Result<Config<'a>, NcclError> {
     let mut config = original.clone();
 
-    while scanner.peek_token(0)?.kind != TokenKind::EOF {
+    while scanner.peek_token(0)?.kind != TokenKind::Eof {
         parse_kv(scanner, Indent::TopLevel, &mut config)?;
     }
 

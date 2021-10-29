@@ -116,17 +116,17 @@ impl<'a> Config<'a> {
     /// );
     /// ```
     pub fn child(&self) -> Option<&Config<'a>> {
-        self.children().nth(0)
+        self.children().next()
     }
 
     /// Iterator for the child values of a node.
     pub fn values(&self) -> impl Iterator<Item = &str> {
-        self.value.keys().map(|s| *s)
+        self.value.keys().copied()
     }
 
     /// The first child value of a node.
     pub fn value(&self) -> Option<&'a str> {
-        self.value.iter().nth(0).map(|opt| *opt.0)
+        self.value.iter().next().map(|opt| *opt.0)
     }
 
     fn pretty_print(&self) -> String {

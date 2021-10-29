@@ -25,7 +25,7 @@ impl<'a> Scanner<'a> {
 
     #[cfg(test)]
     pub(crate) fn scan_all(mut self) -> Result<Vec<Token<'a>>, NcclError> {
-        while self.next()?.kind != TokenKind::EOF {}
+        while self.next()?.kind != TokenKind::Eof {}
         Ok(self.tokens.drain(0..).collect())
     }
 
@@ -56,7 +56,7 @@ impl<'a> Scanner<'a> {
                 b'\0' => {
                     self.start = 0;
                     self.current = 0;
-                    self.add_token(TokenKind::EOF)?;
+                    self.add_token(TokenKind::Eof)?;
                     return Ok(&self.tokens[self.tokens.len() - 1]);
                 }
 
@@ -252,7 +252,7 @@ mod test {
         use super::TokenKind::*;
         let file = std::fs::read_to_string("examples/empty.nccl").unwrap();
         let tokens = get_all(&file);
-        assert_eq!(tokens, vec![(EOF, "")]);
+        assert_eq!(tokens, vec![(Eof, "")]);
     }
 
     #[test]
@@ -260,7 +260,7 @@ mod test {
         use super::TokenKind::*;
         let file = std::fs::read_to_string("examples/funky-indent.nccl").unwrap();
         let tokens = get_all(&file);
-        assert_eq!(tokens, vec![(Value, "a"), (Value, "b"), (EOF, "")]);
+        assert_eq!(tokens, vec![(Value, "a"), (Value, "b"), (Eof, "")]);
     }
 
     #[test]
@@ -280,7 +280,7 @@ mod test {
                 (Tabs(2), "\t\t"), (Value, "123"),
                 (Tabs(1), "\t"), (Value, "hopefully"),
                 (Tabs(2), "\t\t"), (Value, "tabs work"),
-                (EOF, ""),
+                (Eof, ""),
             ]
         );
     }
@@ -307,7 +307,7 @@ mod test {
                 (Tabs(1), "\t"), (QuotedValue, "k"),
                 (Tabs(1), "\t"), (QuotedValue, "m"),
                 (Value, "o"),
-                (EOF, ""),
+                (Eof, ""),
             ]
         );
     }

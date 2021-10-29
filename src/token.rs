@@ -4,7 +4,7 @@ pub enum TokenKind {
     QuotedValue,
     Tabs(usize),
     Spaces(usize),
-    EOF,
+    Eof,
 }
 
 #[derive(Debug, PartialEq, Clone)]
