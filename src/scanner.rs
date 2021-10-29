@@ -1,4 +1,4 @@
-use crate::token::{Span, Token, TokenKind};
+use crate::token::{QuoteKind, Span, Token, TokenKind};
 use crate::NcclError;
 use std::collections::VecDeque;
 
@@ -164,7 +164,11 @@ impl<'a> Scanner<'a> {
             return Err(NcclError::UnterminatedString { start });
         }
 
-        self.add_token(TokenKind::QuotedValue)?;
+        self.add_token(TokenKind::QuotedValue(match quote {
+            b'\'' => QuoteKind::Single,
+            b'"' => QuoteKind::Double,
+            _ => unreachable!(),
+        }))?;
 
         // go past the last quote
         self.advance_char();
@@ -304,8 +308,8 @@ mod test {
                 (Spaces(2), "  "), (Value, "f"),
                 (Value, "h"),
                 (Tabs(1), "\t"), (Value, "i # j"),
-                (Tabs(1), "\t"), (QuotedValue, "k"),
-                (Tabs(1), "\t"), (QuotedValue, "m"),
+                (Tabs(1), "\t"), (QuotedValue(QuoteKind::Double), "k"),
+                (Tabs(1), "\t"), (QuotedValue(QuoteKind::Single), "m"),
                 (Value, "o"),
                 (Eof, ""),
             ]

@@ -440,6 +440,8 @@ does this work?
                 .map(|config| config.parse_quoted())
                 .collect::<Result<Vec<_>, _>>()
         );
+        assert_eq!(Some(token::QuoteKind::Double), config["h"]["k"].quotes);
+        assert_eq!(Some(token::QuoteKind::Single), config["h"]["m"].quotes);
     }
 
     #[test]
@@ -449,6 +451,10 @@ does this work?
         assert_eq!(
             config["hello"].child().unwrap().parse_quoted().unwrap(),
             "people of the earth\nhow's it doing?\""
+        );
+        assert_eq!(
+            config["hello"].child().unwrap().quotes,
+            Some(token::QuoteKind::Double)
         );
     }
 

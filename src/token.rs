@@ -1,7 +1,13 @@
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum QuoteKind {
+    Single,
+    Double,
+}
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenKind {
     Value,
-    QuotedValue,
+    QuotedValue(QuoteKind),
     Tabs(usize),
     Spaces(usize),
     Eof,

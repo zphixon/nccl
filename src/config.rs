@@ -1,5 +1,6 @@
 //! Contains the configuration struct
 
+use crate::token::QuoteKind;
 use crate::NcclError;
 
 use std::hash::{Hash, Hasher};
@@ -58,7 +59,7 @@ pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Config<'a> {
-    pub(crate) quoted: bool,
+    pub(crate) quotes: Option<QuoteKind>,
     pub(crate) key: &'a str,
     pub(crate) value: HashMap<&'a str, Config<'a>>,
 }
@@ -70,9 +71,9 @@ impl Hash for Config<'_> {
 }
 
 impl<'a> Config<'a> {
-    pub(crate) fn new(key: &'a str, quoted: bool) -> Self {
+    pub(crate) fn new(key: &'a str, quotes: Option<QuoteKind>) -> Self {
         Config {
-            quoted,
+            quotes,
             key,
             value: make_map(),
         }
@@ -83,7 +84,7 @@ impl<'a> Config<'a> {
     }
 
     pub fn quoted(&self) -> bool {
-        self.quoted
+        self.quotes.is_some()
     }
 
     /// Check whether the config has the node.
@@ -150,7 +151,7 @@ impl<'a> Config<'a> {
     ///
     /// See [`Config::child`].
     pub fn parse_quoted(&self) -> Result<String, NcclError> {
-        if !self.quoted {
+        if !self.quoted() {
             Ok(String::from(self.key))
         } else {
             let mut value = Vec::with_capacity(self.key.len());
@@ -234,30 +235,60 @@ mod test {
     fn quoted() {
         let s = "hello\\\n   world";
 
-        assert_eq!(Config::new(s, true).parse_quoted().unwrap(), "helloworld");
+        assert_eq!(
+            Config::new(s, Some(QuoteKind::Single))
+                .parse_quoted()
+                .unwrap(),
+            "helloworld"
+        );
 
         let s = "hello \\\n  world";
-        assert_eq!(Config::new(s, true).parse_quoted().unwrap(), "hello world");
+        assert_eq!(
+            Config::new(s, Some(QuoteKind::Single))
+                .parse_quoted()
+                .unwrap(),
+            "hello world"
+        );
 
         let s = "hello\\\n\tworld";
-        assert_eq!(Config::new(s, true).parse_quoted().unwrap(), "helloworld");
+        assert_eq!(
+            Config::new(s, Some(QuoteKind::Single))
+                .parse_quoted()
+                .unwrap(),
+            "helloworld"
+        );
 
         let s = "hello \\\n\tworld";
-        assert_eq!(Config::new(s, true).parse_quoted().unwrap(), "hello world");
+        assert_eq!(
+            Config::new(s, Some(QuoteKind::Single))
+                .parse_quoted()
+                .unwrap(),
+            "hello world"
+        );
 
         let s = r#"\"\"\"\""#;
-        assert_eq!(Config::new(s, true).parse_quoted().unwrap(), "\"\"\"\"");
+        assert_eq!(
+            Config::new(s, Some(QuoteKind::Single))
+                .parse_quoted()
+                .unwrap(),
+            "\"\"\"\""
+        );
 
         let s = r#"\'\'\'\'"#;
-        assert_eq!(Config::new(s, true).parse_quoted().unwrap(), "''''");
+        assert_eq!(
+            Config::new(s, Some(QuoteKind::Single))
+                .parse_quoted()
+                .unwrap(),
+            "''''"
+        );
     }
 
     #[test]
     fn single_file() {
         let s = std::fs::read_to_string("examples/config.nccl").unwrap();
-        let mut c = Config::new(&s[0..3], false);
+        let mut c = Config::new(&s[0..3], None);
         c.add_child(Config {
-            quoted: false,
+            quotes: None,
             key: &s[3..6],
             value: make_map(),
         });
@@ -265,11 +296,11 @@ mod test {
         assert_eq!(
             c,
             Config {
-                quoted: false,
+                quotes: None,
                 key: "ser",
                 value: {
                     let mut map = make_map();
-                    map.insert("ver", Config::new("ver", false));
+                    map.insert("ver", Config::new("ver", None));
                     map
                 }
             }
@@ -279,11 +310,11 @@ mod test {
     #[test]
     fn multi_file() {
         let s1 = std::fs::read_to_string("examples/config.nccl").unwrap();
-        let mut c = Config::new(&s1[0..3], false);
+        let mut c = Config::new(&s1[0..3], None);
 
         let s2 = std::fs::read_to_string("examples/config_dos.nccl").unwrap();
         c.add_child(Config {
-            quoted: false,
+            quotes: None,
             key: &s2[3..6],
             value: make_map(),
         });
@@ -291,11 +322,11 @@ mod test {
         assert_eq!(
             c,
             Config {
-                quoted: false,
+                quotes: None,
                 key: "ser",
                 value: {
                     let mut map = make_map();
-                    map.insert("ver", Config::new("ver", false));
+                    map.insert("ver", Config::new("ver", None));
                     map
                 }
             }
