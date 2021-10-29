@@ -1,59 +1,75 @@
-use std::fmt;
+use crate::token::{Span, TokenKind};
+use std::fmt::Formatter;
 
-#[derive(Debug, PartialEq, Clone)]
-/// Kinds of nccl errors.
-pub enum ErrorKind {
-    KeyNotFound,
-    Indentation,
-    Into,
-    Name,
-    NoValue,
-    MultipleValues,
-    Parse,
-    FromStr,
-    File,
-    Utf8 { err: std::string::FromUtf8Error },
-    Io,
-}
+use std::str::Utf8Error;
+use std::string::FromUtf8Error;
 
 #[derive(Debug, PartialEq)]
-/// nccl error type.
-pub struct NcclError {
-    kind: ErrorKind,
-    line: u64,
-    message: String,
+/// Kinds of nccl errors.
+pub enum NcclError {
+    UnexpectedToken {
+        span: Span,
+        expected: TokenKind,
+        got: TokenKind,
+    },
+    UnterminatedString {
+        start: usize,
+    },
+    TrailingCharacters {
+        line: usize,
+    },
+    ScanUnknownEscape {
+        line: usize,
+        column: usize,
+        escape: char,
+    },
+    ParseUnknownEscape {
+        escape: char,
+    },
+    Utf8 {
+        err: Utf8Error,
+    },
 }
 
-impl NcclError {
-    /// Creates a new NcclError.
-    pub fn new(kind: ErrorKind, message: &str, line: u64) -> Self {
-        NcclError {
-            message: match kind {
-                ErrorKind::Parse | ErrorKind::Indentation => format!(
-                    "An error has ocurred: {:?} on line {}\n\t{}",
-                    kind, line, message
-                ),
-                _ => format!("An error has ocurred: {:?}\n\t{}", kind, message),
-            },
-            kind,
-            line,
+impl std::fmt::Display for NcclError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NcclError::UnexpectedToken {
+                span,
+                expected,
+                got,
+            } => write!(
+                f,
+                "expected {:?}, got {:?} at {}:{}",
+                expected, got, span.line, span.column,
+            ),
+            NcclError::UnterminatedString { start } => {
+                write!(f, "unterminated string starting on line {}", start)
+            }
+            NcclError::TrailingCharacters { line } => {
+                write!(f, "characters after string on line {}", line)
+            }
+            NcclError::ScanUnknownEscape {
+                escape,
+                line,
+                column,
+            } => write!(f, "unknown escape {:?} at {}:{}", escape, line, column),
+            NcclError::ParseUnknownEscape { escape } => write!(f, "unknown escape {:?}", escape),
+            NcclError::Utf8 { err } => write!(f, "{}", err),
         }
     }
 }
 
-impl fmt::Display for NcclError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.kind {
-            ErrorKind::Parse | ErrorKind::Indentation => write!(
-                f,
-                "An error has ocurred: {:?} on line {}\n\t{}",
-                self.kind, self.line, self.message
-            ),
-            _ => write!(
-                f,
-                "An error has ocurred: {:?}\n\t{}",
-                self.kind, self.message
-            ),
+impl From<Utf8Error> for NcclError {
+    fn from(err: Utf8Error) -> Self {
+        NcclError::Utf8 { err }
+    }
+}
+
+impl From<FromUtf8Error> for NcclError {
+    fn from(err: FromUtf8Error) -> Self {
+        NcclError::Utf8 {
+            err: err.utf8_error(),
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::error::{ErrorKind, NcclError};
+use crate::error::NcclError;
 use crate::token::{Span, Token, TokenKind};
 use std::collections::VecDeque;
 
@@ -124,9 +124,9 @@ impl<'a> Scanner<'a> {
     }
 
     fn string(&mut self, quote: u8) -> Result<(), NcclError> {
-        // go past the first quote
-        self.advance_char();
+        let start = self.line;
 
+        self.advance_char();
         while self.peek_char() != quote && !self.is_at_end() {
             if self.peek_char() == b'\n' {
                 self.line += 1;
@@ -146,16 +146,20 @@ impl<'a> Scanner<'a> {
                     }
 
                     _ => {
-                        return Err(NcclError::new(
-                            ErrorKind::Parse,
-                            &format!("Unknown format code: {}", self.peek_char()),
-                            self.line as u64,
-                        ))
+                        return Err(NcclError::ScanUnknownEscape {
+                            escape: self.peek_char() as char,
+                            line: self.line,
+                            column: self.column,
+                        });
                     }
                 }
             }
 
             self.advance_char();
+        }
+
+        if self.is_at_end() {
+            return Err(NcclError::UnterminatedString { start });
         }
 
         // go past the last quote
@@ -177,11 +181,7 @@ impl<'a> Scanner<'a> {
         } else if self.peek_char() == b'#' {
             self.until_newline();
         } else {
-            return Err(NcclError::new(
-                ErrorKind::Parse,
-                "expected whitespace then comment or newline after string",
-                self.line as u64,
-            ));
+            return Err(NcclError::TrailingCharacters { line: self.line });
         }
 
         Ok(())
@@ -218,8 +218,7 @@ impl<'a> Scanner<'a> {
 
     fn add_token(&mut self, kind: TokenKind) -> Result<(), NcclError> {
         // TODO str::from_utf8 returns a different error than String::from_utf8?? why????????
-        let lexeme = std::str::from_utf8(&self.source[self.start..self.current])
-            .map_err(|_err| NcclError::new(ErrorKind::Io, "invalid UTF-8", self.line as u64))?;
+        let lexeme = std::str::from_utf8(&self.source[self.start..self.current])?;
 
         self.tokens.push_back(Token {
             kind,

@@ -1,4 +1,4 @@
-use crate::error::{ErrorKind, NcclError};
+use crate::error::NcclError;
 
 use std::hash::{Hash, Hasher};
 use std::ops::Index;
@@ -120,11 +120,9 @@ impl<'key, 'value> Config<'key, 'value> {
                         }
 
                         _ => {
-                            return Err(NcclError::new(
-                                ErrorKind::Parse,
-                                &format!("Unknown format code: {:?}", bytes[i] as char),
-                                0,
-                            ))
+                            return Err(NcclError::ParseUnknownEscape {
+                                escape: bytes[i] as char,
+                            });
                         }
                     }
                 } else {
@@ -133,8 +131,7 @@ impl<'key, 'value> Config<'key, 'value> {
                 }
             }
 
-            String::from_utf8(value)
-                .map_err(|err| NcclError::new(ErrorKind::Utf8 { err }, "invalid utf8", 0))
+            Ok(String::from_utf8(value)?)
         } else {
             Ok(self.key.to_string())
         }

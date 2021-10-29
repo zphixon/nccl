@@ -1,4 +1,4 @@
-use crate::error::{ErrorKind, NcclError};
+use crate::error::NcclError;
 use crate::scanner::Scanner;
 use crate::token::{Token, TokenKind};
 use crate::Config;
@@ -122,11 +122,11 @@ fn consume<'a>(scanner: &mut Scanner<'a>, kind: TokenKind) -> Result<Token<'a>, 
     if tok.kind == kind {
         Ok(tok)
     } else {
-        Err(NcclError::new(
-            ErrorKind::Parse,
-            &format!("expected {:?}, got {:?}", kind, tok),
-            scanner.line as u64,
-        ))
+        Err(NcclError::UnexpectedToken {
+            span: tok.span,
+            expected: kind,
+            got: tok.kind,
+        })
     }
 }
 

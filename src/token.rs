@@ -7,9 +7,9 @@ pub enum TokenKind {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) struct Span {
-    pub(crate) line: usize,
-    pub(crate) column: usize,
+pub struct Span {
+    pub line: usize,
+    pub column: usize,
 }
 
 #[derive(Debug, PartialEq, Clone)]
