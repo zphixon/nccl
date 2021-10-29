@@ -3,7 +3,7 @@ use crate::scanner::Scanner;
 use crate::token::{Token, TokenKind};
 use crate::Config;
 
-pub const TOP_LEVEL_KEY: &'static str = "__top_level__";
+pub(crate) const TOP_LEVEL_KEY: &'static str = "__top_level__";
 
 #[derive(Clone, Copy)]
 enum Indent {

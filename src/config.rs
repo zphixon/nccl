@@ -1,3 +1,5 @@
+//! Contains the configuration struct
+
 use crate::error::NcclError;
 
 use std::hash::{Hash, Hasher};
@@ -5,12 +7,55 @@ use std::ops::Index;
 
 use indexmap::IndexMap;
 
+/// Type alias for an [`IndexMap`], a hash map where insertion order is preserved.
 pub type HashMap<K, V> = IndexMap<K, V, fnv::FnvBuildHasher>;
 
 pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
     HashMap::with_hasher(fnv::FnvBuildHasher::default())
 }
 
+/// A nccl configuration
+///
+/// Index with `&'static str`.
+///
+/// e.g.
+/// ```
+/// # use nccl::*;
+/// // config.nccl:
+/// // server
+/// //     domain
+/// //         example.com
+/// //         www.example.com
+/// //     port
+/// //         80
+/// //         443
+/// //     root
+/// //         /var/www/html
+///
+/// let content = std::fs::read_to_string("examples/config.nccl").unwrap();
+/// let config = parse_config(&content).unwrap();
+///
+/// // get a single value
+/// assert_eq!(Some("/var/www/html"), config["server"]["root"].value());
+///
+/// // value always returns the first value
+/// assert_eq!(Some("example.com"), config["server"]["domain"].value());
+///
+/// // get multiple values
+/// assert_eq!(
+///     vec!["example.com", "www.example.com"],
+///     config["server"]["domain"].values().collect::<Vec<_>>()
+/// );
+///
+/// // parse multiple values
+/// assert_eq!(
+///     Ok(vec![80, 443]),
+///     config["server"]["port"]
+///         .values()
+///         .map(|value| value.parse::<u16>())
+///         .collect::<Result<Vec<_>, _>>()
+/// );
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Config<'key, 'value>
 where
@@ -27,7 +72,7 @@ impl Hash for Config<'_, '_> {
 }
 
 impl<'key, 'value> Config<'key, 'value> {
-    pub fn new(key: &'key str) -> Self {
+    pub(crate) fn new(key: &'key str) -> Self {
         Config {
             key,
             value: make_map(),
@@ -38,27 +83,50 @@ impl<'key, 'value> Config<'key, 'value> {
         self.value.insert(child.key, child);
     }
 
+    /// Check whether the config has the value.
     pub fn has_value(&self, value: &str) -> bool {
         self.value.contains_key(value)
     }
 
+    /// Iterator for the children of a value.
     pub fn children(&self) -> impl Iterator<Item = &Config<'value, 'value>> {
         self.value.values()
     }
 
+    /// The first value of the key.
+    ///
+    /// ```
+    /// # use nccl::*;
+    /// // excerpt of long.nccl:
+    /// // strings
+    /// //    in which case
+    /// //       "just\nuse quotes"
+    /// let source = std::fs::read_to_string("examples/long.nccl").unwrap();
+    /// let config = parse_config(&source).unwrap();
+    /// assert_eq!(
+    ///     "just\nuse quotes",
+    ///     config["strings"]["in which case:"]
+    ///         .child()
+    ///         .unwrap()
+    ///         .parse_quoted()
+    ///         .unwrap()
+    /// );
+    /// ```
     pub fn child(&self) -> Option<&Config<'value, 'value>> {
         self.children().nth(0)
     }
 
+    /// Iterator for the values of a key.
     pub fn values(&self) -> impl Iterator<Item = &str> {
         self.value.keys().map(|s| *s)
     }
 
+    /// The first value of a key.
     pub fn value(&self) -> Option<&'value str> {
         self.value.iter().nth(0).map(|opt| *opt.0)
     }
 
-    pub fn pretty_print(&self) -> String {
+    fn pretty_print(&self) -> String {
         self.pp(0)
     }
 
@@ -75,6 +143,9 @@ impl<'key, 'value> Config<'key, 'value> {
         s
     }
 
+    /// Parse the string including escape sequences if it's quoted.
+    ///
+    /// See [`Config::child`].
     pub fn parse_quoted(&self) -> Result<String, NcclError> {
         if self.key.starts_with('"') || self.key.starts_with('\'') {
             let mut value = Vec::with_capacity(self.key.len() - 2);
@@ -143,6 +214,12 @@ impl<'a> Index<&str> for Config<'a, 'a> {
 
     fn index(&self, index: &str) -> &Self::Output {
         &self.value[index]
+    }
+}
+
+impl ToString for Config<'_, '_> {
+    fn to_string(&self) -> String {
+        self.pretty_print()
     }
 }
 

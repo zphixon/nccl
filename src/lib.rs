@@ -4,24 +4,85 @@
 //! It's as easy as five cents.
 //!
 //! Nccl was motivated by the fact that other configuration languages are too
-//! complicated for end-users. Strict enforcement of data types is a hassle for
-//! people who just want stuff to do things. In nccl's case, simply inferring
-//! the data type is a great middle ground between user and developer comfort.
+//! complicated for both end-users and developers. Everyone loves types, but
+//! in a configuration language, there's too much room for interpretation ( ).
+//! There are no types here.
+//!
+//! This is a nice approach for smaller, non-semantic configurations; you
+//! shouldn't be accidentally implementing a DSL with nccl, and if you are, it
+//! should feel painful.
 
 pub mod config;
 pub mod error;
-pub mod parser;
-pub mod scanner;
-pub mod token;
+mod parser;
+mod scanner;
+mod token;
 
 pub use config::Config;
 pub use error::NcclError;
 
+/// Parse a nccl configuration
+///
+/// e.g.
+/// ```
+/// # use nccl::*;
+/// // config.nccl:
+/// // server
+/// //     domain
+/// //         example.com
+/// //         www.example.com
+/// //     port
+/// //         80
+/// //         443
+/// //     root
+/// //         /var/www/html
+///
+/// // read the config file
+/// let content = std::fs::read_to_string("examples/config.nccl").unwrap();
+///
+/// // parse it
+/// let config = parse_config(&content).unwrap();
+///
+/// // look ma, no types!
+/// assert_eq!(config["server"]["root"].value(), Some("/var/www/html"));
+/// ```
 pub fn parse_config(content: &str) -> Result<Config, NcclError> {
     let mut scanner = scanner::Scanner::new(content);
     parser::parse(&mut scanner)
 }
 
+/// Parse a new nccl configuration on top of another
+///
+/// e.g.
+/// ```
+/// # use nccl::*;
+/// // user.nccl:
+/// // beans
+/// //    four
+///
+/// // default.nccl:
+/// // frog
+/// //     yes
+/// // beans
+/// //     none
+///
+/// // first get the user config
+/// let user = std::fs::read_to_string("examples/user.nccl").unwrap();
+/// let user_config = parse_config(&user).unwrap();
+///
+/// // then merge the default config on top of the user config
+/// let default = std::fs::read_to_string("examples/default.nccl").unwrap();
+/// let combined_config = parse_config_with(&user_config, &default).unwrap();
+///
+/// // with value(), the first key inserted is returned. since we read the user
+/// // config first, the user-supplied value is first, overriding the default.
+/// assert_eq!(combined_config["beans"].value(), Some("four"));
+/// // "beans" now has two values
+/// assert_eq!(combined_config["beans"].values().count(), 2);
+///
+/// // and the unmodified key remains
+/// assert_eq!(combined_config["frog"].value(), Some("yes"));
+/// ```
 pub fn parse_config_with<'orig, 'new>(
     config: &Config<'orig, 'orig>,
     content: &'new str,
