@@ -16,7 +16,7 @@ pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
 
 /// A nccl configuration
 ///
-/// Index with `&'static str`.
+/// Indexable with `&str`.
 ///
 /// e.g.
 /// ```
