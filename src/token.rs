@@ -4,6 +4,15 @@ pub enum QuoteKind {
     Double,
 }
 
+impl QuoteKind {
+    pub(crate) fn char(&self) -> char {
+        match self {
+            QuoteKind::Single => '\'',
+            QuoteKind::Double => '\"',
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenKind {
     Value,

@@ -94,12 +94,10 @@ fn parse_kv<'a>(
     let mut node = {
         if parent.has_value(value.lexeme) {
             parent[value.lexeme].clone()
+        } else if let TokenKind::QuotedValue(kind) = value.kind {
+            Config::new(value.lexeme, Some(kind))
         } else {
-            if let TokenKind::QuotedValue(kind) = value.kind {
-                Config::new(value.lexeme, Some(kind))
-            } else {
-                Config::new(value.lexeme, None)
-            }
+            Config::new(value.lexeme, None)
         }
     };
 

@@ -1,5 +1,6 @@
 //! Contains the configuration struct
 
+use crate::parser::TOP_LEVEL_KEY;
 use crate::token::QuoteKind;
 use crate::NcclError;
 
@@ -136,11 +137,19 @@ impl<'a> Config<'a> {
 
     fn pp(&self, indent: usize) -> String {
         let mut s = String::new();
-        for _ in 0..indent {
-            s.push_str("    ");
+        if self.key != TOP_LEVEL_KEY && indent != 0 {
+            for _ in 0..indent - 1 {
+                s.push_str("    ");
+            }
+            if let Some(quote) = self.quotes {
+                s.push(quote.char());
+            }
+            s.push_str(self.key);
+            if let Some(quote) = self.quotes {
+                s.push(quote.char());
+            }
+            s.push('\n');
         }
-        s.push_str(self.key);
-        s.push('\n');
         for (_, v) in self.value.iter() {
             s.push_str(&v.pp(indent + 1));
         }
@@ -331,5 +340,20 @@ mod test {
                 }
             }
         )
+    }
+
+    #[test]
+    fn to_string() {
+        let orig_source = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
+        println!("orig\n{}", orig_source);
+        let orig_config = crate::parse_config(&orig_source).unwrap();
+        println!("{:#?}\n\n\n", orig_config);
+
+        let new_source = orig_config.to_string();
+        println!("new\n{}", new_source);
+        let new_config = crate::parse_config(&new_source).unwrap();
+        println!("{:#?}\n\n\n", new_config);
+
+        assert_eq!(new_config, orig_config);
     }
 }
