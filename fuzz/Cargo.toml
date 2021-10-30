@@ -23,3 +23,9 @@ name = "fuzz_target_1"
 path = "fuzz_targets/fuzz_target_1.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "escapes"
+path = "fuzz_targets/escapes.rs"
+test = false
+doc = false
