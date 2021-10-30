@@ -1,7 +1,7 @@
 //! Contains the configuration struct
 
 use crate::parser::TOP_LEVEL_KEY;
-use crate::token::QuoteKind;
+use crate::scanner::QuoteKind;
 use crate::NcclError;
 
 use std::hash::{Hash, Hasher};

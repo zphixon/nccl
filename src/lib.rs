@@ -152,11 +152,10 @@
 pub mod config;
 mod parser;
 mod scanner;
-mod token;
 
 pub use config::Config;
 
-use crate::token::{Span, TokenKind};
+use scanner::{Span, TokenKind};
 
 use std::str::Utf8Error;
 use std::string::FromUtf8Error;
@@ -440,8 +439,8 @@ does this work?
                 .map(|config| config.parse_quoted())
                 .collect::<Result<Vec<_>, _>>()
         );
-        assert_eq!(Some(token::QuoteKind::Double), config["h"]["k"].quotes);
-        assert_eq!(Some(token::QuoteKind::Single), config["h"]["m"].quotes);
+        assert_eq!(Some(scanner::QuoteKind::Double), config["h"]["k"].quotes);
+        assert_eq!(Some(scanner::QuoteKind::Single), config["h"]["m"].quotes);
     }
 
     #[test]
@@ -454,7 +453,7 @@ does this work?
         );
         assert_eq!(
             config["hello"].child().unwrap().quotes,
-            Some(token::QuoteKind::Double)
+            Some(scanner::QuoteKind::Double)
         );
     }
 

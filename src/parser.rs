@@ -1,5 +1,5 @@
 use crate::scanner::Scanner;
-use crate::token::{Token, TokenKind};
+use crate::scanner::{Token, TokenKind};
 use crate::Config;
 use crate::NcclError;
 

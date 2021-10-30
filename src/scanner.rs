@@ -1,6 +1,43 @@
-use crate::token::{QuoteKind, Span, Token, TokenKind};
 use crate::NcclError;
+
 use std::collections::VecDeque;
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum QuoteKind {
+    Single,
+    Double,
+}
+
+impl QuoteKind {
+    pub(crate) fn char(&self) -> char {
+        match self {
+            QuoteKind::Single => '\'',
+            QuoteKind::Double => '\"',
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum TokenKind {
+    Value,
+    QuotedValue(QuoteKind),
+    Tabs(usize),
+    Spaces(usize),
+    Eof,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Span {
+    pub line: usize,
+    pub column: usize,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub(crate) struct Token<'a> {
+    pub(crate) kind: TokenKind,
+    pub(crate) lexeme: &'a str,
+    pub(crate) span: Span,
+}
 
 pub(crate) struct Scanner<'a> {
     source: &'a [u8],
