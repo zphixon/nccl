@@ -3,6 +3,7 @@ use crate::NcclError;
 use std::collections::VecDeque;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[cfg_attr(fuzzing, derive(arbitrary::Arbitrary))]
 pub enum QuoteKind {
     Single,
     Double,

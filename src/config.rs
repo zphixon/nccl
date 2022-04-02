@@ -7,13 +7,24 @@ use crate::NcclError;
 use std::hash::{Hash, Hasher};
 use std::ops::Index;
 
+#[cfg(not(fuzzing))]
 use indexmap::IndexMap;
 
 /// Type alias for an [`IndexMap`], a hash map where insertion order is preserved.
+#[cfg(not(fuzzing))]
 pub type HashMap<K, V> = IndexMap<K, V, fnv::FnvBuildHasher>;
 
+#[cfg(not(fuzzing))]
 pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
     HashMap::with_hasher(fnv::FnvBuildHasher::default())
+}
+
+#[cfg(fuzzing)]
+pub type HashMap<K, V> = std::collections::HashMap<K, V>;
+
+#[cfg(fuzzing)]
+pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
+    HashMap::default()
 }
 
 /// A nccl configuration
@@ -59,6 +70,7 @@ pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
 /// );
 /// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[cfg_attr(fuzzing, derive(arbitrary::Arbitrary))]
 pub struct Config<'a> {
     pub(crate) quotes: Option<QuoteKind>,
     pub(crate) key: &'a str,
@@ -158,8 +170,15 @@ impl<'a> Config<'a> {
 
     /// Parse the string including escape sequences if it's quoted.
     ///
-    /// See [`Config::child`].
+    /// Note [`NcclError`] variants produced by this method report the line number as zero. This
+    /// behavior is fixed in version 5.1.0. I consider this a non-breaking change because the
+    /// current behavior cannot be relied upon for useful logical properties, unless you're using
+    /// the zero value produced for some mathematical calculation (in which case I think you
+    /// deserve to have your stuff break).
+    ///
+    /// Operates on the first child of the node. See [`Config::child`].
     pub fn parse_quoted(&self) -> Result<String, NcclError> {
+        // TODO use a library for this garbage
         if !self.quoted() {
             Ok(String::from(self.key))
         } else {
@@ -171,6 +190,11 @@ impl<'a> Config<'a> {
             while i < bytes.len() {
                 if bytes[i] == b'\\' {
                     i += 1;
+                    if i >= bytes.len() {
+                        // TODO get the right start point
+                        return Err(NcclError::UnterminatedString { start: 0 });
+                    }
+
                     match bytes[i] {
                         // \n
                         b'n' => {
@@ -200,8 +224,19 @@ impl<'a> Config<'a> {
                         //       more stuff
                         b'\r' | b'\n' => {
                             i += 1;
+
+                            if i >= bytes.len() {
+                                // TODO get the right start point
+                                return Err(NcclError::UnterminatedString { start: 0 });
+                            }
+
                             while bytes[i] == b' ' || bytes[i] == b'\t' {
                                 i += 1;
+
+                                if i >= bytes.len() {
+                                    // TODO get the right start point
+                                    return Err(NcclError::UnterminatedString { start: 0 });
+                                }
                             }
                         }
 
@@ -290,6 +325,12 @@ mod test {
                 .unwrap(),
             "''''"
         );
+
+        let s = r#"\\\"#;
+        assert!(dbg!(Config::new(s, Some(QuoteKind::Single)).parse_quoted()).is_err());
+
+        let s = "\\\r\t";
+        assert!(dbg!(Config::new(s, Some(QuoteKind::Single)).parse_quoted()).is_err());
     }
 
     #[test]
