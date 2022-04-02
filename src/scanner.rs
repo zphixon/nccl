@@ -27,7 +27,8 @@ pub enum TokenKind {
     Eof,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Default)]
+#[cfg_attr(fuzzing, derive(arbitrary::Arbitrary))]
 pub struct Span {
     pub line: usize,
     pub column: usize,
@@ -99,6 +100,8 @@ impl<'a> Scanner<'a> {
                 }
 
                 b'\n' | b'\r' => {
+                    self.column = 0;
+                    self.line += 1;
                     self.advance_char();
                     self.start = self.current;
                 }
@@ -170,6 +173,7 @@ impl<'a> Scanner<'a> {
         while self.peek_char() != quote && !self.is_at_end() {
             if self.peek_char() == b'\n' {
                 self.line += 1;
+                self.column = 0;
             }
 
             if self.peek_char() == b'\\' {
@@ -178,6 +182,8 @@ impl<'a> Scanner<'a> {
                     b'n' | b'r' | b'\\' | b'"' => {}
 
                     b'\r' | b'\n' => {
+                        self.line += 1;
+                        self.column = 0;
                         self.advance_char();
                         while self.peek_char() == b' ' || self.peek_char() == b'\t' {
                             self.advance_char();
@@ -221,6 +227,8 @@ impl<'a> Scanner<'a> {
         }
 
         if self.peek_char() == b'\n' || self.peek_char() == b'\r' {
+            self.line += 1;
+            self.column = 0;
             self.advance_char();
         } else if self.peek_char() == b'#' {
             self.until_newline();

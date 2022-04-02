@@ -1,7 +1,7 @@
 //! Contains the configuration struct
 
 use crate::parser::TOP_LEVEL_KEY;
-use crate::scanner::QuoteKind;
+use crate::scanner::{QuoteKind, Span};
 use crate::NcclError;
 
 use std::hash::{Hash, Hasher};
@@ -69,12 +69,19 @@ pub(crate) fn make_map<K, V>() -> HashMap<K, V> {
 ///         .collect::<Result<Vec<_>, _>>()
 /// );
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq)]
 #[cfg_attr(fuzzing, derive(arbitrary::Arbitrary))]
 pub struct Config<'a> {
     pub(crate) quotes: Option<QuoteKind>,
     pub(crate) key: &'a str,
     pub(crate) value: HashMap<&'a str, Config<'a>>,
+    pub(crate) span: Span,
+}
+
+impl PartialEq for Config<'_> {
+    fn eq(&self, rhs: &Config<'_>) -> bool {
+        self.quoted() == rhs.quoted() && self.key == rhs.key && self.value == rhs.value
+    }
 }
 
 impl Hash for Config<'_> {
@@ -89,6 +96,16 @@ impl<'a> Config<'a> {
             quotes,
             key,
             value: make_map(),
+            span: Span::default(),
+        }
+    }
+
+    pub(crate) fn new_with_span(key: &'a str, span: Span, quotes: Option<QuoteKind>) -> Self {
+        Config {
+            quotes,
+            key,
+            value: make_map(),
+            span,
         }
     }
 
@@ -191,8 +208,9 @@ impl<'a> Config<'a> {
                 if bytes[i] == b'\\' {
                     i += 1;
                     if i >= bytes.len() {
-                        // TODO get the right start point
-                        return Err(NcclError::UnterminatedString { start: 0 });
+                        return Err(NcclError::UnterminatedString {
+                            start: self.span.line,
+                        });
                     }
 
                     match bytes[i] {
@@ -226,16 +244,18 @@ impl<'a> Config<'a> {
                             i += 1;
 
                             if i >= bytes.len() {
-                                // TODO get the right start point
-                                return Err(NcclError::UnterminatedString { start: 0 });
+                                return Err(NcclError::UnterminatedString {
+                                    start: self.span.line,
+                                });
                             }
 
                             while bytes[i] == b' ' || bytes[i] == b'\t' {
                                 i += 1;
 
                                 if i >= bytes.len() {
-                                    // TODO get the right start point
-                                    return Err(NcclError::UnterminatedString { start: 0 });
+                                    return Err(NcclError::UnterminatedString {
+                                        start: self.span.line,
+                                    });
                                 }
                             }
                         }
@@ -341,6 +361,7 @@ mod test {
             quotes: None,
             key: &s[3..6],
             value: make_map(),
+            span: Span::default(),
         });
 
         assert_eq!(
@@ -348,6 +369,7 @@ mod test {
             Config {
                 quotes: None,
                 key: "ser",
+                span: Span::default(),
                 value: {
                     let mut map = make_map();
                     map.insert("ver", Config::new("ver", None));
@@ -367,6 +389,7 @@ mod test {
             quotes: None,
             key: &s2[3..6],
             value: make_map(),
+            span: Span::default(),
         });
 
         assert_eq!(
@@ -374,6 +397,7 @@ mod test {
             Config {
                 quotes: None,
                 key: "ser",
+                span: Span::default(),
                 value: {
                     let mut map = make_map();
                     map.insert("ver", Config::new("ver", None));

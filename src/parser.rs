@@ -95,9 +95,9 @@ fn parse_kv<'a>(
         if parent.has_value(value.lexeme) {
             parent[value.lexeme].clone()
         } else if let TokenKind::QuotedValue(kind) = value.kind {
-            Config::new(value.lexeme, Some(kind))
+            Config::new_with_span(value.lexeme, value.span, Some(kind))
         } else {
-            Config::new(value.lexeme, None)
+            Config::new_with_span(value.lexeme, value.span, None)
         }
     };
 
@@ -158,6 +158,7 @@ fn consume<'a>(scanner: &mut Scanner<'a>, kind: TokenKind) -> Result<Token<'a>, 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::Span;
 
     macro_rules! map {
         ($($key:expr => $item:expr),*) => {
@@ -182,23 +183,28 @@ mod test {
             Config {
                 quotes: None,
                 key: TOP_LEVEL_KEY,
+                span: Span::default(),
                 value: map![
                     "jackson" => Config {
                         quotes: None,
                         key: "jackson",
+                        span: Span::default(),
                         value: map![
                             "easy" => Config {
                                 quotes: None,
                                 key: "easy",
+                                span: Span::default(),
                                 value: map![
                                     "abc" => Config {
                                         quotes: None,
                                         key: "abc",
+                                        span: Span::default(),
                                         value: map![]
                                     },
                                     "123" => Config {
                                         quotes: None,
                                         key: "123",
+                                        span: Span::default(),
                                         value: map![]
                                     }
                                 ]
@@ -206,10 +212,12 @@ mod test {
                             "hopefully" => Config {
                                 quotes: None,
                                 key: "hopefully",
+                                span: Span::default(),
                                 value: map![
                                     "tabs work" => Config {
                                         quotes: None,
                                         key: "tabs work",
+                                        span: Span::default(),
                                         value: map![]
                                     }
                                 ]
@@ -231,23 +239,28 @@ mod test {
             Config {
                 quotes: None,
                 key: TOP_LEVEL_KEY,
+                span: Span::default(),
                 value: map![
                     "server" => Config {
                         quotes: None,
                         key: "server",
+                        span: Span::default(),
                         value: map![
                             "domain" => Config {
                                 quotes: None,
                                 key: "domain",
+                                span: Span::default(),
                                 value: map![
                                     "example.com" => Config {
                                         quotes: None,
                                         key: "example.com",
+                                        span: Span::default(),
                                         value: map![]
                                     },
                                     "www.example.com" => Config {
                                         quotes: None,
                                         key: "www.example.com",
+                                        span: Span::default(),
                                         value: map![]
                                     }
                                 ]
@@ -255,15 +268,18 @@ mod test {
                             "port" => Config {
                                 quotes: None,
                                 key: "port",
+                                span: Span::default(),
                                 value: map![
                                     "80" => Config {
                                         quotes: None,
                                         key: "80",
+                                        span: Span::default(),
                                         value: map![]
                                     },
                                     "443" => Config {
                                         quotes: None,
                                         key: "443",
+                                        span: Span::default(),
                                         value: map![]
                                     }
                                 ]
@@ -271,10 +287,12 @@ mod test {
                             "root" => Config {
                                 quotes: None,
                                 key: "root",
+                                span: Span::default(),
                                 value: map![
                                     "/var/www/html" => Config {
                                         quotes: None,
                                         key: "/var/www/html",
+                                        span: Span::default(),
                                         value: map![]
                                     }
                                 ]
