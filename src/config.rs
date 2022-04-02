@@ -187,12 +187,6 @@ impl<'a> Config<'a> {
 
     /// Parse the string including escape sequences if it's quoted.
     ///
-    /// Note [`NcclError`] variants produced by this method report the line number as zero. This
-    /// behavior is fixed in version 5.1.0. I consider this a non-breaking change because the
-    /// current behavior cannot be relied upon for useful logical properties, unless you're using
-    /// the zero value produced for some mathematical calculation (in which case I think you
-    /// deserve to have your stuff break).
-    ///
     /// Operates on the first child of the node. See [`Config::child`].
     pub fn parse_quoted(&self) -> Result<String, NcclError> {
         // TODO use a library for this garbage
