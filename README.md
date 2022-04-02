@@ -9,7 +9,7 @@ It's as easy as five cents. Also not crap, which is kind of the point.
 * flexible indentation (eat it, python!)
 * merging configurations together
 
-[Crates.io](https://crates.io/crates/nccl) - [Docs](https://docs.rs/nccl/5.0.1/nccl/)
+[Crates.io](https://crates.io/crates/nccl) - [Docs](https://docs.rs/nccl/)
 
 No relation to [nickel](https://github.com/tweag/nickel) which is another very
 cool project.
