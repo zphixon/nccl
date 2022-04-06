@@ -150,6 +150,17 @@ impl<'a> Config<'a> {
         self.children().next()
     }
 
+    /// The key of the config node.
+    ///
+    /// ```
+    /// let source = "key\n value\n";
+    /// let config = nccl::parse_config(&source).unwrap();
+    /// assert_eq!(config["key"].key(), "key");
+    /// ```
+    pub fn key(&self) -> &'a str {
+        self.key
+    }
+
     /// Iterator for the child values of a node.
     pub fn values(&self) -> impl Iterator<Item = &str> {
         self.value.keys().copied()
@@ -414,5 +425,17 @@ mod test {
         println!("{:#?}\n\n\n", new_config);
 
         assert_eq!(new_config, orig_config);
+    }
+
+    #[test]
+    fn key() {
+        let source = "key\n value\n";
+        let config = crate::parse_config(&source).unwrap();
+        assert_eq!(config["key"].key(), "key");
+        assert_eq!(config.key(), TOP_LEVEL_KEY);
+
+        let orig_source = std::fs::read_to_string("examples/all-of-em.nccl").unwrap();
+        let orig_config = crate::parse_config(&orig_source).unwrap();
+        assert_eq!(orig_config["h"]["k"].key(), "k");
     }
 }
