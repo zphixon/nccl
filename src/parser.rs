@@ -309,7 +309,9 @@ mod test {
         let dir = std::fs::read_dir("examples").unwrap();
         for entry in dir {
             let entry = entry.unwrap();
-            if entry.metadata().unwrap().is_file() {
+            if entry.metadata().unwrap().is_file()
+                && entry.path().display().to_string().ends_with("nccl")
+            {
                 println!("check good: {}", entry.path().display());
                 let source = std::fs::read_to_string(entry.path()).unwrap();
                 let mut scanner = Scanner::new(&source);
