@@ -117,6 +117,10 @@ impl<'a> Config<'a> {
         self.quotes.is_some()
     }
 
+    pub fn quote_kind(&self) -> Option<QuoteKind> {
+        self.quotes
+    }
+
     /// Check whether the config has the node.
     pub fn has_value(&self, value: &str) -> bool {
         self.value.contains_key(value)
@@ -159,6 +163,18 @@ impl<'a> Config<'a> {
     /// ```
     pub fn key(&self) -> &'a str {
         self.key
+    }
+
+    /// The location in the source of this node.
+    ///
+    /// ```
+    /// let source = "key\n value\n";
+    /// let config = nccl::parse_config(&source).unwrap();
+    /// assert_eq!(config["key"].span().line, 1);
+    /// assert_eq!(config["key"].child().unwrap().span().line, 2);
+    /// ```
+    pub fn span(&self) -> Span {
+        self.span
     }
 
     /// Iterator for the child values of a node.

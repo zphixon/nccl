@@ -1,9 +1,12 @@
+//! Module containing the parser
+
 use crate::scanner::Scanner;
 use crate::scanner::{Token, TokenKind};
 use crate::Config;
 use crate::NcclError;
 
-pub(crate) const TOP_LEVEL_KEY: &str = "__top_level__";
+/// The key of the top-level node.
+pub const TOP_LEVEL_KEY: &str = "__top_level__";
 
 #[derive(Clone, Copy)]
 enum Indent {

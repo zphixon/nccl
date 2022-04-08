@@ -1,7 +1,10 @@
+//! Contains types relevant to scanning nccl sources
+
 use crate::NcclError;
 
 use std::collections::VecDeque;
 
+/// Types of quotes
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[cfg_attr(fuzzing, derive(arbitrary::Arbitrary))]
 pub enum QuoteKind {
@@ -10,7 +13,7 @@ pub enum QuoteKind {
 }
 
 impl QuoteKind {
-    pub(crate) fn char(&self) -> char {
+    pub fn char(&self) -> char {
         match self {
             QuoteKind::Single => '\'',
             QuoteKind::Double => '\"',
@@ -18,16 +21,23 @@ impl QuoteKind {
     }
 }
 
+/// Types of tokens
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenKind {
+    /// A regular value.
     Value,
+    /// A value surrounded by quotes in the source.
     QuotedValue(QuoteKind),
+    /// A run of tab (\t) characters.
     Tabs(usize),
+    /// A run of space characters, acting as potentially multiple levels of indentation.
     Spaces(usize),
+    /// The end of the source.
     Eof,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Default)]
+/// A byte location in a source
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Default)]
 #[cfg_attr(fuzzing, derive(arbitrary::Arbitrary))]
 pub struct Span {
     pub line: usize,

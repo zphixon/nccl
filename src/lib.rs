@@ -150,8 +150,8 @@
 #![allow(clippy::tabs_in_doc_comments)]
 
 pub mod config;
-mod parser;
-mod scanner;
+pub mod parser;
+pub mod scanner;
 
 pub use config::Config;
 
